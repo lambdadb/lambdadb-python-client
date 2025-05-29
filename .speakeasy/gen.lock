@@ -1,0 +1,581 @@
+lockVersion: 2.0.0
+id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
+management:
+  docChecksum: db2d99a6d2c6e83bacc658173af47f1a
+  docVersion: 1.0.0
+  speakeasyVersion: 1.552.0
+  generationVersion: 2.610.0
+  releaseVersion: 0.1.2
+  configChecksum: ae1df477c2038819321174e48e98f30e
+features:
+  python:
+    additionalDependencies: 1.0.0
+    constsAndDefaults: 1.0.5
+    core: 5.19.0
+    defaultEnabledRetries: 0.2.0
+    devContainers: 3.0.0
+    enumUnions: 0.1.0
+    envVarSecurityUsage: 0.3.2
+    examples: 3.0.1
+    flatRequests: 1.0.1
+    flattening: 3.1.1
+    globalSecurity: 3.0.3
+    globalSecurityCallbacks: 1.0.0
+    globalSecurityFlattening: 1.0.0
+    globalServerURLs: 3.1.1
+    methodArguments: 1.0.2
+    methodSecurity: 3.0.1
+    nameOverrides: 3.0.1
+    responseFormat: 1.0.1
+    retries: 3.0.2
+    sdkHooks: 1.0.1
+    unions: 3.0.4
+generatedFiles:
+  - .devcontainer/README.md
+  - .devcontainer/devcontainer.json
+  - .devcontainer/setup.sh
+  - .gitattributes
+  - .python-version
+  - .vscode/settings.json
+  - USAGE.md
+  - docs/errors/badrequesterror.md
+  - docs/errors/internalservererror.md
+  - docs/errors/resourcealreadyexistserror.md
+  - docs/errors/resourcenotfounderror.md
+  - docs/errors/toomanyrequestserror.md
+  - docs/errors/unauthenticatederror.md
+  - docs/models/analyzer.md
+  - docs/models/bulkupsertdocsrequest.md
+  - docs/models/bulkupsertdocsrequestbody.md
+  - docs/models/bulkupsertdocsresponse.md
+  - docs/models/collectionresponse.md
+  - docs/models/createcollectionrequest.md
+  - docs/models/createcollectionrequestbody.md
+  - docs/models/createprojectrequest.md
+  - docs/models/createprojectsecurity.md
+  - docs/models/deletecollectionrequest.md
+  - docs/models/deletecollectionresponse.md
+  - docs/models/deletedocsrequest.md
+  - docs/models/deletedocsrequestbody.md
+  - docs/models/deletedocsresponse.md
+  - docs/models/deleteprojectrequest.md
+  - docs/models/deleteprojectresponse.md
+  - docs/models/deleteprojectsecurity.md
+  - docs/models/fetchdocsdoc.md
+  - docs/models/fetchdocsdocdoc.md
+  - docs/models/fetchdocsrequest.md
+  - docs/models/fetchdocsrequestbody.md
+  - docs/models/fetchdocsresponse.md
+  - docs/models/filter_.md
+  - docs/models/getbulkupsertdocsrequest.md
+  - docs/models/getbulkupsertdocsresponse.md
+  - docs/models/getbulkupsertdocstype.md
+  - docs/models/getcollectionrequest.md
+  - docs/models/getprojectrequest.md
+  - docs/models/getprojectsecurity.md
+  - docs/models/httpmethod.md
+  - docs/models/indexconfigs.md
+  - docs/models/indexconfigstext.md
+  - docs/models/indexconfigsunion.md
+  - docs/models/indexconfigsvector.md
+  - docs/models/listcollectionsrequest.md
+  - docs/models/listcollectionsresponse.md
+  - docs/models/listprojectsresponse.md
+  - docs/models/listprojectssecurity.md
+  - docs/models/projectresponse.md
+  - docs/models/query.md
+  - docs/models/querycollectiondoc.md
+  - docs/models/querycollectiondocdoc.md
+  - docs/models/querycollectionrequest.md
+  - docs/models/querycollectionrequestbody.md
+  - docs/models/querycollectionresponse.md
+  - docs/models/requestbody1.md
+  - docs/models/requestbody2.md
+  - docs/models/security.md
+  - docs/models/similarity.md
+  - docs/models/sort.md
+  - docs/models/status.md
+  - docs/models/type.md
+  - docs/models/typetext.md
+  - docs/models/typevector.md
+  - docs/models/updatecollectionrequest.md
+  - docs/models/updatecollectionrequestbody.md
+  - docs/models/updateprojectrequest.md
+  - docs/models/updateprojectrequestbody.md
+  - docs/models/updateprojectsecurity.md
+  - docs/models/upsertdocsdoc.md
+  - docs/models/upsertdocsrequest.md
+  - docs/models/upsertdocsrequestbody.md
+  - docs/models/upsertdocsresponse.md
+  - docs/models/utils/retryconfig.md
+  - docs/sdks/collections/README.md
+  - docs/sdks/docs/README.md
+  - docs/sdks/lambdadb/README.md
+  - docs/sdks/projects/README.md
+  - poetry.toml
+  - py.typed
+  - pylintrc
+  - pyproject.toml
+  - scripts/prepare_readme.py
+  - scripts/publish.sh
+  - src/lambdadb/__init__.py
+  - src/lambdadb/_hooks/__init__.py
+  - src/lambdadb/_hooks/sdkhooks.py
+  - src/lambdadb/_hooks/types.py
+  - src/lambdadb/_version.py
+  - src/lambdadb/basesdk.py
+  - src/lambdadb/collections.py
+  - src/lambdadb/docs.py
+  - src/lambdadb/errors/__init__.py
+  - src/lambdadb/errors/apierror.py
+  - src/lambdadb/errors/badrequest_error.py
+  - src/lambdadb/errors/internalservererror.py
+  - src/lambdadb/errors/resourcealreadyexists_error.py
+  - src/lambdadb/errors/resourcenotfound_error.py
+  - src/lambdadb/errors/toomanyrequests_error.py
+  - src/lambdadb/errors/unauthenticated_error.py
+  - src/lambdadb/httpclient.py
+  - src/lambdadb/models/__init__.py
+  - src/lambdadb/models/bulkupsertdocsop.py
+  - src/lambdadb/models/collectionresponse.py
+  - src/lambdadb/models/createcollectionop.py
+  - src/lambdadb/models/createprojectop.py
+  - src/lambdadb/models/deletecollectionop.py
+  - src/lambdadb/models/deletedocsop.py
+  - src/lambdadb/models/deleteprojectop.py
+  - src/lambdadb/models/fetchdocsop.py
+  - src/lambdadb/models/getbulkupsertdocsop.py
+  - src/lambdadb/models/getcollectionop.py
+  - src/lambdadb/models/getprojectop.py
+  - src/lambdadb/models/indexconfigs_union.py
+  - src/lambdadb/models/listcollectionsop.py
+  - src/lambdadb/models/listprojectsop.py
+  - src/lambdadb/models/projectresponse.py
+  - src/lambdadb/models/querycollectionop.py
+  - src/lambdadb/models/security.py
+  - src/lambdadb/models/status.py
+  - src/lambdadb/models/updatecollectionop.py
+  - src/lambdadb/models/updateprojectop.py
+  - src/lambdadb/models/upsertdocsop.py
+  - src/lambdadb/projects.py
+  - src/lambdadb/py.typed
+  - src/lambdadb/sdk.py
+  - src/lambdadb/sdkconfiguration.py
+  - src/lambdadb/types/__init__.py
+  - src/lambdadb/types/basemodel.py
+  - src/lambdadb/utils/__init__.py
+  - src/lambdadb/utils/annotations.py
+  - src/lambdadb/utils/datetimes.py
+  - src/lambdadb/utils/enums.py
+  - src/lambdadb/utils/eventstreaming.py
+  - src/lambdadb/utils/forms.py
+  - src/lambdadb/utils/headers.py
+  - src/lambdadb/utils/logger.py
+  - src/lambdadb/utils/metadata.py
+  - src/lambdadb/utils/queryparams.py
+  - src/lambdadb/utils/requestbodies.py
+  - src/lambdadb/utils/retries.py
+  - src/lambdadb/utils/security.py
+  - src/lambdadb/utils/serializers.py
+  - src/lambdadb/utils/url.py
+  - src/lambdadb/utils/values.py
+examples:
+  listProjects:
+    example:
+      responses:
+        "200":
+          application/json: {"projects": [{"id": "example-project-id", "projectName": "example-project-name", "apiKey": "<API key>", "rateLimit": 10, "status": "ACTIVE"}]}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  createProject:
+    example:
+      requestBody:
+        application/json: {"projectName": "example-project-name", "rateLimit": 10}
+      responses:
+        "202":
+          application/json: {"id": "example-project-id", "projectName": "example-project-name", "apiKey": "<API key>", "rateLimit": 10, "status": "CREATING"}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "409":
+          application/json: {"message": "Resource already exists"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  getProject:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+      responses:
+        "200":
+          application/json: {"id": "example-project-id", "projectName": "example-project-name", "apiKey": "<API key>", "rateLimit": 10, "status": "ACTIVE"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  deleteProject:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+      responses:
+        "202":
+          application/json: {"message": "Project example-project-name is queued for deletion"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  updateProject:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+      requestBody:
+        application/json: {"rateLimit": 20}
+      responses:
+        "200":
+          application/json: {"id": "example-project-id", "projectName": "example-project-name", "apiKey": "<API key>", "rateLimit": 20, "status": "ACTIVE"}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  listcollections:
+    normalCollection:
+      parameters:
+        path:
+          projectName: "<value>"
+      responses:
+        "200":
+          application/json: {"collections": [{"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["standard"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numDocs": 10000, "collectionStatus": "ACTIVE"}]}
+    clonedCollection:
+      parameters:
+        path:
+          projectName: "<value>"
+      responses:
+        "200":
+          application/json: {"collections": [{"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["standard"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numDocs": 10000, "collectionStatus": "ACTIVE"}]}
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+      responses:
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  createCollection:
+    normalCollection:
+      parameters:
+        path:
+          projectName: "<value>"
+      requestBody:
+        application/json: {"collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}}
+      responses:
+        "202":
+          application/json: {}
+        "400":
+          application/json: {}
+        "401":
+          application/json: {}
+        "409":
+          application/json: {}
+        "429":
+          application/json: {}
+        "500":
+          application/json: {}
+    cloneCollection:
+      parameters:
+        path:
+          projectName: "<value>"
+      requestBody:
+        application/json: {"collectionName": "example-collection-name", "sourceProjectName": "example-source-project-name", "sourceCollectionName": "example-source-collection-name", "sourceDatetime": "2023-10-01T12:00:00Z", "sourceProjectApiKey": "example-source-project-api-key"}
+      responses:
+        "202":
+          application/json: {}
+        "400":
+          application/json: {}
+        "401":
+          application/json: {}
+        "409":
+          application/json: {}
+        "429":
+          application/json: {}
+        "500":
+          application/json: {}
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+      requestBody:
+        application/json: {"collectionName": "<value>"}
+      responses:
+        "202":
+          application/json: {"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numDocs": 0, "collectionStatus": "CREATING"}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "409":
+          application/json: {"message": "Resource already exists"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  deleteCollection:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      responses:
+        "202":
+          application/json: {"message": "Collection example-collection-name is queued for deletion"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  getCollection:
+    normalCollection:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      responses:
+        "200":
+          application/json: {"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numDocs": 1000, "collectionStatus": "ACTIVE"}
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      responses:
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  updateCollection:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}, "example-field3": {"type": "keyword"}}}
+      responses:
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+    normalCollection:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"indexConfigs": {"key": {"type": "keyword"}, "key1": {"type": "keyword"}, "key2": {"type": "vector", "dimensions": 884939, "similarity": "cosine"}}}
+      responses:
+        "200":
+          application/json: {"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}, "example-field3": {"type": "keyword"}}, "numDocs": 1000, "collectionStatus": "ACTIVE"}
+  queryCollection:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"size": 2, "query": {}, "consistentRead": false, "includeVectors": false, "trackScores": false}
+      responses:
+        "200":
+          application/json: {"took": 10, "maxScore": 1, "total": 2, "docs": [{"collection": "example-collection-name", "score": 1, "doc": {}}, {"collection": "example-collection-name", "score": 0.9, "doc": {}}]}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  upsertDocs:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"docs": [{}, {}]}
+      responses:
+        "202":
+          application/json: {"message": "Upsert request is accepted"}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  getBulkUpsertDocs:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      responses:
+        "200":
+          application/json: {"url": "<S3 presigned URL>", "type": "application/json", "httpMethod": "PUT", "objectKey": "example-object-key", "sizeLimitBytes": 209715200}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  bulkUpsertDocs:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"objectKey": "example-object-key"}
+      responses:
+        "202":
+          application/json: {"message": "Bulk upsert request is accepted"}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  deleteDocs:
+    deleteByIds:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"ids": ["example-doc-id-1", "example-doc-id-2"]}
+      responses:
+        "202":
+          application/json: {}
+        "400":
+          application/json: {}
+        "401":
+          application/json: {}
+        "404":
+          application/json: {}
+        "429":
+          application/json: {}
+        "500":
+          application/json: {}
+    deleteByQuery:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"filter": {}}
+      responses:
+        "202":
+          application/json: {}
+        "400":
+          application/json: {}
+        "401":
+          application/json: {}
+        "404":
+          application/json: {}
+        "429":
+          application/json: {}
+        "500":
+          application/json: {}
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"filter": {}}
+      responses:
+        "202":
+          application/json: {"message": "Delete request is accepted"}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  fetchDocs:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"ids": ["example-doc-id-1", "example-doc-id-2"], "consistentRead": false, "includeVectors": false}
+      responses:
+        "200":
+          application/json: {"total": 2, "took": 10, "docs": [{"collection": "example-collection-name", "doc": {}}, {"collection": "example-collection-name", "doc": {}}]}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+examplesVersion: 1.0.2
+generatedTests: {}

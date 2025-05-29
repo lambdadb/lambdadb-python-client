@@ -1,0 +1,154 @@
+overlay: 1.0.0
+x-speakeasy-jsonpath: rfc9535
+info:
+  title: Speakeasy Modifications
+  version: 0.0.2
+  x-speakeasy-metadata:
+    after: ""
+    before: ""
+    type: speakeasy-modifications
+actions:
+  - target: $["paths"]["/projects/{projectName}/collections/{collectionName}"]["patch"]
+    update:
+      x-speakeasy-name-override: update
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.update()
+      before: sdk.projects.collections.updateCollection()
+      created_at: 1748420832530
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects"]["post"]
+    update:
+      x-speakeasy-name-override: create
+    x-speakeasy-metadata:
+      after: sdk.projects.create()
+      before: sdk.projects.createProject()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections"]["get"]
+    update:
+      x-speakeasy-name-override: list
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.list()
+      before: sdk.projects.collections.listcollections()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections/{collectionName}/docs/delete"]["post"]
+    update:
+      x-speakeasy-name-override: delete
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.docs.delete()
+      before: sdk.projects.collections.docs.deleteDocs()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections/{collectionName}"]["get"]
+    update:
+      x-speakeasy-name-override: get
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.get()
+      before: sdk.projects.collections.getCollection()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections/{collectionName}/docs/bulk-upsert"]["post"]
+    update:
+      x-speakeasy-name-override: bulkUpsert
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.docs.bulkUpsert()
+      before: sdk.projects.collections.docs.bulkUpsertDocs()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}"]["delete"]
+    update:
+      x-speakeasy-name-override: delete
+    x-speakeasy-metadata:
+      after: sdk.projects.delete()
+      before: sdk.projects.deleteProject()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}"]["get"]
+    update:
+      x-speakeasy-name-override: get
+    x-speakeasy-metadata:
+      after: sdk.projects.get()
+      before: sdk.projects.getProject()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections/{collectionName}/docs/bulk-upsert"]["get"]
+    update:
+      x-speakeasy-name-override: getBulkUpsert
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.docs.getBulkUpsert()
+      before: sdk.projects.collections.docs.getBulkUpsertDocs()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections/{collectionName}/docs/upsert"]["post"]
+    update:
+      x-speakeasy-name-override: upsert
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.docs.upsert()
+      before: sdk.projects.collections.docs.upsertDocs()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections"]["post"]
+    update:
+      x-speakeasy-name-override: create
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.create()
+      before: sdk.projects.collections.createCollection()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections/{collectionName}/query"]["post"]
+    update:
+      x-speakeasy-name-override: query
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.query()
+      before: sdk.projects.collections.queryCollection()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}"]["patch"]
+    update:
+      x-speakeasy-name-override: update
+    x-speakeasy-metadata:
+      after: sdk.projects.update()
+      before: sdk.projects.updateProject()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections/{collectionName}/docs/fetch"]["post"]
+    update:
+      x-speakeasy-name-override: fetch
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.docs.fetch()
+      before: sdk.projects.collections.docs.fetchDocs()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects"]["get"]
+    update:
+      x-speakeasy-name-override: list
+    x-speakeasy-metadata:
+      after: sdk.projects.list()
+      before: sdk.projects.listProjects()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name
+  - target: $["paths"]["/projects/{projectName}/collections/{collectionName}"]["delete"]
+    update:
+      x-speakeasy-name-override: delete
+    x-speakeasy-metadata:
+      after: sdk.projects.collections.delete()
+      before: sdk.projects.collections.deleteCollection()
+      created_at: 1748420832531
+      reviewed_at: 1748420950597
+      type: method-name

@@ -1,0 +1,15 @@
+# CollectionResponse
+
+
+## Fields
+
+| Field                                                                 | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `project_name`                                                        | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | Project name.                                                         |
+| `collection_name`                                                     | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | Collection name.                                                      |
+| `index_configs`                                                       | Dict[str, [models.IndexConfigsUnion](../models/indexconfigsunion.md)] | :heavy_minus_sign:                                                    | N/A                                                                   |
+| `num_docs`                                                            | *Optional[int]*                                                       | :heavy_minus_sign:                                                    | Total number of documents.                                            |
+| `source_project_name`                                                 | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | Source project name.                                                  |
+| `source_collection_name`                                              | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | Source collection name.                                               |
+| `source_collection_version_id`                                        | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | Source collection version.                                            |
+| `collection_status`                                                   | [Optional[models.Status]](../models/status.md)                        | :heavy_minus_sign:                                                    | Status                                                                |
