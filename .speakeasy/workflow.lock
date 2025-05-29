@@ -2,7 +2,7 @@ speakeasyVersion: 1.552.0
 sources:
     lambdadb-OAS:
         sourceNamespace: lambdadb-oas
-        sourceRevisionDigest: sha256:93c870b436fe594c924e720de4c2c08644d88dc71ba40511c5f8635da6dbc985
+        sourceRevisionDigest: sha256:08324a78d820a7b3b14076db4b146f263003f614422c45c7bd4b01db3e9975d3
         sourceBlobDigest: sha256:b09d63bc45ff562852a0df45ebf5ee98ef84dccbd6055b0ad2af1179b6717cae
         tags:
             - latest
@@ -11,10 +11,10 @@ targets:
     lambdadb:
         source: lambdadb-OAS
         sourceNamespace: lambdadb-oas
-        sourceRevisionDigest: sha256:93c870b436fe594c924e720de4c2c08644d88dc71ba40511c5f8635da6dbc985
+        sourceRevisionDigest: sha256:08324a78d820a7b3b14076db4b146f263003f614422c45c7bd4b01db3e9975d3
         sourceBlobDigest: sha256:b09d63bc45ff562852a0df45ebf5ee98ef84dccbd6055b0ad2af1179b6717cae
         codeSamplesNamespace: lambdadb-oas-code-samples
-        codeSamplesRevisionDigest: sha256:7a4e396dae57c1e9b28a086422f726fccafdc347767515d970c4a415e8aa4f47
+        codeSamplesRevisionDigest: sha256:f5c1b0b98c45482b9a1c68af6909bfc6cc0c6a7ded7d45b3399b5c0b4a2075fd
 workflow:
     workflowVersion: 1.0.0
     speakeasyVersion: latest
@@ -30,6 +30,9 @@ workflow:
         lambdadb:
             target: python
             source: lambdadb-OAS
+            publish:
+                pypi:
+                    token: $pypi_token
             codeSamples:
                 registry:
                     location: registry.speakeasyapi.dev/lambdadb/lambdadb-python/lambdadb-oas-code-samples

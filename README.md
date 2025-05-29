@@ -1,6 +1,6 @@
-# lambdadb
+# LambdaDB Python SDK
 
-Developer-friendly & type-safe Python SDK specifically catered to leverage *lambdadb* API.
+Developer-friendly & type-safe Python SDK specifically catered to leverage *LambdaDB* API.
 
 <div align="left">
     <a href="https://www.speakeasy.com/?utm_source=lambdadb&utm_campaign=python"><img src="https://custom-icon-badges.demolab.com/badge/-Built%20By%20Speakeasy-212015?style=for-the-badge&logoColor=FBE331&logo=speakeasy&labelColor=545454" /></a>
@@ -8,11 +8,6 @@ Developer-friendly & type-safe Python SDK specifically catered to leverage *lamb
         <img src="https://img.shields.io/badge/License-MIT-blue.svg" style="width: 100px; height: 28px;" />
     </a>
 </div>
-
-
-<br /><br />
-> [!IMPORTANT]
-> This SDK is not yet ready for production use. To complete setup please follow the steps outlined in your [workspace](https://app.speakeasy.com/org/lambdadb/lambdadb-python). Delete this section before > publishing to a package manager.
 
 <!-- Start Summary [summary] -->
 ## Summary
@@ -23,7 +18,7 @@ LambdaDB API: LambdaDB Open API Spec
 <!-- Start Table of Contents [toc] -->
 ## Table of Contents
 <!-- $toc-max-depth=2 -->
-* [lambdadb](#lambdadb)
+* [LambdaDB Python SDK](#lambdadb-python-sdk)
   * [SDK Installation](#sdk-installation)
   * [IDE Support](#ide-support)
   * [SDK Example Usage](#sdk-example-usage)
@@ -44,10 +39,6 @@ LambdaDB API: LambdaDB Open API Spec
 <!-- Start SDK Installation [installation] -->
 ## SDK Installation
 
-> [!TIP]
-> To finish publishing your SDK to PyPI you must [run your first generation action](https://www.speakeasy.com/docs/github-setup#step-by-step-guide).
-
-
 > [!NOTE]
 > **Python version upgrade policy**
 >
@@ -60,7 +51,7 @@ The SDK can be installed with either *pip* or *poetry* package managers.
 *PIP* is the default package installer for Python, enabling easy installation and management of packages from PyPI via the command line.
 
 ```bash
-pip install git+<UNSET>.git
+pip install lambdadb
 ```
 
 ### Poetry
@@ -68,7 +59,7 @@ pip install git+<UNSET>.git
 *Poetry* is a modern tool that simplifies dependency management and package publishing by using a single `pyproject.toml` file to handle project metadata and dependencies.
 
 ```bash
-poetry add git+<UNSET>.git
+poetry add lambdadb
 ```
 
 ### Shell and script usage with `uv`
@@ -493,6 +484,4 @@ looking for the latest version.
 ## Contributions
 
 While we value open-source contributions to this SDK, this library is generated programmatically. Any manual changes added to internal files will be overwritten on the next generation. 
-We look forward to hearing your feedback. Feel free to open a PR or an issue with a proof of concept and we'll do our best to include it in a future release. 
-
-### SDK Created by [Speakeasy](https://www.speakeasy.com/?utm_source=lambdadb&utm_campaign=python)
+We look forward to hearing your feedback. Feel free to open a PR or an issue with a proof of concept and we'll do our best to include it in a future release.
