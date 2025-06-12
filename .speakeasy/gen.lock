@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: a4bdedb9e9734d2eacfba136ce8bbde7
+  docChecksum: cbfc90ce20c328625461f773cc77807c
   docVersion: 1.1.0
   speakeasyVersion: 1.561.0
   generationVersion: 2.628.0
-  releaseVersion: 0.2.0
-  configChecksum: fbc18b37a1a1229ecbb7e41e18a4865e
+  releaseVersion: 0.2.1
+  configChecksum: 9e351b89fe1da5a61b550b7ddf45e83b
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
@@ -405,7 +405,7 @@ examples:
           projectName: "<value>"
           collectionName: "<value>"
       requestBody:
-        application/json: {"size": 2, "query": {}, "consistentRead": false, "includeVectors": false, "trackScores": false}
+        application/json: {"size": 2, "query": {}, "consistentRead": false, "includeVectors": false}
       responses:
         "200":
           application/json: {"took": 10, "maxScore": 1, "total": 2, "docs": [{"collection": "example-collection-name", "score": 1, "doc": {}}, {"collection": "example-collection-name", "score": 0.9, "doc": {}}]}

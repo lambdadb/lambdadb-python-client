@@ -37,8 +37,6 @@ class QueryCollectionRequestBodyTypedDict(TypedDict):
     r"""List of field name, sort direction pairs."""
     fields: NotRequired[List[str]]
     r"""List of field name to include in results"""
-    track_scores: NotRequired[bool]
-    r"""If your application needs to track scores with sorting, set trackScores to true."""
 
 
 class QueryCollectionRequestBody(BaseModel):
@@ -63,9 +61,6 @@ class QueryCollectionRequestBody(BaseModel):
 
     fields: Optional[List[str]] = None
     r"""List of field name to include in results"""
-
-    track_scores: Annotated[Optional[bool], pydantic.Field(alias="trackScores")] = False
-    r"""If your application needs to track scores with sorting, set trackScores to true."""
 
 
 class QueryCollectionRequestTypedDict(TypedDict):

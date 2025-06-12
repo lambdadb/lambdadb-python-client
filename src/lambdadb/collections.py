@@ -1342,7 +1342,6 @@ class Collections(BaseSDK):
         include_vectors: Optional[bool] = False,
         sort: Optional[Union[List[models.Sort], List[models.SortTypedDict]]] = None,
         fields: Optional[List[str]] = None,
-        track_scores: Optional[bool] = False,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1358,7 +1357,6 @@ class Collections(BaseSDK):
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
         :param fields: List of field name to include in results
-        :param track_scores: If your application needs to track scores with sorting, set trackScores to true.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1384,7 +1382,6 @@ class Collections(BaseSDK):
                 include_vectors=include_vectors,
                 sort=utils.get_pydantic_model(sort, Optional[List[models.Sort]]),
                 fields=fields,
-                track_scores=track_scores,
             ),
         )
 
@@ -1497,7 +1494,6 @@ class Collections(BaseSDK):
         include_vectors: Optional[bool] = False,
         sort: Optional[Union[List[models.Sort], List[models.SortTypedDict]]] = None,
         fields: Optional[List[str]] = None,
-        track_scores: Optional[bool] = False,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1513,7 +1509,6 @@ class Collections(BaseSDK):
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
         :param fields: List of field name to include in results
-        :param track_scores: If your application needs to track scores with sorting, set trackScores to true.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1539,7 +1534,6 @@ class Collections(BaseSDK):
                 include_vectors=include_vectors,
                 sort=utils.get_pydantic_model(sort, Optional[List[models.Sort]]),
                 fields=fields,
-                track_scores=track_scores,
             ),
         )
 
