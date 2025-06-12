@@ -111,14 +111,14 @@ Generally, the SDK will work well with most IDEs out of the box. However, when u
 
 ```python
 # Synchronous Example
-from lambdadb import Lambdadb, models
+from lambdadb import Lambdadb
 
 
-with Lambdadb() as l_client:
+with Lambdadb(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as l_client:
 
-    res = l_client.projects.list(security=models.ListProjectsSecurity(
-        admin_api_key="<YOUR_ADMIN_API_KEY>",
-    ))
+    res = l_client.projects.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -130,15 +130,15 @@ The same SDK client can also be used to make asychronous requests by importing a
 ```python
 # Asynchronous Example
 import asyncio
-from lambdadb import Lambdadb, models
+from lambdadb import Lambdadb
 
 async def main():
 
-    async with Lambdadb() as l_client:
+    async with Lambdadb(
+        project_api_key="<YOUR_PROJECT_API_KEY>",
+    ) as l_client:
 
-        res = await l_client.projects.list_async(security=models.ListProjectsSecurity(
-            admin_api_key="<YOUR_ADMIN_API_KEY>",
-        ))
+        res = await l_client.projects.collections.list_async(project_name="<value>")
 
         # Handle response
         print(res)
@@ -173,24 +173,6 @@ with Lambdadb(
     print(res)
 
 ```
-
-### Per-Operation Security Schemes
-
-Some operations in this SDK require the security scheme to be specified at the request level. For example:
-```python
-from lambdadb import Lambdadb, models
-
-
-with Lambdadb() as l_client:
-
-    res = l_client.projects.list(security=models.ListProjectsSecurity(
-        admin_api_key="<YOUR_ADMIN_API_KEY>",
-    ))
-
-    # Handle response
-    print(res)
-
-```
 <!-- End Authentication [security] -->
 
 <!-- Start Available Resources and Operations [operations] -->
@@ -202,11 +184,6 @@ with Lambdadb() as l_client:
 
 ### [projects](docs/sdks/projects/README.md)
 
-* [list](docs/sdks/projects/README.md#list) - List all projects in an account.
-* [create](docs/sdks/projects/README.md#create) - Create a project.
-* [get](docs/sdks/projects/README.md#get) - Get metadata of an existing project.
-* [delete](docs/sdks/projects/README.md#delete) - Delete an existing project.
-* [update](docs/sdks/projects/README.md#update) - Configure an existing project
 
 #### [projects.collections](docs/sdks/collections/README.md)
 
@@ -235,15 +212,15 @@ Some of the endpoints in this SDK support retries. If you use the SDK without an
 
 To change the default retry strategy for a single API call, simply provide a `RetryConfig` object to the call:
 ```python
-from lambdadb import Lambdadb, models
+from lambdadb import Lambdadb
 from lambdadb.utils import BackoffStrategy, RetryConfig
 
 
-with Lambdadb() as l_client:
+with Lambdadb(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as l_client:
 
-    res = l_client.projects.list(security=models.ListProjectsSecurity(
-        admin_api_key="<YOUR_ADMIN_API_KEY>",
-    ),
+    res = l_client.projects.collections.list(project_name="<value>",
         RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False))
 
     # Handle response
@@ -253,17 +230,16 @@ with Lambdadb() as l_client:
 
 If you'd like to override the default retry strategy for all operations that support retries, you can use the `retry_config` optional parameter when initializing the SDK:
 ```python
-from lambdadb import Lambdadb, models
+from lambdadb import Lambdadb
 from lambdadb.utils import BackoffStrategy, RetryConfig
 
 
 with Lambdadb(
     retry_config=RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False),
+    project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as l_client:
 
-    res = l_client.projects.list(security=models.ListProjectsSecurity(
-        admin_api_key="<YOUR_ADMIN_API_KEY>",
-    ))
+    res = l_client.projects.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -287,32 +263,36 @@ By default, an API error will raise a errors.APIError exception, which has the f
 
 When custom error responses are specified for an operation, the SDK may also raise their associated exceptions. You can refer to respective *Errors* tables in SDK docs for more details on possible exception types for each operation. For example, the `list_async` method may raise the following exceptions:
 
-| Error Type                  | Status Code | Content Type     |
-| --------------------------- | ----------- | ---------------- |
-| errors.UnauthenticatedError | 401         | application/json |
-| errors.TooManyRequestsError | 429         | application/json |
-| errors.InternalServerError  | 500         | application/json |
-| errors.APIError             | 4XX, 5XX    | \*/\*            |
+| Error Type                   | Status Code | Content Type     |
+| ---------------------------- | ----------- | ---------------- |
+| errors.UnauthenticatedError  | 401         | application/json |
+| errors.ResourceNotFoundError | 404         | application/json |
+| errors.TooManyRequestsError  | 429         | application/json |
+| errors.InternalServerError   | 500         | application/json |
+| errors.APIError              | 4XX, 5XX    | \*/\*            |
 
 ### Example
 
 ```python
-from lambdadb import Lambdadb, errors, models
+from lambdadb import Lambdadb, errors
 
 
-with Lambdadb() as l_client:
+with Lambdadb(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as l_client:
     res = None
     try:
 
-        res = l_client.projects.list(security=models.ListProjectsSecurity(
-            admin_api_key="<YOUR_ADMIN_API_KEY>",
-        ))
+        res = l_client.projects.collections.list(project_name="<value>")
 
         # Handle response
         print(res)
 
     except errors.UnauthenticatedError as e:
         # handle e.data: errors.UnauthenticatedErrorData
+        raise(e)
+    except errors.ResourceNotFoundError as e:
+        # handle e.data: errors.ResourceNotFoundErrorData
         raise(e)
     except errors.TooManyRequestsError as e:
         # handle e.data: errors.TooManyRequestsErrorData
@@ -333,16 +313,15 @@ with Lambdadb() as l_client:
 
 The default server can be overridden globally by passing a URL to the `server_url: str` optional parameter when initializing the SDK client instance. For example:
 ```python
-from lambdadb import Lambdadb, models
+from lambdadb import Lambdadb
 
 
 with Lambdadb(
     server_url="https://{baseUrl}",
+    project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as l_client:
 
-    res = l_client.projects.list(security=models.ListProjectsSecurity(
-        admin_api_key="<YOUR_ADMIN_API_KEY>",
-    ))
+    res = l_client.projects.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -442,14 +421,18 @@ The `Lambdadb` class implements the context manager protocol and registers a fin
 from lambdadb import Lambdadb
 def main():
 
-    with Lambdadb() as l_client:
+    with Lambdadb(
+        project_api_key="<YOUR_PROJECT_API_KEY>",
+    ) as l_client:
         # Rest of application here...
 
 
 # Or when using async:
 async def amain():
 
-    async with Lambdadb() as l_client:
+    async with Lambdadb(
+        project_api_key="<YOUR_PROJECT_API_KEY>",
+    ) as l_client:
         # Rest of application here...
 ```
 <!-- End Resource Management [resource-management] -->

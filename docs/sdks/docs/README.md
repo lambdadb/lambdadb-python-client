@@ -214,7 +214,7 @@ with Lambdadb(
     res = l_client.projects.collections.docs.fetch(project_name="<value>", collection_name="<value>", ids=[
         "example-doc-id-1",
         "example-doc-id-2",
-    ])
+    ], consistent_read=False, include_vectors=False)
 
     # Handle response
     print(res)

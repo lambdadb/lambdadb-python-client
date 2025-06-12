@@ -1,18 +1,20 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: db2d99a6d2c6e83bacc658173af47f1a
-  docVersion: 1.0.0
-  speakeasyVersion: 1.552.0
-  generationVersion: 2.610.0
-  releaseVersion: 0.1.3
-  configChecksum: c6300b04390825b72f2c75294b65a2a5
+  docChecksum: a4bdedb9e9734d2eacfba136ce8bbde7
+  docVersion: 1.1.0
+  speakeasyVersion: 1.561.0
+  generationVersion: 2.628.0
+  releaseVersion: 0.2.0
+  configChecksum: fbc18b37a1a1229ecbb7e41e18a4865e
+  repoURL: https://github.com/lambdadb/lambdadb-python-client.git
+  installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
 features:
   python:
     additionalDependencies: 1.0.0
     constsAndDefaults: 1.0.5
-    core: 5.19.0
+    core: 5.19.3
     defaultEnabledRetries: 0.2.0
     devContainers: 3.0.0
     enumUnions: 0.1.0
@@ -25,11 +27,10 @@ features:
     globalSecurityFlattening: 1.0.0
     globalServerURLs: 3.1.1
     methodArguments: 1.0.2
-    methodSecurity: 3.0.1
     nameOverrides: 3.0.1
     responseFormat: 1.0.1
     retries: 3.0.2
-    sdkHooks: 1.0.1
+    sdkHooks: 1.1.0
     unions: 3.0.4
 generatedFiles:
   - .devcontainer/README.md
@@ -52,16 +53,11 @@ generatedFiles:
   - docs/models/collectionresponse.md
   - docs/models/createcollectionrequest.md
   - docs/models/createcollectionrequestbody.md
-  - docs/models/createprojectrequest.md
-  - docs/models/createprojectsecurity.md
   - docs/models/deletecollectionrequest.md
   - docs/models/deletecollectionresponse.md
   - docs/models/deletedocsrequest.md
   - docs/models/deletedocsrequestbody.md
   - docs/models/deletedocsresponse.md
-  - docs/models/deleteprojectrequest.md
-  - docs/models/deleteprojectresponse.md
-  - docs/models/deleteprojectsecurity.md
   - docs/models/fetchdocsdoc.md
   - docs/models/fetchdocsdocdoc.md
   - docs/models/fetchdocsrequest.md
@@ -72,8 +68,6 @@ generatedFiles:
   - docs/models/getbulkupsertdocsresponse.md
   - docs/models/getbulkupsertdocstype.md
   - docs/models/getcollectionrequest.md
-  - docs/models/getprojectrequest.md
-  - docs/models/getprojectsecurity.md
   - docs/models/httpmethod.md
   - docs/models/indexconfigs.md
   - docs/models/indexconfigstext.md
@@ -81,9 +75,6 @@ generatedFiles:
   - docs/models/indexconfigsvector.md
   - docs/models/listcollectionsrequest.md
   - docs/models/listcollectionsresponse.md
-  - docs/models/listprojectsresponse.md
-  - docs/models/listprojectssecurity.md
-  - docs/models/projectresponse.md
   - docs/models/query.md
   - docs/models/querycollectiondoc.md
   - docs/models/querycollectiondocdoc.md
@@ -101,9 +92,6 @@ generatedFiles:
   - docs/models/typevector.md
   - docs/models/updatecollectionrequest.md
   - docs/models/updatecollectionrequestbody.md
-  - docs/models/updateprojectrequest.md
-  - docs/models/updateprojectrequestbody.md
-  - docs/models/updateprojectsecurity.md
   - docs/models/upsertdocsdoc.md
   - docs/models/upsertdocsrequest.md
   - docs/models/upsertdocsrequestbody.md
@@ -140,23 +128,17 @@ generatedFiles:
   - src/lambdadb/models/bulkupsertdocsop.py
   - src/lambdadb/models/collectionresponse.py
   - src/lambdadb/models/createcollectionop.py
-  - src/lambdadb/models/createprojectop.py
   - src/lambdadb/models/deletecollectionop.py
   - src/lambdadb/models/deletedocsop.py
-  - src/lambdadb/models/deleteprojectop.py
   - src/lambdadb/models/fetchdocsop.py
   - src/lambdadb/models/getbulkupsertdocsop.py
   - src/lambdadb/models/getcollectionop.py
-  - src/lambdadb/models/getprojectop.py
   - src/lambdadb/models/indexconfigs_union.py
   - src/lambdadb/models/listcollectionsop.py
-  - src/lambdadb/models/listprojectsop.py
-  - src/lambdadb/models/projectresponse.py
   - src/lambdadb/models/querycollectionop.py
   - src/lambdadb/models/security.py
   - src/lambdadb/models/status.py
   - src/lambdadb/models/updatecollectionop.py
-  - src/lambdadb/models/updateprojectop.py
   - src/lambdadb/models/upsertdocsop.py
   - src/lambdadb/projects.py
   - src/lambdadb/py.typed
