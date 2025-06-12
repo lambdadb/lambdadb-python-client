@@ -11,9 +11,8 @@ from .types import (
     AfterErrorHook,
     Hooks,
 )
-from .registration import init_hooks
 from typing import List, Optional, Tuple
-from lambdadb.httpclient import HttpClient
+from lambdadb.sdkconfiguration import SDKConfiguration
 
 
 class SDKHooks(Hooks):
@@ -22,7 +21,6 @@ class SDKHooks(Hooks):
         self.before_request_hooks: List[BeforeRequestHook] = []
         self.after_success_hooks: List[AfterSuccessHook] = []
         self.after_error_hooks: List[AfterErrorHook] = []
-        init_hooks(self)
 
     def register_sdk_init_hook(self, hook: SDKInitHook) -> None:
         self.sdk_init_hooks.append(hook)
@@ -36,10 +34,10 @@ class SDKHooks(Hooks):
     def register_after_error_hook(self, hook: AfterErrorHook) -> None:
         self.after_error_hooks.append(hook)
 
-    def sdk_init(self, base_url: str, client: HttpClient) -> Tuple[str, HttpClient]:
+    def sdk_init(self, config: SDKConfiguration) -> SDKConfiguration:
         for hook in self.sdk_init_hooks:
-            base_url, client = hook.sdk_init(base_url, client)
-        return base_url, client
+            config = hook.sdk_init(config)
+        return config
 
     def before_request(
         self, hook_ctx: BeforeRequestContext, request: httpx.Request

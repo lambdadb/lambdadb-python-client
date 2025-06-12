@@ -275,7 +275,7 @@ with Lambdadb(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as l_client:
 
-    res = l_client.projects.collections.query(project_name="<value>", collection_name="<value>", size=2, query={})
+    res = l_client.projects.collections.query(project_name="<value>", collection_name="<value>", size=2, query={}, consistent_read=False, include_vectors=False, track_scores=False)
 
     # Handle response
     print(res)
