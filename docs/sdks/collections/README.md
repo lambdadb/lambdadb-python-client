@@ -19,14 +19,14 @@ List all collections in an existing project.
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.list(project_name="<value>")
+    res = lambda_db.projects.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -61,14 +61,14 @@ Create an collection.
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb, models
+from lambdadb import LambdaDB, models
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.create(project_name="<value>", collection_name="example-collection-name", index_configs={
+    res = lambda_db.projects.collections.create(project_name="<value>", collection_name="example-collection-name", index_configs={
         "example-field1": {
             "type": models.TypeText.TEXT,
             "analyzers": [
@@ -122,14 +122,14 @@ Delete an existing collection.
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.delete(project_name="<value>", collection_name="<value>")
+    res = lambda_db.projects.collections.delete(project_name="<value>", collection_name="<value>")
 
     # Handle response
     print(res)
@@ -165,14 +165,14 @@ Get metadata of an existing collection.
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.get(project_name="<value>", collection_name="<value>")
+    res = lambda_db.projects.collections.get(project_name="<value>", collection_name="<value>")
 
     # Handle response
     print(res)
@@ -208,14 +208,14 @@ Configure an collection.
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb, models
+from lambdadb import LambdaDB, models
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.update(project_name="<value>", collection_name="<value>", index_configs={
+    res = lambda_db.projects.collections.update(project_name="<value>", collection_name="<value>", index_configs={
         "example-field1": {
             "type": models.TypeText.TEXT,
             "analyzers": [
@@ -268,14 +268,14 @@ Search an collection with a query and return the most similar documents.
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.query(project_name="<value>", collection_name="<value>", size=2, query={}, consistent_read=False, include_vectors=False)
+    res = lambda_db.projects.collections.query(project_name="<value>", collection_name="<value>", size=2, query={}, consistent_read=False, include_vectors=False)
 
     # Handle response
     print(res)

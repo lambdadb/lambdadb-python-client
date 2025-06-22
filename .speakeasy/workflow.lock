@@ -1,4 +1,4 @@
-speakeasyVersion: 1.561.0
+speakeasyVersion: 1.568.0
 sources:
     lambdadb-OAS:
         sourceNamespace: lambdadb-oas
@@ -13,8 +13,6 @@ targets:
         sourceNamespace: lambdadb-oas
         sourceRevisionDigest: sha256:8796325aa01357ab559efa7020a47e5d5a38b4febff61fd1cf6250f21ba663ab
         sourceBlobDigest: sha256:970a27bcd0a548f916af1dd069c7d14c484849fc7bfe2f3bcba353423bccda02
-        codeSamplesNamespace: lambdadb-oas-code-samples
-        codeSamplesRevisionDigest: sha256:54782961bed4deeaee522ead2793d595de89dbaab83feac3032dd8782a53ab69
 workflow:
     workflowVersion: 1.0.0
     speakeasyVersion: latest

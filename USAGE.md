@@ -1,14 +1,14 @@
 <!-- Start SDK Example Usage [usage] -->
 ```python
 # Synchronous Example
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.list(project_name="<value>")
+    res = lambda_db.projects.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -20,15 +20,15 @@ The same SDK client can also be used to make asychronous requests by importing a
 ```python
 # Asynchronous Example
 import asyncio
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 async def main():
 
-    async with Lambdadb(
+    async with LambdaDB(
         project_api_key="<YOUR_PROJECT_API_KEY>",
-    ) as l_client:
+    ) as lambda_db:
 
-        res = await l_client.projects.collections.list_async(project_name="<value>")
+        res = await lambda_db.projects.collections.list_async(project_name="<value>")
 
         # Handle response
         print(res)
