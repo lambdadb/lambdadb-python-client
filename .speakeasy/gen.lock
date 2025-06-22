@@ -3,10 +3,10 @@ id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
   docChecksum: cbfc90ce20c328625461f773cc77807c
   docVersion: 1.1.0
-  speakeasyVersion: 1.561.0
-  generationVersion: 2.628.0
-  releaseVersion: 0.2.1
-  configChecksum: 9e351b89fe1da5a61b550b7ddf45e83b
+  speakeasyVersion: 1.568.0
+  generationVersion: 2.632.2
+  releaseVersion: 0.2.2
+  configChecksum: 18742901956804784e75dd0d6d0d0abb
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true

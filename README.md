@@ -81,9 +81,9 @@ It's also possible to write a standalone Python script without needing to set up
 # ]
 # ///
 
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
-sdk = Lambdadb(
+sdk = LambdaDB(
   # SDK arguments
 )
 
@@ -111,14 +111,14 @@ Generally, the SDK will work well with most IDEs out of the box. However, when u
 
 ```python
 # Synchronous Example
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.list(project_name="<value>")
+    res = lambda_db.projects.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -130,15 +130,15 @@ The same SDK client can also be used to make asychronous requests by importing a
 ```python
 # Asynchronous Example
 import asyncio
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 async def main():
 
-    async with Lambdadb(
+    async with LambdaDB(
         project_api_key="<YOUR_PROJECT_API_KEY>",
-    ) as l_client:
+    ) as lambda_db:
 
-        res = await l_client.projects.collections.list_async(project_name="<value>")
+        res = await lambda_db.projects.collections.list_async(project_name="<value>")
 
         # Handle response
         print(res)
@@ -160,14 +160,14 @@ This SDK supports the following security scheme globally:
 
 To authenticate with the API the `project_api_key` parameter must be set when initializing the SDK client instance. For example:
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.list(project_name="<value>")
+    res = lambda_db.projects.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -212,15 +212,15 @@ Some of the endpoints in this SDK support retries. If you use the SDK without an
 
 To change the default retry strategy for a single API call, simply provide a `RetryConfig` object to the call:
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 from lambdadb.utils import BackoffStrategy, RetryConfig
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.list(project_name="<value>",
+    res = lambda_db.projects.collections.list(project_name="<value>",
         RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False))
 
     # Handle response
@@ -230,16 +230,16 @@ with Lambdadb(
 
 If you'd like to override the default retry strategy for all operations that support retries, you can use the `retry_config` optional parameter when initializing the SDK:
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 from lambdadb.utils import BackoffStrategy, RetryConfig
 
 
-with Lambdadb(
+with LambdaDB(
     retry_config=RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False),
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.list(project_name="<value>")
+    res = lambda_db.projects.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -274,16 +274,16 @@ When custom error responses are specified for an operation, the SDK may also rai
 ### Example
 
 ```python
-from lambdadb import Lambdadb, errors
+from lambdadb import LambdaDB, errors
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
     res = None
     try:
 
-        res = l_client.projects.collections.list(project_name="<value>")
+        res = lambda_db.projects.collections.list(project_name="<value>")
 
         # Handle response
         print(res)
@@ -313,15 +313,15 @@ with Lambdadb(
 
 The default server can be overridden globally by passing a URL to the `server_url: str` optional parameter when initializing the SDK client instance. For example:
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     server_url="https://{baseUrl}",
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.list(project_name="<value>")
+    res = lambda_db.projects.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -338,16 +338,16 @@ This allows you to wrap the client with your own custom logic, such as adding cu
 
 For example, you could specify a header for every request that this sdk makes as follows:
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 import httpx
 
 http_client = httpx.Client(headers={"x-custom-header": "someValue"})
-s = Lambdadb(client=http_client)
+s = LambdaDB(client=http_client)
 ```
 
 or you could wrap the client with your own custom logic:
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 from lambdadb.httpclient import AsyncHttpClient
 import httpx
 
@@ -406,33 +406,33 @@ class CustomClient(AsyncHttpClient):
             extensions=extensions,
         )
 
-s = Lambdadb(async_client=CustomClient(httpx.AsyncClient()))
+s = LambdaDB(async_client=CustomClient(httpx.AsyncClient()))
 ```
 <!-- End Custom HTTP Client [http-client] -->
 
 <!-- Start Resource Management [resource-management] -->
 ## Resource Management
 
-The `Lambdadb` class implements the context manager protocol and registers a finalizer function to close the underlying sync and async HTTPX clients it uses under the hood. This will close HTTP connections, release memory and free up other resources held by the SDK. In short-lived Python programs and notebooks that make a few SDK method calls, resource management may not be a concern. However, in longer-lived programs, it is beneficial to create a single SDK instance via a [context manager][context-manager] and reuse it across the application.
+The `LambdaDB` class implements the context manager protocol and registers a finalizer function to close the underlying sync and async HTTPX clients it uses under the hood. This will close HTTP connections, release memory and free up other resources held by the SDK. In short-lived Python programs and notebooks that make a few SDK method calls, resource management may not be a concern. However, in longer-lived programs, it is beneficial to create a single SDK instance via a [context manager][context-manager] and reuse it across the application.
 
 [context-manager]: https://docs.python.org/3/reference/datamodel.html#context-managers
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 def main():
 
-    with Lambdadb(
+    with LambdaDB(
         project_api_key="<YOUR_PROJECT_API_KEY>",
-    ) as l_client:
+    ) as lambda_db:
         # Rest of application here...
 
 
 # Or when using async:
 async def amain():
 
-    async with Lambdadb(
+    async with LambdaDB(
         project_api_key="<YOUR_PROJECT_API_KEY>",
-    ) as l_client:
+    ) as lambda_db:
         # Rest of application here...
 ```
 <!-- End Resource Management [resource-management] -->
@@ -444,11 +444,11 @@ You can setup your SDK to emit debug logs for SDK requests and responses.
 
 You can pass your own logger class directly into your SDK.
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-s = Lambdadb(debug_logger=logging.getLogger("lambdadb"))
+s = LambdaDB(debug_logger=logging.getLogger("lambdadb"))
 ```
 
 You can also enable a default debug logger by setting an environment variable `LAMBDADB_DEBUG` to true.

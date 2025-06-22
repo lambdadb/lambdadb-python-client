@@ -18,14 +18,14 @@ Upsert documents into an collection. Note that the maximum supported payload siz
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.docs.upsert(project_name="<value>", collection_name="<value>", docs=[
+    res = lambda_db.projects.collections.docs.upsert(project_name="<value>", collection_name="<value>", docs=[
         {},
         {},
     ])
@@ -66,14 +66,14 @@ Request required info to upload documents.
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.docs.get_bulk_upsert(project_name="<value>", collection_name="<value>")
+    res = lambda_db.projects.collections.docs.get_bulk_upsert(project_name="<value>", collection_name="<value>")
 
     # Handle response
     print(res)
@@ -109,14 +109,14 @@ Bulk upsert documents into an collection. Note that the maximum supported object
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.docs.bulk_upsert(project_name="<value>", collection_name="<value>", object_key="example-object-key")
+    res = lambda_db.projects.collections.docs.bulk_upsert(project_name="<value>", collection_name="<value>", object_key="example-object-key")
 
     # Handle response
     print(res)
@@ -154,14 +154,14 @@ Delete documents by document IDs or query filter from an collection.
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.docs.delete(project_name="<value>", collection_name="<value>", request_body={
+    res = lambda_db.projects.collections.docs.delete(project_name="<value>", collection_name="<value>", request_body={
         "ids": [
             "example-doc-id-1",
             "example-doc-id-2",
@@ -204,14 +204,14 @@ Lookup and return documents by document IDs from an collection.
 ### Example Usage
 
 ```python
-from lambdadb import Lambdadb
+from lambdadb import LambdaDB
 
 
-with Lambdadb(
+with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as l_client:
+) as lambda_db:
 
-    res = l_client.projects.collections.docs.fetch(project_name="<value>", collection_name="<value>", ids=[
+    res = lambda_db.projects.collections.docs.fetch(project_name="<value>", collection_name="<value>", ids=[
         "example-doc-id-1",
         "example-doc-id-2",
     ], consistent_read=False, include_vectors=False)

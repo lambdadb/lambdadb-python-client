@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from lambdadb.projects import Projects
 
 
-class Lambdadb(BaseSDK):
+class LambdaDB(BaseSDK):
     r"""LambdaDB API: LambdaDB Open API Spec"""
 
     projects: "Projects"
