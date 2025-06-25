@@ -1,5 +1,5 @@
 # Collections
-(*projects.collections*)
+(*collections*)
 
 ## Overview
 
@@ -26,7 +26,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.list(project_name="<value>")
+    res = lambda_db.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -68,7 +68,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.create(project_name="<value>", collection_name="example-collection-name", index_configs={
+    res = lambda_db.collections.create(project_name="<value>", collection_name="example-collection-name", index_configs={
         "example-field1": {
             "type": models.TypeText.TEXT,
             "analyzers": [
@@ -129,7 +129,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.delete(project_name="<value>", collection_name="<value>")
+    res = lambda_db.collections.delete(project_name="<value>", collection_name="<value>")
 
     # Handle response
     print(res)
@@ -172,7 +172,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.get(project_name="<value>", collection_name="<value>")
+    res = lambda_db.collections.get(project_name="<value>", collection_name="<value>")
 
     # Handle response
     print(res)
@@ -215,7 +215,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.update(project_name="<value>", collection_name="<value>", index_configs={
+    res = lambda_db.collections.update(project_name="<value>", collection_name="<value>", index_configs={
         "example-field1": {
             "type": models.TypeText.TEXT,
             "analyzers": [
@@ -275,7 +275,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.query(project_name="<value>", collection_name="<value>", size=2, query={}, consistent_read=False, include_vectors=False)
+    res = lambda_db.collections.query(project_name="<value>", collection_name="<value>", size=2, query={}, consistent_read=False, include_vectors=False)
 
     # Handle response
     print(res)

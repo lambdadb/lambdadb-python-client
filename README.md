@@ -118,7 +118,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.list(project_name="<value>")
+    res = lambda_db.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -138,7 +138,7 @@ async def main():
         project_api_key="<YOUR_PROJECT_API_KEY>",
     ) as lambda_db:
 
-        res = await lambda_db.projects.collections.list_async(project_name="<value>")
+        res = await lambda_db.collections.list_async(project_name="<value>")
 
         # Handle response
         print(res)
@@ -167,7 +167,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.list(project_name="<value>")
+    res = lambda_db.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -181,11 +181,7 @@ with LambdaDB(
 <details open>
 <summary>Available methods</summary>
 
-
-### [projects](docs/sdks/projects/README.md)
-
-
-#### [projects.collections](docs/sdks/collections/README.md)
+### [collections](docs/sdks/collections/README.md)
 
 * [list](docs/sdks/collections/README.md#list) - List all collections in an existing project.
 * [create](docs/sdks/collections/README.md#create) - Create an collection.
@@ -194,13 +190,14 @@ with LambdaDB(
 * [update](docs/sdks/collections/README.md#update) - Configure an collection.
 * [query](docs/sdks/collections/README.md#query) - Search an collection with a query and return the most similar documents.
 
-#### [projects.collections.docs](docs/sdks/docs/README.md)
+#### [collections.docs](docs/sdks/docs/README.md)
 
 * [upsert](docs/sdks/docs/README.md#upsert) - Upsert documents into an collection. Note that the maximum supported payload size is 6MB.
 * [get_bulk_upsert](docs/sdks/docs/README.md#get_bulk_upsert) - Request required info to upload documents.
 * [bulk_upsert](docs/sdks/docs/README.md#bulk_upsert) - Bulk upsert documents into an collection. Note that the maximum supported object size is 200MB.
 * [delete](docs/sdks/docs/README.md#delete) - Delete documents by document IDs or query filter from an collection.
 * [fetch](docs/sdks/docs/README.md#fetch) - Lookup and return documents by document IDs from an collection.
+
 
 </details>
 <!-- End Available Resources and Operations [operations] -->
@@ -220,7 +217,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.list(project_name="<value>",
+    res = lambda_db.collections.list(project_name="<value>",
         RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False))
 
     # Handle response
@@ -239,7 +236,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.list(project_name="<value>")
+    res = lambda_db.collections.list(project_name="<value>")
 
     # Handle response
     print(res)
@@ -283,7 +280,7 @@ with LambdaDB(
     res = None
     try:
 
-        res = lambda_db.projects.collections.list(project_name="<value>")
+        res = lambda_db.collections.list(project_name="<value>")
 
         # Handle response
         print(res)
@@ -321,7 +318,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.list(project_name="<value>")
+    res = lambda_db.collections.list(project_name="<value>")
 
     # Handle response
     print(res)

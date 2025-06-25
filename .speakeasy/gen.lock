@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: cbfc90ce20c328625461f773cc77807c
+  docChecksum: 6e0058624635f01f6c103fa9aac6ae76
   docVersion: 1.1.0
-  speakeasyVersion: 1.568.0
-  generationVersion: 2.632.2
-  releaseVersion: 0.2.2
-  configChecksum: 18742901956804784e75dd0d6d0d0abb
+  speakeasyVersion: 1.568.2
+  generationVersion: 2.634.2
+  releaseVersion: 0.3.0
+  configChecksum: cb428dab9b92b40e6a6853b3f216ac1f
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
@@ -100,7 +100,6 @@ generatedFiles:
   - docs/sdks/collections/README.md
   - docs/sdks/docs/README.md
   - docs/sdks/lambdadb/README.md
-  - docs/sdks/projects/README.md
   - poetry.toml
   - py.typed
   - pylintrc
@@ -140,7 +139,6 @@ generatedFiles:
   - src/lambdadb/models/status.py
   - src/lambdadb/models/updatecollectionop.py
   - src/lambdadb/models/upsertdocsop.py
-  - src/lambdadb/projects.py
   - src/lambdadb/py.typed
   - src/lambdadb/sdk.py
   - src/lambdadb/sdkconfiguration.py
