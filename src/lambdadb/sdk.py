@@ -14,15 +14,15 @@ from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, Union, cast
 import weakref
 
 if TYPE_CHECKING:
-    from lambdadb.projects import Projects
+    from lambdadb.collections import Collections
 
 
 class LambdaDB(BaseSDK):
     r"""LambdaDB API: LambdaDB Open API Spec"""
 
-    projects: "Projects"
+    collections: "Collections"
     _sub_sdk_map = {
-        "projects": ("lambdadb.projects", "Projects"),
+        "collections": ("lambdadb.collections", "Collections"),
     }
 
     def __init__(

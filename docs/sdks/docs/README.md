@@ -1,5 +1,5 @@
 # Docs
-(*projects.collections.docs*)
+(*collections.docs*)
 
 ## Overview
 
@@ -25,7 +25,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.docs.upsert(project_name="<value>", collection_name="<value>", docs=[
+    res = lambda_db.collections.docs.upsert(project_name="<value>", collection_name="<value>", docs=[
         {},
         {},
     ])
@@ -73,7 +73,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.docs.get_bulk_upsert(project_name="<value>", collection_name="<value>")
+    res = lambda_db.collections.docs.get_bulk_upsert(project_name="<value>", collection_name="<value>")
 
     # Handle response
     print(res)
@@ -116,7 +116,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.docs.bulk_upsert(project_name="<value>", collection_name="<value>", object_key="example-object-key")
+    res = lambda_db.collections.docs.bulk_upsert(project_name="<value>", collection_name="<value>", object_key="example-object-key")
 
     # Handle response
     print(res)
@@ -161,7 +161,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.docs.delete(project_name="<value>", collection_name="<value>", request_body={
+    res = lambda_db.collections.docs.delete(project_name="<value>", collection_name="<value>", request_body={
         "ids": [
             "example-doc-id-1",
             "example-doc-id-2",
@@ -211,7 +211,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.projects.collections.docs.fetch(project_name="<value>", collection_name="<value>", ids=[
+    res = lambda_db.collections.docs.fetch(project_name="<value>", collection_name="<value>", ids=[
         "example-doc-id-1",
         "example-doc-id-2",
     ], consistent_read=False, include_vectors=False)

@@ -3,10 +3,10 @@
 import importlib.metadata
 
 __title__: str = "lambdadb"
-__version__: str = "0.2.2"
+__version__: str = "0.3.0"
 __openapi_doc_version__: str = "1.1.0"
-__gen_version__: str = "2.632.2"
-__user_agent__: str = "speakeasy-sdk/python 0.2.2 2.632.2 1.1.0 lambdadb"
+__gen_version__: str = "2.634.2"
+__user_agent__: str = "speakeasy-sdk/python 0.3.0 2.634.2 1.1.0 lambdadb"
 
 try:
     if __package__ is not None:
