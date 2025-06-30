@@ -9,12 +9,12 @@ from typing import List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
 
-class ListcollectionsRequestTypedDict(TypedDict):
+class ListCollectionsRequestTypedDict(TypedDict):
     project_name: str
     r"""Project name."""
 
 
-class ListcollectionsRequest(BaseModel):
+class ListCollectionsRequest(BaseModel):
     project_name: Annotated[
         str,
         pydantic.Field(alias="projectName"),
@@ -23,13 +23,13 @@ class ListcollectionsRequest(BaseModel):
     r"""Project name."""
 
 
-class ListcollectionsResponseTypedDict(TypedDict):
+class ListCollectionsResponseTypedDict(TypedDict):
     r"""A list of collections matched with a projectName."""
 
     collections: NotRequired[List[CollectionResponseTypedDict]]
 
 
-class ListcollectionsResponse(BaseModel):
+class ListCollectionsResponse(BaseModel):
     r"""A list of collections matched with a projectName."""
 
     collections: Optional[List[CollectionResponse]] = None

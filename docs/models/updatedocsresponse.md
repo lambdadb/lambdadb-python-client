@@ -1,8 +1,10 @@
-# ListCollectionsRequest
+# UpdateDocsResponse
+
+Update request accepted.
 
 
 ## Fields
 
 | Field              | Type               | Required           | Description        |
 | ------------------ | ------------------ | ------------------ | ------------------ |
-| `project_name`     | *str*              | :heavy_check_mark: | Project name.      |
+| `message`          | *Optional[str]*    | :heavy_minus_sign: | N/A                |
