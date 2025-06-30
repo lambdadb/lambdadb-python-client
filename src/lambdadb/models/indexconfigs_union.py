@@ -13,6 +13,7 @@ class Type(str, Enum):
     DOUBLE = "double"
     DATETIME = "datetime"
     BOOLEAN = "boolean"
+    SPARSE_VECTOR = "sparseVector"
 
 
 class IndexConfigsTypedDict(TypedDict):

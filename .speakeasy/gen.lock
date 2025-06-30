@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: 6e0058624635f01f6c103fa9aac6ae76
+  docChecksum: 3d60f5d2f9e963ab2c6e94b8de4afe62
   docVersion: 1.1.0
-  speakeasyVersion: 1.568.2
-  generationVersion: 2.634.2
-  releaseVersion: 0.3.0
-  configChecksum: cb428dab9b92b40e6a6853b3f216ac1f
+  speakeasyVersion: 1.571.2
+  generationVersion: 2.640.2
+  releaseVersion: 0.3.1
+  configChecksum: 9cb3d38392135e1bc0408b08970842a9
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
@@ -92,6 +92,10 @@ generatedFiles:
   - docs/models/typevector.md
   - docs/models/updatecollectionrequest.md
   - docs/models/updatecollectionrequestbody.md
+  - docs/models/updatedocsdoc.md
+  - docs/models/updatedocsrequest.md
+  - docs/models/updatedocsrequestbody.md
+  - docs/models/updatedocsresponse.md
   - docs/models/upsertdocsdoc.md
   - docs/models/upsertdocsrequest.md
   - docs/models/upsertdocsrequestbody.md
@@ -138,6 +142,7 @@ generatedFiles:
   - src/lambdadb/models/security.py
   - src/lambdadb/models/status.py
   - src/lambdadb/models/updatecollectionop.py
+  - src/lambdadb/models/updatedocsop.py
   - src/lambdadb/models/upsertdocsop.py
   - src/lambdadb/py.typed
   - src/lambdadb/sdk.py
@@ -548,6 +553,55 @@ examples:
       responses:
         "200":
           application/json: {"total": 2, "took": 10, "docs": [{"collection": "example-collection-name", "doc": {}}, {"collection": "example-collection-name", "doc": {}}]}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  listCollections:
+    normalCollection:
+      parameters:
+        path:
+          projectName: "<value>"
+      responses:
+        "200":
+          application/json: {"collections": [{"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["standard"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numDocs": 10000, "collectionStatus": "ACTIVE"}]}
+    clonedCollection:
+      parameters:
+        path:
+          projectName: "<value>"
+      responses:
+        "200":
+          application/json: {"collections": [{"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["standard"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numDocs": 10000, "collectionStatus": "ACTIVE"}]}
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+      responses:
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
+  updateDocs:
+    example:
+      parameters:
+        path:
+          projectName: "<value>"
+          collectionName: "<value>"
+      requestBody:
+        application/json: {"docs": [{}, {}]}
+      responses:
+        "202":
+          application/json: {"message": "Update request is accepted"}
         "400":
           application/json: {"message": "Invalid request"}
         "401":

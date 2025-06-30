@@ -184,19 +184,20 @@ with LambdaDB(
 ### [collections](docs/sdks/collections/README.md)
 
 * [list](docs/sdks/collections/README.md#list) - List all collections in an existing project.
-* [create](docs/sdks/collections/README.md#create) - Create an collection.
+* [create](docs/sdks/collections/README.md#create) - Create a collection.
 * [delete](docs/sdks/collections/README.md#delete) - Delete an existing collection.
 * [get](docs/sdks/collections/README.md#get) - Get metadata of an existing collection.
-* [update](docs/sdks/collections/README.md#update) - Configure an collection.
-* [query](docs/sdks/collections/README.md#query) - Search an collection with a query and return the most similar documents.
+* [update](docs/sdks/collections/README.md#update) - Configure a collection.
+* [query](docs/sdks/collections/README.md#query) - Search a collection with a query and return the most similar documents.
 
 #### [collections.docs](docs/sdks/docs/README.md)
 
-* [upsert](docs/sdks/docs/README.md#upsert) - Upsert documents into an collection. Note that the maximum supported payload size is 6MB.
+* [upsert](docs/sdks/docs/README.md#upsert) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 * [get_bulk_upsert](docs/sdks/docs/README.md#get_bulk_upsert) - Request required info to upload documents.
-* [bulk_upsert](docs/sdks/docs/README.md#bulk_upsert) - Bulk upsert documents into an collection. Note that the maximum supported object size is 200MB.
-* [delete](docs/sdks/docs/README.md#delete) - Delete documents by document IDs or query filter from an collection.
-* [fetch](docs/sdks/docs/README.md#fetch) - Lookup and return documents by document IDs from an collection.
+* [bulk_upsert](docs/sdks/docs/README.md#bulk_upsert) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
+* [update_docs](docs/sdks/docs/README.md#update_docs) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
+* [delete](docs/sdks/docs/README.md#delete) - Delete documents by document IDs or query filter from a collection.
+* [fetch](docs/sdks/docs/README.md#fetch) - Lookup and return documents by document IDs from a collection.
 
 
 </details>

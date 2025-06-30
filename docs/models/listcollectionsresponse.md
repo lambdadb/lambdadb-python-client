@@ -1,4 +1,4 @@
-# ListcollectionsResponse
+# ListCollectionsResponse
 
 A list of collections matched with a projectName.
 

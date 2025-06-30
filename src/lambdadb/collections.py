@@ -29,7 +29,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.ListcollectionsResponse:
+    ) -> models.ListCollectionsResponse:
         r"""List all collections in an existing project.
 
         :param project_name: Project name.
@@ -48,7 +48,7 @@ class Collections(BaseSDK):
         else:
             base_url = self._get_url(base_url, url_variables)
 
-        request = models.ListcollectionsRequest(
+        request = models.ListCollectionsRequest(
             project_name=project_name,
         )
 
@@ -84,7 +84,7 @@ class Collections(BaseSDK):
             hook_ctx=HookContext(
                 config=self.sdk_configuration,
                 base_url=base_url or "",
-                operation_id="listcollections",
+                operation_id="listCollections",
                 oauth2_scopes=[],
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
@@ -97,7 +97,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.ListcollectionsResponse)
+            return utils.unmarshal_json(http_res.text, models.ListCollectionsResponse)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.UnauthenticatedErrorData
@@ -146,7 +146,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.ListcollectionsResponse:
+    ) -> models.ListCollectionsResponse:
         r"""List all collections in an existing project.
 
         :param project_name: Project name.
@@ -165,7 +165,7 @@ class Collections(BaseSDK):
         else:
             base_url = self._get_url(base_url, url_variables)
 
-        request = models.ListcollectionsRequest(
+        request = models.ListCollectionsRequest(
             project_name=project_name,
         )
 
@@ -201,7 +201,7 @@ class Collections(BaseSDK):
             hook_ctx=HookContext(
                 config=self.sdk_configuration,
                 base_url=base_url or "",
-                operation_id="listcollections",
+                operation_id="listCollections",
                 oauth2_scopes=[],
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
@@ -214,7 +214,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.ListcollectionsResponse)
+            return utils.unmarshal_json(http_res.text, models.ListCollectionsResponse)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.UnauthenticatedErrorData
@@ -275,7 +275,7 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.CollectionResponse:
-        r"""Create an collection.
+        r"""Create a collection.
 
         :param project_name: Project name.
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
@@ -431,7 +431,7 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.CollectionResponse:
-        r"""Create an collection.
+        r"""Create a collection.
 
         :param project_name: Project name.
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
@@ -1061,7 +1061,7 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.CollectionResponse:
-        r"""Configure an collection.
+        r"""Configure a collection.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
@@ -1203,7 +1203,7 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.CollectionResponse:
-        r"""Configure an collection.
+        r"""Configure a collection.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
@@ -1347,11 +1347,11 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.QueryCollectionResponse:
-        r"""Search an collection with a query and return the most similar documents.
+        r"""Search a collection with a query and return the most similar documents.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
-        :param size: Number of documents to return. Note that the maximum number of documents is 1000.
+        :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param query: Query object.
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
@@ -1499,11 +1499,11 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.QueryCollectionResponse:
-        r"""Search an collection with a query and return the most similar documents.
+        r"""Search a collection with a query and return the most similar documents.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
-        :param size: Number of documents to return. Note that the maximum number of documents is 1000.
+        :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param query: Query object.
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.

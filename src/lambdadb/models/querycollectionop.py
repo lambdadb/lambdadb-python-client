@@ -26,7 +26,7 @@ class Sort(BaseModel):
 
 class QueryCollectionRequestBodyTypedDict(TypedDict):
     size: int
-    r"""Number of documents to return. Note that the maximum number of documents is 1000."""
+    r"""Number of documents to return. Note that the maximum number of documents is 100."""
     query: NotRequired[QueryTypedDict]
     r"""Query object."""
     consistent_read: NotRequired[bool]
@@ -41,7 +41,7 @@ class QueryCollectionRequestBodyTypedDict(TypedDict):
 
 class QueryCollectionRequestBody(BaseModel):
     size: int
-    r"""Number of documents to return. Note that the maximum number of documents is 1000."""
+    r"""Number of documents to return. Note that the maximum number of documents is 100."""
 
     query: Optional[Query] = None
     r"""Query object."""

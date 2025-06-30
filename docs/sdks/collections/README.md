@@ -6,11 +6,11 @@
 ### Available Operations
 
 * [list](#list) - List all collections in an existing project.
-* [create](#create) - Create an collection.
+* [create](#create) - Create a collection.
 * [delete](#delete) - Delete an existing collection.
 * [get](#get) - Get metadata of an existing collection.
-* [update](#update) - Configure an collection.
-* [query](#query) - Search an collection with a query and return the most similar documents.
+* [update](#update) - Configure a collection.
+* [query](#query) - Search a collection with a query and return the most similar documents.
 
 ## list
 
@@ -42,7 +42,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.ListcollectionsResponse](../../models/listcollectionsresponse.md)**
+**[models.ListCollectionsResponse](../../models/listcollectionsresponse.md)**
 
 ### Errors
 
@@ -56,7 +56,7 @@ with LambdaDB(
 
 ## create
 
-Create an collection.
+Create a collection.
 
 ### Example Usage
 
@@ -203,7 +203,7 @@ with LambdaDB(
 
 ## update
 
-Configure an collection.
+Configure a collection.
 
 ### Example Usage
 
@@ -263,7 +263,7 @@ with LambdaDB(
 
 ## query
 
-Search an collection with a query and return the most similar documents.
+Search a collection with a query and return the most similar documents.
 
 ### Example Usage
 
@@ -288,7 +288,7 @@ with LambdaDB(
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `project_name`                                                                                                                                                                                                              | *str*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Project name.                                                                                                                                                                                                               |
 | `collection_name`                                                                                                                                                                                                           | *str*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Collection name.                                                                                                                                                                                                            |
-| `size`                                                                                                                                                                                                                      | *int*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Number of documents to return. Note that the maximum number of documents is 1000.                                                                                                                                           |
+| `size`                                                                                                                                                                                                                      | *int*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Number of documents to return. Note that the maximum number of documents is 100.                                                                                                                                            |
 | `query`                                                                                                                                                                                                                     | [Optional[models.Query]](../../models/query.md)                                                                                                                                                                             | :heavy_minus_sign:                                                                                                                                                                                                          | Query object.                                                                                                                                                                                                               |
 | `consistent_read`                                                                                                                                                                                                           | *Optional[bool]*                                                                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value. |
 | `include_vectors`                                                                                                                                                                                                           | *Optional[bool]*                                                                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | If your application need to include vector values in the response, set includeVectors to true.                                                                                                                              |

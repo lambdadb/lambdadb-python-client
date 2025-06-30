@@ -10,7 +10,7 @@ from typing_extensions import Annotated, NotRequired, TypedDict
 
 class FetchDocsRequestBodyTypedDict(TypedDict):
     ids: List[str]
-    r"""A list of document IDs to fetch. Note that the maximum number of document IDs is 1000."""
+    r"""A list of document IDs to fetch. Note that the maximum number of document IDs is 100."""
     consistent_read: NotRequired[bool]
     r"""If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value."""
     include_vectors: NotRequired[bool]
@@ -19,7 +19,7 @@ class FetchDocsRequestBodyTypedDict(TypedDict):
 
 class FetchDocsRequestBody(BaseModel):
     ids: List[str]
-    r"""A list of document IDs to fetch. Note that the maximum number of document IDs is 1000."""
+    r"""A list of document IDs to fetch. Note that the maximum number of document IDs is 100."""
 
     consistent_read: Annotated[
         Optional[bool], pydantic.Field(alias="consistentRead")
