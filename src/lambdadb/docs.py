@@ -20,7 +20,7 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.UpsertDocsResponse:
-        r"""Upsert documents into an collection. Note that the maximum supported payload size is 6MB.
+        r"""Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
@@ -153,7 +153,7 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.UpsertDocsResponse:
-        r"""Upsert documents into an collection. Note that the maximum supported payload size is 6MB.
+        r"""Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
@@ -526,7 +526,7 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.BulkUpsertDocsResponse:
-        r"""Bulk upsert documents into an collection. Note that the maximum supported object size is 200MB.
+        r"""Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
@@ -663,7 +663,7 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.BulkUpsertDocsResponse:
-        r"""Bulk upsert documents into an collection. Note that the maximum supported object size is 200MB.
+        r"""Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
@@ -789,6 +789,272 @@ class Docs(BaseSDK):
             http_res,
         )
 
+    def update_docs(
+        self,
+        *,
+        project_name: str,
+        collection_name: str,
+        docs: Union[List[models.UpdateDocsDoc], List[models.UpdateDocsDocTypedDict]],
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> models.UpdateDocsResponse:
+        r"""Update documents in a collection. Note that the maximum supported payload size is 6MB.
+
+        :param project_name: Project name.
+        :param collection_name: Collection name.
+        :param docs: A list of documents to update. Each document must contain 'id' field to be updated.
+        :param retries: Override the default retry configuration for this method
+        :param server_url: Override the default server URL for this method
+        :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
+        :param http_headers: Additional headers to set or replace on requests.
+        """
+        base_url = None
+        url_variables = None
+        if timeout_ms is None:
+            timeout_ms = self.sdk_configuration.timeout_ms
+
+        if server_url is not None:
+            base_url = server_url
+        else:
+            base_url = self._get_url(base_url, url_variables)
+
+        request = models.UpdateDocsRequest(
+            project_name=project_name,
+            collection_name=collection_name,
+            request_body=models.UpdateDocsRequestBody(
+                docs=utils.get_pydantic_model(docs, List[models.UpdateDocsDoc]),
+            ),
+        )
+
+        req = self._build_request(
+            method="POST",
+            path="/projects/{projectName}/collections/{collectionName}/docs/update",
+            base_url=base_url,
+            url_variables=url_variables,
+            request=request,
+            request_body_required=True,
+            request_has_path_params=True,
+            request_has_query_params=True,
+            user_agent_header="user-agent",
+            accept_header_value="application/json",
+            http_headers=http_headers,
+            security=self.sdk_configuration.security,
+            get_serialized_body=lambda: utils.serialize_request_body(
+                request.request_body, False, False, "json", models.UpdateDocsRequestBody
+            ),
+            timeout_ms=timeout_ms,
+        )
+
+        if retries == UNSET:
+            if self.sdk_configuration.retry_config is not UNSET:
+                retries = self.sdk_configuration.retry_config
+            else:
+                retries = utils.RetryConfig(
+                    "backoff", utils.BackoffStrategy(500, 60000, 1.5, 3600000), True
+                )
+
+        retry_config = None
+        if isinstance(retries, utils.RetryConfig):
+            retry_config = (retries, ["429", "5XX"])
+
+        http_res = self.do_request(
+            hook_ctx=HookContext(
+                config=self.sdk_configuration,
+                base_url=base_url or "",
+                operation_id="updateDocs",
+                oauth2_scopes=[],
+                security_source=get_security_from_env(
+                    self.sdk_configuration.security, models.Security
+                ),
+            ),
+            request=req,
+            error_status_codes=["400", "401", "404", "429", "4XX", "500", "5XX"],
+            retry_config=retry_config,
+        )
+
+        response_data: Any = None
+        if utils.match_response(http_res, "202", "application/json"):
+            return utils.unmarshal_json(http_res.text, models.UpdateDocsResponse)
+        if utils.match_response(http_res, "400", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.BadRequestErrorData
+            )
+            raise errors.BadRequestError(data=response_data)
+        if utils.match_response(http_res, "401", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.UnauthenticatedErrorData
+            )
+            raise errors.UnauthenticatedError(data=response_data)
+        if utils.match_response(http_res, "404", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.ResourceNotFoundErrorData
+            )
+            raise errors.ResourceNotFoundError(data=response_data)
+        if utils.match_response(http_res, "429", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.TooManyRequestsErrorData
+            )
+            raise errors.TooManyRequestsError(data=response_data)
+        if utils.match_response(http_res, "500", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.InternalServerErrorData
+            )
+            raise errors.InternalServerError(data=response_data)
+        if utils.match_response(http_res, "4XX", "*"):
+            http_res_text = utils.stream_to_text(http_res)
+            raise errors.APIError(
+                "API error occurred", http_res.status_code, http_res_text, http_res
+            )
+        if utils.match_response(http_res, "5XX", "*"):
+            http_res_text = utils.stream_to_text(http_res)
+            raise errors.APIError(
+                "API error occurred", http_res.status_code, http_res_text, http_res
+            )
+
+        content_type = http_res.headers.get("Content-Type")
+        http_res_text = utils.stream_to_text(http_res)
+        raise errors.APIError(
+            f"Unexpected response received (code: {http_res.status_code}, type: {content_type})",
+            http_res.status_code,
+            http_res_text,
+            http_res,
+        )
+
+    async def update_docs_async(
+        self,
+        *,
+        project_name: str,
+        collection_name: str,
+        docs: Union[List[models.UpdateDocsDoc], List[models.UpdateDocsDocTypedDict]],
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> models.UpdateDocsResponse:
+        r"""Update documents in a collection. Note that the maximum supported payload size is 6MB.
+
+        :param project_name: Project name.
+        :param collection_name: Collection name.
+        :param docs: A list of documents to update. Each document must contain 'id' field to be updated.
+        :param retries: Override the default retry configuration for this method
+        :param server_url: Override the default server URL for this method
+        :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
+        :param http_headers: Additional headers to set or replace on requests.
+        """
+        base_url = None
+        url_variables = None
+        if timeout_ms is None:
+            timeout_ms = self.sdk_configuration.timeout_ms
+
+        if server_url is not None:
+            base_url = server_url
+        else:
+            base_url = self._get_url(base_url, url_variables)
+
+        request = models.UpdateDocsRequest(
+            project_name=project_name,
+            collection_name=collection_name,
+            request_body=models.UpdateDocsRequestBody(
+                docs=utils.get_pydantic_model(docs, List[models.UpdateDocsDoc]),
+            ),
+        )
+
+        req = self._build_request_async(
+            method="POST",
+            path="/projects/{projectName}/collections/{collectionName}/docs/update",
+            base_url=base_url,
+            url_variables=url_variables,
+            request=request,
+            request_body_required=True,
+            request_has_path_params=True,
+            request_has_query_params=True,
+            user_agent_header="user-agent",
+            accept_header_value="application/json",
+            http_headers=http_headers,
+            security=self.sdk_configuration.security,
+            get_serialized_body=lambda: utils.serialize_request_body(
+                request.request_body, False, False, "json", models.UpdateDocsRequestBody
+            ),
+            timeout_ms=timeout_ms,
+        )
+
+        if retries == UNSET:
+            if self.sdk_configuration.retry_config is not UNSET:
+                retries = self.sdk_configuration.retry_config
+            else:
+                retries = utils.RetryConfig(
+                    "backoff", utils.BackoffStrategy(500, 60000, 1.5, 3600000), True
+                )
+
+        retry_config = None
+        if isinstance(retries, utils.RetryConfig):
+            retry_config = (retries, ["429", "5XX"])
+
+        http_res = await self.do_request_async(
+            hook_ctx=HookContext(
+                config=self.sdk_configuration,
+                base_url=base_url or "",
+                operation_id="updateDocs",
+                oauth2_scopes=[],
+                security_source=get_security_from_env(
+                    self.sdk_configuration.security, models.Security
+                ),
+            ),
+            request=req,
+            error_status_codes=["400", "401", "404", "429", "4XX", "500", "5XX"],
+            retry_config=retry_config,
+        )
+
+        response_data: Any = None
+        if utils.match_response(http_res, "202", "application/json"):
+            return utils.unmarshal_json(http_res.text, models.UpdateDocsResponse)
+        if utils.match_response(http_res, "400", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.BadRequestErrorData
+            )
+            raise errors.BadRequestError(data=response_data)
+        if utils.match_response(http_res, "401", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.UnauthenticatedErrorData
+            )
+            raise errors.UnauthenticatedError(data=response_data)
+        if utils.match_response(http_res, "404", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.ResourceNotFoundErrorData
+            )
+            raise errors.ResourceNotFoundError(data=response_data)
+        if utils.match_response(http_res, "429", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.TooManyRequestsErrorData
+            )
+            raise errors.TooManyRequestsError(data=response_data)
+        if utils.match_response(http_res, "500", "application/json"):
+            response_data = utils.unmarshal_json(
+                http_res.text, errors.InternalServerErrorData
+            )
+            raise errors.InternalServerError(data=response_data)
+        if utils.match_response(http_res, "4XX", "*"):
+            http_res_text = await utils.stream_to_text_async(http_res)
+            raise errors.APIError(
+                "API error occurred", http_res.status_code, http_res_text, http_res
+            )
+        if utils.match_response(http_res, "5XX", "*"):
+            http_res_text = await utils.stream_to_text_async(http_res)
+            raise errors.APIError(
+                "API error occurred", http_res.status_code, http_res_text, http_res
+            )
+
+        content_type = http_res.headers.get("Content-Type")
+        http_res_text = await utils.stream_to_text_async(http_res)
+        raise errors.APIError(
+            f"Unexpected response received (code: {http_res.status_code}, type: {content_type})",
+            http_res.status_code,
+            http_res_text,
+            http_res,
+        )
+
     def delete(
         self,
         *,
@@ -802,7 +1068,7 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.DeleteDocsResponse:
-        r"""Delete documents by document IDs or query filter from an collection.
+        r"""Delete documents by document IDs or query filter from a collection.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
@@ -937,7 +1203,7 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.DeleteDocsResponse:
-        r"""Delete documents by document IDs or query filter from an collection.
+        r"""Delete documents by document IDs or query filter from a collection.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
@@ -1072,11 +1338,11 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.FetchDocsResponse:
-        r"""Lookup and return documents by document IDs from an collection.
+        r"""Lookup and return documents by document IDs from a collection.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
-        :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 1000.
+        :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 100.
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param retries: Override the default retry configuration for this method
@@ -1211,11 +1477,11 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.FetchDocsResponse:
-        r"""Lookup and return documents by document IDs from an collection.
+        r"""Lookup and return documents by document IDs from a collection.
 
         :param project_name: Project name.
         :param collection_name: Collection name.
-        :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 1000.
+        :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 100.
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param retries: Override the default retry configuration for this method
