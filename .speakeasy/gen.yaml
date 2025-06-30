@@ -25,12 +25,12 @@ generation:
     generateNewTests: false
     skipResponseBodyAssertions: false
 python:
-  version: 0.3.0
+  version: 0.4.0
   additionalDependencies:
     dev: {}
     main: {}
   authors:
-    - Speakeasy
+    - LambdaDB
   baseErrorName: LambdaDBError
   clientServerStatusCodesAsErrors: true
   defaultErrorName: APIError
