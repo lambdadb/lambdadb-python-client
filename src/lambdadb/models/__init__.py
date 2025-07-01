@@ -32,6 +32,8 @@ if TYPE_CHECKING:
         DeleteDocsRequestTypedDict,
         DeleteDocsResponse,
         DeleteDocsResponseTypedDict,
+        Filter,
+        FilterTypedDict,
     )
     from .fetchdocsop import (
         FetchDocsDoc,
@@ -45,7 +47,6 @@ if TYPE_CHECKING:
         FetchDocsResponse,
         FetchDocsResponseTypedDict,
     )
-    from .filter_ import Filter, FilterFilter, FilterFilterTypedDict, FilterTypedDict
     from .getbulkupsertdocsop import (
         GetBulkUpsertDocsRequest,
         GetBulkUpsertDocsRequestTypedDict,
@@ -55,7 +56,6 @@ if TYPE_CHECKING:
         HTTPMethod,
     )
     from .getcollectionop import GetCollectionRequest, GetCollectionRequestTypedDict
-    from .ids import IDs, IDsTypedDict
     from .indexconfigs_union import (
         Analyzer,
         IndexConfigs,
@@ -157,8 +157,6 @@ __all__ = [
     "FetchDocsResponse",
     "FetchDocsResponseTypedDict",
     "Filter",
-    "FilterFilter",
-    "FilterFilterTypedDict",
     "FilterTypedDict",
     "GetBulkUpsertDocsRequest",
     "GetBulkUpsertDocsRequestTypedDict",
@@ -168,8 +166,6 @@ __all__ = [
     "GetCollectionRequest",
     "GetCollectionRequestTypedDict",
     "HTTPMethod",
-    "IDs",
-    "IDsTypedDict",
     "IndexConfigs",
     "IndexConfigsText",
     "IndexConfigsTextTypedDict",
@@ -248,6 +244,8 @@ _dynamic_imports: dict[str, str] = {
     "DeleteDocsRequestTypedDict": ".deletedocsop",
     "DeleteDocsResponse": ".deletedocsop",
     "DeleteDocsResponseTypedDict": ".deletedocsop",
+    "Filter": ".deletedocsop",
+    "FilterTypedDict": ".deletedocsop",
     "FetchDocsDoc": ".fetchdocsop",
     "FetchDocsDocDoc": ".fetchdocsop",
     "FetchDocsDocDocTypedDict": ".fetchdocsop",
@@ -258,10 +256,6 @@ _dynamic_imports: dict[str, str] = {
     "FetchDocsRequestTypedDict": ".fetchdocsop",
     "FetchDocsResponse": ".fetchdocsop",
     "FetchDocsResponseTypedDict": ".fetchdocsop",
-    "Filter": ".filter_",
-    "FilterFilter": ".filter_",
-    "FilterFilterTypedDict": ".filter_",
-    "FilterTypedDict": ".filter_",
     "GetBulkUpsertDocsRequest": ".getbulkupsertdocsop",
     "GetBulkUpsertDocsRequestTypedDict": ".getbulkupsertdocsop",
     "GetBulkUpsertDocsResponse": ".getbulkupsertdocsop",
@@ -270,8 +264,6 @@ _dynamic_imports: dict[str, str] = {
     "HTTPMethod": ".getbulkupsertdocsop",
     "GetCollectionRequest": ".getcollectionop",
     "GetCollectionRequestTypedDict": ".getcollectionop",
-    "IDs": ".ids",
-    "IDsTypedDict": ".ids",
     "Analyzer": ".indexconfigs_union",
     "IndexConfigs": ".indexconfigs_union",
     "IndexConfigsText": ".indexconfigs_union",

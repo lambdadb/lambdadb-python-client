@@ -1060,9 +1060,8 @@ class Docs(BaseSDK):
         *,
         project_name: str,
         collection_name: str,
-        request_body: Union[
-            models.DeleteDocsRequestBody, models.DeleteDocsRequestBodyTypedDict
-        ],
+        ids: Optional[List[str]] = None,
+        filter_: Optional[Union[models.Filter, models.FilterTypedDict]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1072,7 +1071,8 @@ class Docs(BaseSDK):
 
         :param project_name: Project name.
         :param collection_name: Collection name.
-        :param request_body:
+        :param ids: A list of document IDs.
+        :param filter_: Query filter.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1091,8 +1091,9 @@ class Docs(BaseSDK):
         request = models.DeleteDocsRequest(
             project_name=project_name,
             collection_name=collection_name,
-            request_body=utils.get_pydantic_model(
-                request_body, models.DeleteDocsRequestBody
+            request_body=models.DeleteDocsRequestBody(
+                ids=ids,
+                filter_=utils.get_pydantic_model(filter_, Optional[models.Filter]),
             ),
         )
 
@@ -1195,9 +1196,8 @@ class Docs(BaseSDK):
         *,
         project_name: str,
         collection_name: str,
-        request_body: Union[
-            models.DeleteDocsRequestBody, models.DeleteDocsRequestBodyTypedDict
-        ],
+        ids: Optional[List[str]] = None,
+        filter_: Optional[Union[models.Filter, models.FilterTypedDict]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1207,7 +1207,8 @@ class Docs(BaseSDK):
 
         :param project_name: Project name.
         :param collection_name: Collection name.
-        :param request_body:
+        :param ids: A list of document IDs.
+        :param filter_: Query filter.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1226,8 +1227,9 @@ class Docs(BaseSDK):
         request = models.DeleteDocsRequest(
             project_name=project_name,
             collection_name=collection_name,
-            request_body=utils.get_pydantic_model(
-                request_body, models.DeleteDocsRequestBody
+            request_body=models.DeleteDocsRequestBody(
+                ids=ids,
+                filter_=utils.get_pydantic_model(filter_, Optional[models.Filter]),
             ),
         )
 

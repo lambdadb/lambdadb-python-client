@@ -210,12 +210,10 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.docs.delete(project_name="<value>", collection_name="<value>", request_body={
-        "ids": [
-            "example-doc-id-1",
-            "example-doc-id-2",
-        ],
-    })
+    res = lambda_db.collections.docs.delete(project_name="<value>", collection_name="<value>", ids=[
+        "example-doc-id-1",
+        "example-doc-id-2",
+    ])
 
     # Handle response
     print(res)
@@ -224,12 +222,13 @@ with LambdaDB(
 
 ### Parameters
 
-| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
-| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `project_name`                                                        | *str*                                                                 | :heavy_check_mark:                                                    | Project name.                                                         |
-| `collection_name`                                                     | *str*                                                                 | :heavy_check_mark:                                                    | Collection name.                                                      |
-| `request_body`                                                        | [models.DeleteDocsRequestBody](../../models/deletedocsrequestbody.md) | :heavy_check_mark:                                                    | N/A                                                                   |
-| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
+| Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
+| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
+| `ids`                                                               | List[*str*]                                                         | :heavy_minus_sign:                                                  | A list of document IDs.                                             |
+| `filter_`                                                           | [Optional[models.Filter]](../../models/filter_.md)                  | :heavy_minus_sign:                                                  | Query filter.                                                       |
+| `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
 ### Response
 

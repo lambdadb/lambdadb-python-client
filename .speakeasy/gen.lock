@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: 6461dff00bc7d6b5953d5c55ba4ffab9
+  docChecksum: 49558fb8cb7b96d9b9694eebfcd3a40d
   docVersion: 1.1.0
   speakeasyVersion: 1.573.0
   generationVersion: 2.644.1
-  releaseVersion: 0.3.2
-  configChecksum: 84858b587eea17abe902b7d9234cde5c
+  releaseVersion: 0.3.3
+  configChecksum: 63acf2eb840001566638941ed7798efb
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
@@ -64,13 +64,11 @@ generatedFiles:
   - docs/models/fetchdocsrequestbody.md
   - docs/models/fetchdocsresponse.md
   - docs/models/filter_.md
-  - docs/models/filterfilter.md
   - docs/models/getbulkupsertdocsrequest.md
   - docs/models/getbulkupsertdocsresponse.md
   - docs/models/getbulkupsertdocstype.md
   - docs/models/getcollectionrequest.md
   - docs/models/httpmethod.md
-  - docs/models/ids.md
   - docs/models/indexconfigs.md
   - docs/models/indexconfigstext.md
   - docs/models/indexconfigsunion.md
@@ -134,10 +132,8 @@ generatedFiles:
   - src/lambdadb/models/deletecollectionop.py
   - src/lambdadb/models/deletedocsop.py
   - src/lambdadb/models/fetchdocsop.py
-  - src/lambdadb/models/filter_.py
   - src/lambdadb/models/getbulkupsertdocsop.py
   - src/lambdadb/models/getcollectionop.py
-  - src/lambdadb/models/ids.py
   - src/lambdadb/models/indexconfigs_union.py
   - src/lambdadb/models/listcollectionsop.py
   - src/lambdadb/models/querycollectionop.py
@@ -530,7 +526,7 @@ examples:
           projectName: "<value>"
           collectionName: "<value>"
       requestBody:
-        application/json: {"filter": {}}
+        application/json: {}
       responses:
         "202":
           application/json: {"message": "Delete request is accepted"}

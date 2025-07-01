@@ -1,17 +1,9 @@
 # DeleteDocsRequestBody
 
 
-## Supported Types
+## Fields
 
-### `models.IDs`
-
-```python
-value: models.IDs = /* values here */
-```
-
-### `models.Filter`
-
-```python
-value: models.Filter = /* values here */
-```
-
+| Field                                           | Type                                            | Required                                        | Description                                     |
+| ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- |
+| `ids`                                           | List[*str*]                                     | :heavy_minus_sign:                              | A list of document IDs.                         |
+| `filter_`                                       | [Optional[models.Filter]](../models/filter_.md) | :heavy_minus_sign:                              | Query filter.                                   |
