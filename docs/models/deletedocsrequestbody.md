@@ -3,15 +3,15 @@
 
 ## Supported Types
 
-### `models.RequestBody1`
+### `models.IDs`
 
 ```python
-value: models.RequestBody1 = /* values here */
+value: models.IDs = /* values here */
 ```
 
-### `models.RequestBody2`
+### `models.Filter`
 
 ```python
-value: models.RequestBody2 = /* values here */
+value: models.Filter = /* values here */
 ```
 
