@@ -70,14 +70,14 @@ class FetchDocsDocDoc(BaseModel):
 
 
 class FetchDocsDocTypedDict(TypedDict):
-    collection: NotRequired[str]
-    doc: NotRequired[FetchDocsDocDocTypedDict]
+    collection: str
+    doc: FetchDocsDocDocTypedDict
 
 
 class FetchDocsDoc(BaseModel):
-    collection: Optional[str] = None
+    collection: str
 
-    doc: Optional[FetchDocsDocDoc] = None
+    doc: FetchDocsDocDoc
 
 
 class FetchDocsResponseTypedDict(TypedDict):

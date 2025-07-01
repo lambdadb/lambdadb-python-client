@@ -3,7 +3,7 @@
 
 ## Fields
 
-| Field                                                            | Type                                                             | Required                                                         | Description                                                      |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `collection`                                                     | *Optional[str]*                                                  | :heavy_minus_sign:                                               | N/A                                                              |
-| `doc`                                                            | [Optional[models.FetchDocsDocDoc]](../models/fetchdocsdocdoc.md) | :heavy_minus_sign:                                               | N/A                                                              |
+| Field                                                  | Type                                                   | Required                                               | Description                                            |
+| ------------------------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------ |
+| `collection`                                           | *str*                                                  | :heavy_check_mark:                                     | N/A                                                    |
+| `doc`                                                  | [models.FetchDocsDocDoc](../models/fetchdocsdocdoc.md) | :heavy_check_mark:                                     | N/A                                                    |
