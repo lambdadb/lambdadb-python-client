@@ -121,27 +121,27 @@ class QueryCollectionDoc(BaseModel):
 class QueryCollectionResponseTypedDict(TypedDict):
     r"""Documents selected by query."""
 
-    took: NotRequired[int]
+    took: int
     r"""Elapsed time in milliseconds."""
-    max_score: NotRequired[float]
+    max_score: float
     r"""Maximum score."""
-    total: NotRequired[int]
+    total: int
     r"""Total number of documents returned."""
-    docs: NotRequired[List[QueryCollectionDocTypedDict]]
+    docs: List[QueryCollectionDocTypedDict]
     r"""List of documents."""
 
 
 class QueryCollectionResponse(BaseModel):
     r"""Documents selected by query."""
 
-    took: Optional[int] = None
+    took: int
     r"""Elapsed time in milliseconds."""
 
-    max_score: Annotated[Optional[float], pydantic.Field(alias="maxScore")] = None
+    max_score: Annotated[float, pydantic.Field(alias="maxScore")]
     r"""Maximum score."""
 
-    total: Optional[int] = None
+    total: int
     r"""Total number of documents returned."""
 
-    docs: Optional[List[QueryCollectionDoc]] = None
+    docs: List[QueryCollectionDoc]
     r"""List of documents."""

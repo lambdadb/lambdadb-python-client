@@ -4,8 +4,7 @@ from __future__ import annotations
 from lambdadb.types import BaseModel
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
-from typing import Optional
-from typing_extensions import Annotated, NotRequired, TypedDict
+from typing_extensions import Annotated, TypedDict
 
 
 class BulkUpsertDocsRequestBodyTypedDict(TypedDict):
@@ -45,15 +44,3 @@ class BulkUpsertDocsRequest(BaseModel):
         BulkUpsertDocsRequestBody,
         FieldMetadata(request=RequestMetadata(media_type="application/json")),
     ]
-
-
-class BulkUpsertDocsResponseTypedDict(TypedDict):
-    r"""Bulk upsert request accepted."""
-
-    message: NotRequired[str]
-
-
-class BulkUpsertDocsResponse(BaseModel):
-    r"""Bulk upsert request accepted."""
-
-    message: Optional[str] = None

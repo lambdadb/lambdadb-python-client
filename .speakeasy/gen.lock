@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: 49558fb8cb7b96d9b9694eebfcd3a40d
-  docVersion: 1.1.0
+  docChecksum: 957855997a380379c68dd8cf4e2fd6f6
+  docVersion: 1.1.1
   speakeasyVersion: 1.573.0
   generationVersion: 2.644.1
-  releaseVersion: 0.3.3
-  configChecksum: 63acf2eb840001566638941ed7798efb
+  releaseVersion: 0.3.4
+  configChecksum: dc97f5a3ba6a1347145fc5363dc4bb9e
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
@@ -49,15 +49,13 @@ generatedFiles:
   - docs/models/analyzer.md
   - docs/models/bulkupsertdocsrequest.md
   - docs/models/bulkupsertdocsrequestbody.md
-  - docs/models/bulkupsertdocsresponse.md
   - docs/models/collectionresponse.md
   - docs/models/createcollectionrequest.md
   - docs/models/createcollectionrequestbody.md
+  - docs/models/createcollectionresponse.md
   - docs/models/deletecollectionrequest.md
-  - docs/models/deletecollectionresponse.md
   - docs/models/deletedocsrequest.md
   - docs/models/deletedocsrequestbody.md
-  - docs/models/deletedocsresponse.md
   - docs/models/fetchdocsdoc.md
   - docs/models/fetchdocsdocdoc.md
   - docs/models/fetchdocsrequest.md
@@ -68,6 +66,7 @@ generatedFiles:
   - docs/models/getbulkupsertdocsresponse.md
   - docs/models/getbulkupsertdocstype.md
   - docs/models/getcollectionrequest.md
+  - docs/models/getcollectionresponse.md
   - docs/models/httpmethod.md
   - docs/models/indexconfigs.md
   - docs/models/indexconfigstext.md
@@ -75,6 +74,7 @@ generatedFiles:
   - docs/models/indexconfigsvector.md
   - docs/models/listcollectionsrequest.md
   - docs/models/listcollectionsresponse.md
+  - docs/models/messageresponse.md
   - docs/models/query.md
   - docs/models/querycollectiondoc.md
   - docs/models/querycollectiondocdoc.md
@@ -90,14 +90,13 @@ generatedFiles:
   - docs/models/typevector.md
   - docs/models/updatecollectionrequest.md
   - docs/models/updatecollectionrequestbody.md
+  - docs/models/updatecollectionresponse.md
   - docs/models/updatedocsdoc.md
   - docs/models/updatedocsrequest.md
   - docs/models/updatedocsrequestbody.md
-  - docs/models/updatedocsresponse.md
   - docs/models/upsertdocsdoc.md
   - docs/models/upsertdocsrequest.md
   - docs/models/upsertdocsrequestbody.md
-  - docs/models/upsertdocsresponse.md
   - docs/models/utils/retryconfig.md
   - docs/sdks/collections/README.md
   - docs/sdks/docs/README.md
@@ -136,6 +135,7 @@ generatedFiles:
   - src/lambdadb/models/getcollectionop.py
   - src/lambdadb/models/indexconfigs_union.py
   - src/lambdadb/models/listcollectionsop.py
+  - src/lambdadb/models/messageresponse.py
   - src/lambdadb/models/querycollectionop.py
   - src/lambdadb/models/security.py
   - src/lambdadb/models/status.py
@@ -281,7 +281,7 @@ examples:
         application/json: {"collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}}
       responses:
         "202":
-          application/json: {}
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numDocs": 595485, "collectionStatus": "ACTIVE"}}
         "400":
           application/json: {}
         "401":
@@ -300,7 +300,7 @@ examples:
         application/json: {"collectionName": "example-collection-name", "sourceProjectName": "example-source-project-name", "sourceCollectionName": "example-source-collection-name", "sourceDatetime": "2023-10-01T12:00:00Z", "sourceProjectApiKey": "example-source-project-api-key"}
       responses:
         "202":
-          application/json: {}
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numDocs": 595485, "collectionStatus": "ACTIVE"}}
         "400":
           application/json: {}
         "401":
@@ -319,7 +319,7 @@ examples:
         application/json: {"collectionName": "<value>"}
       responses:
         "202":
-          application/json: {"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numDocs": 0, "collectionStatus": "CREATING"}
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numDocs": 595485, "collectionStatus": "ACTIVE"}}
         "400":
           application/json: {"message": "Invalid request"}
         "401":
@@ -355,7 +355,7 @@ examples:
           collectionName: "<value>"
       responses:
         "200":
-          application/json: {"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numDocs": 1000, "collectionStatus": "ACTIVE"}
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numDocs": 592208, "collectionStatus": "ACTIVE"}}
     example:
       parameters:
         path:
@@ -398,7 +398,7 @@ examples:
         application/json: {"indexConfigs": {"key": {"type": "keyword"}, "key1": {"type": "keyword"}, "key2": {"type": "vector", "dimensions": 884939, "similarity": "cosine"}}}
       responses:
         "200":
-          application/json: {"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}, "example-field3": {"type": "keyword"}}, "numDocs": 1000, "collectionStatus": "ACTIVE"}
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {"key": {"type": "keyword"}}, "numDocs": 952497, "collectionStatus": "ACTIVE"}}
   queryCollection:
     example:
       parameters:
@@ -489,7 +489,7 @@ examples:
         application/json: {"ids": ["example-doc-id-1", "example-doc-id-2"]}
       responses:
         "202":
-          application/json: {}
+          application/json: {"message": "<value>"}
         "400":
           application/json: {}
         "401":
@@ -509,7 +509,7 @@ examples:
         application/json: {"filter": {}}
       responses:
         "202":
-          application/json: {}
+          application/json: {"message": "<value>"}
         "400":
           application/json: {}
         "401":

@@ -58,15 +58,3 @@ class DeleteDocsRequest(BaseModel):
         DeleteDocsRequestBody,
         FieldMetadata(request=RequestMetadata(media_type="application/json")),
     ]
-
-
-class DeleteDocsResponseTypedDict(TypedDict):
-    r"""Delete request accepted."""
-
-    message: NotRequired[str]
-
-
-class DeleteDocsResponse(BaseModel):
-    r"""Delete request accepted."""
-
-    message: Optional[str] = None

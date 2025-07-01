@@ -10,38 +10,39 @@ from typing_extensions import Annotated, NotRequired, TypedDict
 
 
 class CollectionResponseTypedDict(TypedDict):
-    project_name: NotRequired[str]
+    project_name: str
     r"""Project name."""
-    collection_name: NotRequired[str]
+    collection_name: str
     r"""Collection name."""
-    index_configs: NotRequired[Dict[str, IndexConfigsUnionTypedDict]]
-    num_docs: NotRequired[int]
+    index_configs: Dict[str, IndexConfigsUnionTypedDict]
+    num_docs: int
     r"""Total number of documents."""
+    collection_status: Status
+    r"""Status"""
     source_project_name: NotRequired[str]
     r"""Source project name."""
     source_collection_name: NotRequired[str]
     r"""Source collection name."""
     source_collection_version_id: NotRequired[str]
     r"""Source collection version."""
-    collection_status: NotRequired[Status]
-    r"""Status"""
 
 
 class CollectionResponse(BaseModel):
-    project_name: Annotated[Optional[str], pydantic.Field(alias="projectName")] = None
+    project_name: Annotated[str, pydantic.Field(alias="projectName")]
     r"""Project name."""
 
-    collection_name: Annotated[
-        Optional[str], pydantic.Field(alias="collectionName")
-    ] = None
+    collection_name: Annotated[str, pydantic.Field(alias="collectionName")]
     r"""Collection name."""
 
     index_configs: Annotated[
-        Optional[Dict[str, IndexConfigsUnion]], pydantic.Field(alias="indexConfigs")
-    ] = None
+        Dict[str, IndexConfigsUnion], pydantic.Field(alias="indexConfigs")
+    ]
 
-    num_docs: Annotated[Optional[int], pydantic.Field(alias="numDocs")] = None
+    num_docs: Annotated[int, pydantic.Field(alias="numDocs")]
     r"""Total number of documents."""
+
+    collection_status: Annotated[Status, pydantic.Field(alias="collectionStatus")]
+    r"""Status"""
 
     source_project_name: Annotated[
         Optional[str], pydantic.Field(alias="sourceProjectName")
@@ -57,8 +58,3 @@ class CollectionResponse(BaseModel):
         Optional[str], pydantic.Field(alias="sourceCollectionVersionId")
     ] = None
     r"""Source collection version."""
-
-    collection_status: Annotated[
-        Optional[Status], pydantic.Field(alias="collectionStatus")
-    ] = None
-    r"""Status"""

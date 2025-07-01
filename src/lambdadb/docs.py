@@ -19,7 +19,7 @@ class Docs(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.UpsertDocsResponse:
+    ) -> models.MessageResponse:
         r"""Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 
         :param project_name: Project name.
@@ -96,7 +96,7 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.UpsertDocsResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -152,7 +152,7 @@ class Docs(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.UpsertDocsResponse:
+    ) -> models.MessageResponse:
         r"""Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 
         :param project_name: Project name.
@@ -229,7 +229,7 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.UpsertDocsResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -525,7 +525,7 @@ class Docs(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.BulkUpsertDocsResponse:
+    ) -> models.MessageResponse:
         r"""Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 
         :param project_name: Project name.
@@ -606,7 +606,7 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.BulkUpsertDocsResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -662,7 +662,7 @@ class Docs(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.BulkUpsertDocsResponse:
+    ) -> models.MessageResponse:
         r"""Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 
         :param project_name: Project name.
@@ -743,7 +743,7 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.BulkUpsertDocsResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -799,7 +799,7 @@ class Docs(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.UpdateDocsResponse:
+    ) -> models.MessageResponse:
         r"""Update documents in a collection. Note that the maximum supported payload size is 6MB.
 
         :param project_name: Project name.
@@ -876,7 +876,7 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.UpdateDocsResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -932,7 +932,7 @@ class Docs(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.UpdateDocsResponse:
+    ) -> models.MessageResponse:
         r"""Update documents in a collection. Note that the maximum supported payload size is 6MB.
 
         :param project_name: Project name.
@@ -1009,7 +1009,7 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.UpdateDocsResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -1066,7 +1066,7 @@ class Docs(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.DeleteDocsResponse:
+    ) -> models.MessageResponse:
         r"""Delete documents by document IDs or query filter from a collection.
 
         :param project_name: Project name.
@@ -1145,7 +1145,7 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.DeleteDocsResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -1202,7 +1202,7 @@ class Docs(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.DeleteDocsResponse:
+    ) -> models.MessageResponse:
         r"""Delete documents by document IDs or query filter from a collection.
 
         :param project_name: Project name.
@@ -1281,7 +1281,7 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.DeleteDocsResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData

@@ -83,20 +83,20 @@ class FetchDocsDoc(BaseModel):
 class FetchDocsResponseTypedDict(TypedDict):
     r"""Fetched documents."""
 
-    total: NotRequired[int]
+    total: int
     r"""Total number of documents returned."""
-    took: NotRequired[int]
+    took: int
     r"""Elapsed time in milliseconds."""
-    docs: NotRequired[List[FetchDocsDocTypedDict]]
+    docs: List[FetchDocsDocTypedDict]
 
 
 class FetchDocsResponse(BaseModel):
     r"""Fetched documents."""
 
-    total: Optional[int] = None
+    total: int
     r"""Total number of documents returned."""
 
-    took: Optional[int] = None
+    took: int
     r"""Elapsed time in milliseconds."""
 
-    docs: Optional[List[FetchDocsDoc]] = None
+    docs: List[FetchDocsDoc]

@@ -4,8 +4,7 @@ from __future__ import annotations
 from lambdadb.types import BaseModel
 from lambdadb.utils import FieldMetadata, PathParamMetadata
 import pydantic
-from typing import Optional
-from typing_extensions import Annotated, NotRequired, TypedDict
+from typing_extensions import Annotated, TypedDict
 
 
 class DeleteCollectionRequestTypedDict(TypedDict):
@@ -29,15 +28,3 @@ class DeleteCollectionRequest(BaseModel):
         FieldMetadata(path=PathParamMetadata(style="simple", explode=False)),
     ]
     r"""Collection name."""
-
-
-class DeleteCollectionResponseTypedDict(TypedDict):
-    r"""Collection delete request accepted."""
-
-    message: NotRequired[str]
-
-
-class DeleteCollectionResponse(BaseModel):
-    r"""Collection delete request accepted."""
-
-    message: Optional[str] = None

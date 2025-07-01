@@ -4,8 +4,8 @@ from __future__ import annotations
 from lambdadb.types import BaseModel
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
-from typing import List, Optional
-from typing_extensions import Annotated, NotRequired, TypedDict
+from typing import List
+from typing_extensions import Annotated, TypedDict
 
 
 class UpdateDocsDocTypedDict(TypedDict):
@@ -53,15 +53,3 @@ class UpdateDocsRequest(BaseModel):
         UpdateDocsRequestBody,
         FieldMetadata(request=RequestMetadata(media_type="application/json")),
     ]
-
-
-class UpdateDocsResponseTypedDict(TypedDict):
-    r"""Update request accepted."""
-
-    message: NotRequired[str]
-
-
-class UpdateDocsResponse(BaseModel):
-    r"""Update request accepted."""
-
-    message: Optional[str] = None

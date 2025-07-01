@@ -4,8 +4,8 @@ from __future__ import annotations
 from lambdadb.types import BaseModel
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
-from typing import List, Optional
-from typing_extensions import Annotated, NotRequired, TypedDict
+from typing import List
+from typing_extensions import Annotated, TypedDict
 
 
 class UpsertDocsDocTypedDict(TypedDict):
@@ -53,15 +53,3 @@ class UpsertDocsRequest(BaseModel):
         UpsertDocsRequestBody,
         FieldMetadata(request=RequestMetadata(media_type="application/json")),
     ]
-
-
-class UpsertDocsResponseTypedDict(TypedDict):
-    r"""Upsert request accepted."""
-
-    message: NotRequired[str]
-
-
-class UpsertDocsResponse(BaseModel):
-    r"""Upsert request accepted."""
-
-    message: Optional[str] = None

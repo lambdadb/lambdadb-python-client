@@ -47,7 +47,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.UpsertDocsResponse](../../models/upsertdocsresponse.md)**
+**[models.MessageResponse](../../models/messageresponse.md)**
 
 ### Errors
 
@@ -135,7 +135,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.BulkUpsertDocsResponse](../../models/bulkupsertdocsresponse.md)**
+**[models.MessageResponse](../../models/messageresponse.md)**
 
 ### Errors
 
@@ -183,7 +183,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.UpdateDocsResponse](../../models/updatedocsresponse.md)**
+**[models.MessageResponse](../../models/messageresponse.md)**
 
 ### Errors
 
@@ -232,7 +232,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.DeleteDocsResponse](../../models/deletedocsresponse.md)**
+**[models.MessageResponse](../../models/messageresponse.md)**
 
 ### Errors
 

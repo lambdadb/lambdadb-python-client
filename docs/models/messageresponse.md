@@ -1,10 +1,8 @@
-# UpdateDocsResponse
-
-Update request accepted.
+# MessageResponse
 
 
 ## Fields
 
 | Field              | Type               | Required           | Description        |
 | ------------------ | ------------------ | ------------------ | ------------------ |
-| `message`          | *Optional[str]*    | :heavy_minus_sign: | N/A                |
+| `message`          | *str*              | :heavy_check_mark: | N/A                |

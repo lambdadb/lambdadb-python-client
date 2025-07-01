@@ -5,8 +5,8 @@ from .collectionresponse import CollectionResponse, CollectionResponseTypedDict
 from lambdadb.types import BaseModel
 from lambdadb.utils import FieldMetadata, PathParamMetadata
 import pydantic
-from typing import List, Optional
-from typing_extensions import Annotated, NotRequired, TypedDict
+from typing import List
+from typing_extensions import Annotated, TypedDict
 
 
 class ListCollectionsRequestTypedDict(TypedDict):
@@ -26,10 +26,10 @@ class ListCollectionsRequest(BaseModel):
 class ListCollectionsResponseTypedDict(TypedDict):
     r"""A list of collections matched with a projectName."""
 
-    collections: NotRequired[List[CollectionResponseTypedDict]]
+    collections: List[CollectionResponseTypedDict]
 
 
 class ListCollectionsResponse(BaseModel):
     r"""A list of collections matched with a projectName."""
 
-    collections: Optional[List[CollectionResponse]] = None
+    collections: List[CollectionResponse]

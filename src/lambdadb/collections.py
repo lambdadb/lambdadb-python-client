@@ -274,7 +274,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.CollectionResponse:
+    ) -> models.CreateCollectionResponse:
         r"""Create a collection.
 
         :param project_name: Project name.
@@ -365,7 +365,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.CollectionResponse)
+            return utils.unmarshal_json(http_res.text, models.CreateCollectionResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -430,7 +430,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.CollectionResponse:
+    ) -> models.CreateCollectionResponse:
         r"""Create a collection.
 
         :param project_name: Project name.
@@ -521,7 +521,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.CollectionResponse)
+            return utils.unmarshal_json(http_res.text, models.CreateCollectionResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -576,7 +576,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.DeleteCollectionResponse:
+    ) -> models.MessageResponse:
         r"""Delete an existing collection.
 
         :param project_name: Project name.
@@ -646,7 +646,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.DeleteCollectionResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.UnauthenticatedErrorData
@@ -696,7 +696,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.DeleteCollectionResponse:
+    ) -> models.MessageResponse:
         r"""Delete an existing collection.
 
         :param project_name: Project name.
@@ -766,7 +766,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.DeleteCollectionResponse)
+            return utils.unmarshal_json(http_res.text, models.MessageResponse)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.UnauthenticatedErrorData
@@ -816,7 +816,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.CollectionResponse:
+    ) -> models.GetCollectionResponse:
         r"""Get metadata of an existing collection.
 
         :param project_name: Project name.
@@ -886,7 +886,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.CollectionResponse)
+            return utils.unmarshal_json(http_res.text, models.GetCollectionResponse)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.UnauthenticatedErrorData
@@ -936,7 +936,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.CollectionResponse:
+    ) -> models.GetCollectionResponse:
         r"""Get metadata of an existing collection.
 
         :param project_name: Project name.
@@ -1006,7 +1006,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.CollectionResponse)
+            return utils.unmarshal_json(http_res.text, models.GetCollectionResponse)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.UnauthenticatedErrorData
@@ -1060,7 +1060,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.CollectionResponse:
+    ) -> models.UpdateCollectionResponse:
         r"""Configure a collection.
 
         :param project_name: Project name.
@@ -1143,7 +1143,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.CollectionResponse)
+            return utils.unmarshal_json(http_res.text, models.UpdateCollectionResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData
@@ -1202,7 +1202,7 @@ class Collections(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
-    ) -> models.CollectionResponse:
+    ) -> models.UpdateCollectionResponse:
         r"""Configure a collection.
 
         :param project_name: Project name.
@@ -1285,7 +1285,7 @@ class Collections(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json(http_res.text, models.CollectionResponse)
+            return utils.unmarshal_json(http_res.text, models.UpdateCollectionResponse)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = utils.unmarshal_json(
                 http_res.text, errors.BadRequestErrorData

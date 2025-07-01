@@ -47,14 +47,14 @@ class HTTPMethod(str, Enum):
 class GetBulkUpsertDocsResponseTypedDict(TypedDict):
     r"""Required info to upload documents."""
 
-    url: NotRequired[str]
+    url: str
     r"""Presigned URL."""
+    object_key: str
+    r"""Object key that must be specified when uploading documents."""
     type: NotRequired[GetBulkUpsertDocsType]
     r"""Content type that must be specified when uploading documents."""
     http_method: NotRequired[HTTPMethod]
     r"""HTTP method that must be specified when uploading documents."""
-    object_key: NotRequired[str]
-    r"""Object key that must be specified when uploading documents."""
     size_limit_bytes: NotRequired[int]
     r"""Object size limit in bytes."""
 
@@ -62,8 +62,11 @@ class GetBulkUpsertDocsResponseTypedDict(TypedDict):
 class GetBulkUpsertDocsResponse(BaseModel):
     r"""Required info to upload documents."""
 
-    url: Optional[str] = None
+    url: str
     r"""Presigned URL."""
+
+    object_key: Annotated[str, pydantic.Field(alias="objectKey")]
+    r"""Object key that must be specified when uploading documents."""
 
     type: Optional[GetBulkUpsertDocsType] = GetBulkUpsertDocsType.APPLICATION_JSON
     r"""Content type that must be specified when uploading documents."""
@@ -72,9 +75,6 @@ class GetBulkUpsertDocsResponse(BaseModel):
         HTTPMethod.PUT
     )
     r"""HTTP method that must be specified when uploading documents."""
-
-    object_key: Annotated[Optional[str], pydantic.Field(alias="objectKey")] = None
-    r"""Object key that must be specified when uploading documents."""
 
     size_limit_bytes: Annotated[
         Optional[int], pydantic.Field(alias="sizeLimitBytes")

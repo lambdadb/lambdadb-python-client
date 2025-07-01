@@ -9,8 +9,6 @@ if TYPE_CHECKING:
         BulkUpsertDocsRequestBody,
         BulkUpsertDocsRequestBodyTypedDict,
         BulkUpsertDocsRequestTypedDict,
-        BulkUpsertDocsResponse,
-        BulkUpsertDocsResponseTypedDict,
     )
     from .collectionresponse import CollectionResponse, CollectionResponseTypedDict
     from .createcollectionop import (
@@ -18,20 +16,18 @@ if TYPE_CHECKING:
         CreateCollectionRequestBody,
         CreateCollectionRequestBodyTypedDict,
         CreateCollectionRequestTypedDict,
+        CreateCollectionResponse,
+        CreateCollectionResponseTypedDict,
     )
     from .deletecollectionop import (
         DeleteCollectionRequest,
         DeleteCollectionRequestTypedDict,
-        DeleteCollectionResponse,
-        DeleteCollectionResponseTypedDict,
     )
     from .deletedocsop import (
         DeleteDocsRequest,
         DeleteDocsRequestBody,
         DeleteDocsRequestBodyTypedDict,
         DeleteDocsRequestTypedDict,
-        DeleteDocsResponse,
-        DeleteDocsResponseTypedDict,
         Filter,
         FilterTypedDict,
     )
@@ -55,7 +51,12 @@ if TYPE_CHECKING:
         GetBulkUpsertDocsType,
         HTTPMethod,
     )
-    from .getcollectionop import GetCollectionRequest, GetCollectionRequestTypedDict
+    from .getcollectionop import (
+        GetCollectionRequest,
+        GetCollectionRequestTypedDict,
+        GetCollectionResponse,
+        GetCollectionResponseTypedDict,
+    )
     from .indexconfigs_union import (
         Analyzer,
         IndexConfigs,
@@ -77,6 +78,7 @@ if TYPE_CHECKING:
         ListCollectionsResponse,
         ListCollectionsResponseTypedDict,
     )
+    from .messageresponse import MessageResponse, MessageResponseTypedDict
     from .querycollectionop import (
         Query,
         QueryCollectionDoc,
@@ -100,6 +102,8 @@ if TYPE_CHECKING:
         UpdateCollectionRequestBody,
         UpdateCollectionRequestBodyTypedDict,
         UpdateCollectionRequestTypedDict,
+        UpdateCollectionResponse,
+        UpdateCollectionResponseTypedDict,
     )
     from .updatedocsop import (
         UpdateDocsDoc,
@@ -108,8 +112,6 @@ if TYPE_CHECKING:
         UpdateDocsRequestBody,
         UpdateDocsRequestBodyTypedDict,
         UpdateDocsRequestTypedDict,
-        UpdateDocsResponse,
-        UpdateDocsResponseTypedDict,
     )
     from .upsertdocsop import (
         UpsertDocsDoc,
@@ -118,8 +120,6 @@ if TYPE_CHECKING:
         UpsertDocsRequestBody,
         UpsertDocsRequestBodyTypedDict,
         UpsertDocsRequestTypedDict,
-        UpsertDocsResponse,
-        UpsertDocsResponseTypedDict,
     )
 
 __all__ = [
@@ -128,24 +128,20 @@ __all__ = [
     "BulkUpsertDocsRequestBody",
     "BulkUpsertDocsRequestBodyTypedDict",
     "BulkUpsertDocsRequestTypedDict",
-    "BulkUpsertDocsResponse",
-    "BulkUpsertDocsResponseTypedDict",
     "CollectionResponse",
     "CollectionResponseTypedDict",
     "CreateCollectionRequest",
     "CreateCollectionRequestBody",
     "CreateCollectionRequestBodyTypedDict",
     "CreateCollectionRequestTypedDict",
+    "CreateCollectionResponse",
+    "CreateCollectionResponseTypedDict",
     "DeleteCollectionRequest",
     "DeleteCollectionRequestTypedDict",
-    "DeleteCollectionResponse",
-    "DeleteCollectionResponseTypedDict",
     "DeleteDocsRequest",
     "DeleteDocsRequestBody",
     "DeleteDocsRequestBodyTypedDict",
     "DeleteDocsRequestTypedDict",
-    "DeleteDocsResponse",
-    "DeleteDocsResponseTypedDict",
     "FetchDocsDoc",
     "FetchDocsDocDoc",
     "FetchDocsDocDocTypedDict",
@@ -165,6 +161,8 @@ __all__ = [
     "GetBulkUpsertDocsType",
     "GetCollectionRequest",
     "GetCollectionRequestTypedDict",
+    "GetCollectionResponse",
+    "GetCollectionResponseTypedDict",
     "HTTPMethod",
     "IndexConfigs",
     "IndexConfigsText",
@@ -178,6 +176,8 @@ __all__ = [
     "ListCollectionsRequestTypedDict",
     "ListCollectionsResponse",
     "ListCollectionsResponseTypedDict",
+    "MessageResponse",
+    "MessageResponseTypedDict",
     "Query",
     "QueryCollectionDoc",
     "QueryCollectionDocDoc",
@@ -203,22 +203,20 @@ __all__ = [
     "UpdateCollectionRequestBody",
     "UpdateCollectionRequestBodyTypedDict",
     "UpdateCollectionRequestTypedDict",
+    "UpdateCollectionResponse",
+    "UpdateCollectionResponseTypedDict",
     "UpdateDocsDoc",
     "UpdateDocsDocTypedDict",
     "UpdateDocsRequest",
     "UpdateDocsRequestBody",
     "UpdateDocsRequestBodyTypedDict",
     "UpdateDocsRequestTypedDict",
-    "UpdateDocsResponse",
-    "UpdateDocsResponseTypedDict",
     "UpsertDocsDoc",
     "UpsertDocsDocTypedDict",
     "UpsertDocsRequest",
     "UpsertDocsRequestBody",
     "UpsertDocsRequestBodyTypedDict",
     "UpsertDocsRequestTypedDict",
-    "UpsertDocsResponse",
-    "UpsertDocsResponseTypedDict",
 ]
 
 _dynamic_imports: dict[str, str] = {
@@ -226,24 +224,20 @@ _dynamic_imports: dict[str, str] = {
     "BulkUpsertDocsRequestBody": ".bulkupsertdocsop",
     "BulkUpsertDocsRequestBodyTypedDict": ".bulkupsertdocsop",
     "BulkUpsertDocsRequestTypedDict": ".bulkupsertdocsop",
-    "BulkUpsertDocsResponse": ".bulkupsertdocsop",
-    "BulkUpsertDocsResponseTypedDict": ".bulkupsertdocsop",
     "CollectionResponse": ".collectionresponse",
     "CollectionResponseTypedDict": ".collectionresponse",
     "CreateCollectionRequest": ".createcollectionop",
     "CreateCollectionRequestBody": ".createcollectionop",
     "CreateCollectionRequestBodyTypedDict": ".createcollectionop",
     "CreateCollectionRequestTypedDict": ".createcollectionop",
+    "CreateCollectionResponse": ".createcollectionop",
+    "CreateCollectionResponseTypedDict": ".createcollectionop",
     "DeleteCollectionRequest": ".deletecollectionop",
     "DeleteCollectionRequestTypedDict": ".deletecollectionop",
-    "DeleteCollectionResponse": ".deletecollectionop",
-    "DeleteCollectionResponseTypedDict": ".deletecollectionop",
     "DeleteDocsRequest": ".deletedocsop",
     "DeleteDocsRequestBody": ".deletedocsop",
     "DeleteDocsRequestBodyTypedDict": ".deletedocsop",
     "DeleteDocsRequestTypedDict": ".deletedocsop",
-    "DeleteDocsResponse": ".deletedocsop",
-    "DeleteDocsResponseTypedDict": ".deletedocsop",
     "Filter": ".deletedocsop",
     "FilterTypedDict": ".deletedocsop",
     "FetchDocsDoc": ".fetchdocsop",
@@ -264,6 +258,8 @@ _dynamic_imports: dict[str, str] = {
     "HTTPMethod": ".getbulkupsertdocsop",
     "GetCollectionRequest": ".getcollectionop",
     "GetCollectionRequestTypedDict": ".getcollectionop",
+    "GetCollectionResponse": ".getcollectionop",
+    "GetCollectionResponseTypedDict": ".getcollectionop",
     "Analyzer": ".indexconfigs_union",
     "IndexConfigs": ".indexconfigs_union",
     "IndexConfigsText": ".indexconfigs_union",
@@ -281,6 +277,8 @@ _dynamic_imports: dict[str, str] = {
     "ListCollectionsRequestTypedDict": ".listcollectionsop",
     "ListCollectionsResponse": ".listcollectionsop",
     "ListCollectionsResponseTypedDict": ".listcollectionsop",
+    "MessageResponse": ".messageresponse",
+    "MessageResponseTypedDict": ".messageresponse",
     "Query": ".querycollectionop",
     "QueryCollectionDoc": ".querycollectionop",
     "QueryCollectionDocDoc": ".querycollectionop",
@@ -302,22 +300,20 @@ _dynamic_imports: dict[str, str] = {
     "UpdateCollectionRequestBody": ".updatecollectionop",
     "UpdateCollectionRequestBodyTypedDict": ".updatecollectionop",
     "UpdateCollectionRequestTypedDict": ".updatecollectionop",
+    "UpdateCollectionResponse": ".updatecollectionop",
+    "UpdateCollectionResponseTypedDict": ".updatecollectionop",
     "UpdateDocsDoc": ".updatedocsop",
     "UpdateDocsDocTypedDict": ".updatedocsop",
     "UpdateDocsRequest": ".updatedocsop",
     "UpdateDocsRequestBody": ".updatedocsop",
     "UpdateDocsRequestBodyTypedDict": ".updatedocsop",
     "UpdateDocsRequestTypedDict": ".updatedocsop",
-    "UpdateDocsResponse": ".updatedocsop",
-    "UpdateDocsResponseTypedDict": ".updatedocsop",
     "UpsertDocsDoc": ".upsertdocsop",
     "UpsertDocsDocTypedDict": ".upsertdocsop",
     "UpsertDocsRequest": ".upsertdocsop",
     "UpsertDocsRequestBody": ".upsertdocsop",
     "UpsertDocsRequestBodyTypedDict": ".upsertdocsop",
     "UpsertDocsRequestTypedDict": ".upsertdocsop",
-    "UpsertDocsResponse": ".upsertdocsop",
-    "UpsertDocsResponseTypedDict": ".upsertdocsop",
 }
 
 

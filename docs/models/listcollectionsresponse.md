@@ -7,4 +7,4 @@ A list of collections matched with a projectName.
 
 | Field                                                              | Type                                                               | Required                                                           | Description                                                        |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| `collections`                                                      | List[[models.CollectionResponse](../models/collectionresponse.md)] | :heavy_minus_sign:                                                 | N/A                                                                |
+| `collections`                                                      | List[[models.CollectionResponse](../models/collectionresponse.md)] | :heavy_check_mark:                                                 | N/A                                                                |

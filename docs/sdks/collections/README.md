@@ -102,7 +102,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.CollectionResponse](../../models/collectionresponse.md)**
+**[models.CreateCollectionResponse](../../models/createcollectionresponse.md)**
 
 ### Errors
 
@@ -146,7 +146,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.DeleteCollectionResponse](../../models/deletecollectionresponse.md)**
+**[models.MessageResponse](../../models/messageresponse.md)**
 
 ### Errors
 
@@ -189,7 +189,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.CollectionResponse](../../models/collectionresponse.md)**
+**[models.GetCollectionResponse](../../models/getcollectionresponse.md)**
 
 ### Errors
 
@@ -248,7 +248,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.CollectionResponse](../../models/collectionresponse.md)**
+**[models.UpdateCollectionResponse](../../models/updatecollectionresponse.md)**
 
 ### Errors
 
