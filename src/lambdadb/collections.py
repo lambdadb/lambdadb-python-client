@@ -21,10 +21,9 @@ class Collections(BaseSDK):
     def _init_sdks(self):
         self.docs = Docs(self.sdk_configuration)
 
-    def list(
+    def list_collections(
         self,
         *,
-        project_name: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -32,7 +31,6 @@ class Collections(BaseSDK):
     ) -> models.ListCollectionsResponse:
         r"""List all collections in an existing project.
 
-        :param project_name: Project name.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -47,19 +45,14 @@ class Collections(BaseSDK):
             base_url = server_url
         else:
             base_url = self._get_url(base_url, url_variables)
-
-        request = models.ListCollectionsRequest(
-            project_name=project_name,
-        )
-
         req = self._build_request(
             method="GET",
-            path="/projects/{projectName}/collections",
+            path="/collections",
             base_url=base_url,
             url_variables=url_variables,
-            request=request,
+            request=None,
             request_body_required=False,
-            request_has_path_params=True,
+            request_has_path_params=False,
             request_has_query_params=True,
             user_agent_header="user-agent",
             accept_header_value="application/json",
@@ -129,10 +122,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def list_async(
+    async def list_collections_async(
         self,
         *,
-        project_name: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -140,7 +132,6 @@ class Collections(BaseSDK):
     ) -> models.ListCollectionsResponse:
         r"""List all collections in an existing project.
 
-        :param project_name: Project name.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -155,19 +146,14 @@ class Collections(BaseSDK):
             base_url = server_url
         else:
             base_url = self._get_url(base_url, url_variables)
-
-        request = models.ListCollectionsRequest(
-            project_name=project_name,
-        )
-
         req = self._build_request_async(
             method="GET",
-            path="/projects/{projectName}/collections",
+            path="/collections",
             base_url=base_url,
             url_variables=url_variables,
-            request=request,
+            request=None,
             request_body_required=False,
-            request_has_path_params=True,
+            request_has_path_params=False,
             request_has_query_params=True,
             user_agent_header="user-agent",
             accept_header_value="application/json",
@@ -237,10 +223,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def create(
+    def create_collection(
         self,
         *,
-        project_name: str,
         collection_name: str,
         index_configs: Optional[
             Union[
@@ -259,7 +244,6 @@ class Collections(BaseSDK):
     ) -> models.CreateCollectionResponse:
         r"""Create a collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
         :param index_configs:
         :param source_project_name:
@@ -282,38 +266,31 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.CreateCollectionRequest(
-            project_name=project_name,
-            request_body=models.CreateCollectionRequestBody(
-                collection_name=collection_name,
-                index_configs=utils.get_pydantic_model(
-                    index_configs, Optional[Dict[str, models.IndexConfigsUnion]]
-                ),
-                source_project_name=source_project_name,
-                source_collection_name=source_collection_name,
-                source_datetime=source_datetime,
-                source_project_api_key=source_project_api_key,
+            collection_name=collection_name,
+            index_configs=utils.get_pydantic_model(
+                index_configs, Optional[Dict[str, models.IndexConfigsUnion]]
             ),
+            source_project_name=source_project_name,
+            source_collection_name=source_collection_name,
+            source_datetime=source_datetime,
+            source_project_api_key=source_project_api_key,
         )
 
         req = self._build_request(
             method="POST",
-            path="/projects/{projectName}/collections",
+            path="/collections",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
             request_body_required=True,
-            request_has_path_params=True,
+            request_has_path_params=False,
             request_has_query_params=True,
             user_agent_header="user-agent",
             accept_header_value="application/json",
             http_headers=http_headers,
             security=self.sdk_configuration.security,
             get_serialized_body=lambda: utils.serialize_request_body(
-                request.request_body,
-                False,
-                False,
-                "json",
-                models.CreateCollectionRequestBody,
+                request, False, False, "json", models.CreateCollectionRequest
             ),
             timeout_ms=timeout_ms,
         )
@@ -384,10 +361,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def create_async(
+    async def create_collection_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         index_configs: Optional[
             Union[
@@ -406,7 +382,6 @@ class Collections(BaseSDK):
     ) -> models.CreateCollectionResponse:
         r"""Create a collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
         :param index_configs:
         :param source_project_name:
@@ -429,38 +404,31 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.CreateCollectionRequest(
-            project_name=project_name,
-            request_body=models.CreateCollectionRequestBody(
-                collection_name=collection_name,
-                index_configs=utils.get_pydantic_model(
-                    index_configs, Optional[Dict[str, models.IndexConfigsUnion]]
-                ),
-                source_project_name=source_project_name,
-                source_collection_name=source_collection_name,
-                source_datetime=source_datetime,
-                source_project_api_key=source_project_api_key,
+            collection_name=collection_name,
+            index_configs=utils.get_pydantic_model(
+                index_configs, Optional[Dict[str, models.IndexConfigsUnion]]
             ),
+            source_project_name=source_project_name,
+            source_collection_name=source_collection_name,
+            source_datetime=source_datetime,
+            source_project_api_key=source_project_api_key,
         )
 
         req = self._build_request_async(
             method="POST",
-            path="/projects/{projectName}/collections",
+            path="/collections",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
             request_body_required=True,
-            request_has_path_params=True,
+            request_has_path_params=False,
             request_has_query_params=True,
             user_agent_header="user-agent",
             accept_header_value="application/json",
             http_headers=http_headers,
             security=self.sdk_configuration.security,
             get_serialized_body=lambda: utils.serialize_request_body(
-                request.request_body,
-                False,
-                False,
-                "json",
-                models.CreateCollectionRequestBody,
+                request, False, False, "json", models.CreateCollectionRequest
             ),
             timeout_ms=timeout_ms,
         )
@@ -531,10 +499,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def delete(
+    def delete_collection(
         self,
         *,
-        project_name: str,
         collection_name: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -543,7 +510,6 @@ class Collections(BaseSDK):
     ) -> models.MessageResponse:
         r"""Delete an existing collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -561,13 +527,12 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.DeleteCollectionRequest(
-            project_name=project_name,
             collection_name=collection_name,
         )
 
         req = self._build_request(
             method="DELETE",
-            path="/projects/{projectName}/collections/{collectionName}",
+            path="/collections/{collectionName}",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -640,10 +605,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def delete_async(
+    async def delete_collection_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -652,7 +616,6 @@ class Collections(BaseSDK):
     ) -> models.MessageResponse:
         r"""Delete an existing collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -670,13 +633,12 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.DeleteCollectionRequest(
-            project_name=project_name,
             collection_name=collection_name,
         )
 
         req = self._build_request_async(
             method="DELETE",
-            path="/projects/{projectName}/collections/{collectionName}",
+            path="/collections/{collectionName}",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -749,10 +711,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def get(
+    def get_collection(
         self,
         *,
-        project_name: str,
         collection_name: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -761,7 +722,6 @@ class Collections(BaseSDK):
     ) -> models.GetCollectionResponse:
         r"""Get metadata of an existing collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -779,13 +739,12 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.GetCollectionRequest(
-            project_name=project_name,
             collection_name=collection_name,
         )
 
         req = self._build_request(
             method="GET",
-            path="/projects/{projectName}/collections/{collectionName}",
+            path="/collections/{collectionName}",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -858,10 +817,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def get_async(
+    async def get_collection_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -870,7 +828,6 @@ class Collections(BaseSDK):
     ) -> models.GetCollectionResponse:
         r"""Get metadata of an existing collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -888,13 +845,12 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.GetCollectionRequest(
-            project_name=project_name,
             collection_name=collection_name,
         )
 
         req = self._build_request_async(
             method="GET",
-            path="/projects/{projectName}/collections/{collectionName}",
+            path="/collections/{collectionName}",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -967,10 +923,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def update(
+    def update_collection(
         self,
         *,
-        project_name: str,
         collection_name: str,
         index_configs: Union[
             Dict[str, models.IndexConfigsUnion],
@@ -983,7 +938,6 @@ class Collections(BaseSDK):
     ) -> models.UpdateCollectionResponse:
         r"""Configure a collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param index_configs:
         :param retries: Override the default retry configuration for this method
@@ -1002,7 +956,6 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.UpdateCollectionRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.UpdateCollectionRequestBody(
                 index_configs=utils.get_pydantic_model(
@@ -1013,7 +966,7 @@ class Collections(BaseSDK):
 
         req = self._build_request(
             method="PATCH",
-            path="/projects/{projectName}/collections/{collectionName}",
+            path="/collections/{collectionName}",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -1100,10 +1053,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def update_async(
+    async def update_collection_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         index_configs: Union[
             Dict[str, models.IndexConfigsUnion],
@@ -1116,7 +1068,6 @@ class Collections(BaseSDK):
     ) -> models.UpdateCollectionResponse:
         r"""Configure a collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param index_configs:
         :param retries: Override the default retry configuration for this method
@@ -1135,7 +1086,6 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.UpdateCollectionRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.UpdateCollectionRequestBody(
                 index_configs=utils.get_pydantic_model(
@@ -1146,7 +1096,7 @@ class Collections(BaseSDK):
 
         req = self._build_request_async(
             method="PATCH",
-            path="/projects/{projectName}/collections/{collectionName}",
+            path="/collections/{collectionName}",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -1233,10 +1183,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def query(
+    def query_collection(
         self,
         *,
-        project_name: str,
         collection_name: str,
         size: int,
         query: Optional[Dict[str, Any]] = None,
@@ -1251,7 +1200,6 @@ class Collections(BaseSDK):
     ) -> models.QueryCollectionResponse:
         r"""Search a collection with a query and return the most similar documents.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param query: Query object.
@@ -1275,7 +1223,6 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.QueryCollectionRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.QueryCollectionRequestBody(
                 size=size,
@@ -1289,7 +1236,7 @@ class Collections(BaseSDK):
 
         req = self._build_request(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/query",
+            path="/collections/{collectionName}/query",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -1376,10 +1323,9 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def query_async(
+    async def query_collection_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         size: int,
         query: Optional[Dict[str, Any]] = None,
@@ -1394,7 +1340,6 @@ class Collections(BaseSDK):
     ) -> models.QueryCollectionResponse:
         r"""Search a collection with a query and return the most similar documents.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param query: Query object.
@@ -1418,7 +1363,6 @@ class Collections(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.QueryCollectionRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.QueryCollectionRequestBody(
                 size=size,
@@ -1432,7 +1376,7 @@ class Collections(BaseSDK):
 
         req = self._build_request_async(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/query",
+            path="/collections/{collectionName}/query",
             base_url=base_url,
             url_variables=url_variables,
             request=request,

@@ -18,21 +18,12 @@ class BulkUpsertDocsRequestBody(BaseModel):
 
 
 class BulkUpsertDocsRequestTypedDict(TypedDict):
-    project_name: str
-    r"""Project name."""
     collection_name: str
     r"""Collection name."""
     request_body: BulkUpsertDocsRequestBodyTypedDict
 
 
 class BulkUpsertDocsRequest(BaseModel):
-    project_name: Annotated[
-        str,
-        pydantic.Field(alias="projectName"),
-        FieldMetadata(path=PathParamMetadata(style="simple", explode=False)),
-    ]
-    r"""Project name."""
-
     collection_name: Annotated[
         str,
         pydantic.Field(alias="collectionName"),

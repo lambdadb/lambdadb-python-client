@@ -4,13 +4,12 @@ from __future__ import annotations
 from .collectionresponse import CollectionResponse, CollectionResponseTypedDict
 from .indexconfigs_union import IndexConfigsUnion, IndexConfigsUnionTypedDict
 from lambdadb.types import BaseModel
-from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
 from typing import Dict, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
 
-class CreateCollectionRequestBodyTypedDict(TypedDict):
+class CreateCollectionRequestTypedDict(TypedDict):
     collection_name: str
     r"""Collection name must be unique within a project and the supported maximum length is 52."""
     index_configs: NotRequired[Dict[str, IndexConfigsUnionTypedDict]]
@@ -20,7 +19,7 @@ class CreateCollectionRequestBodyTypedDict(TypedDict):
     source_project_api_key: NotRequired[str]
 
 
-class CreateCollectionRequestBody(BaseModel):
+class CreateCollectionRequest(BaseModel):
     collection_name: Annotated[str, pydantic.Field(alias="collectionName")]
     r"""Collection name must be unique within a project and the supported maximum length is 52."""
 
@@ -43,26 +42,6 @@ class CreateCollectionRequestBody(BaseModel):
     source_project_api_key: Annotated[
         Optional[str], pydantic.Field(alias="sourceProjectApiKey")
     ] = None
-
-
-class CreateCollectionRequestTypedDict(TypedDict):
-    project_name: str
-    r"""Project name."""
-    request_body: CreateCollectionRequestBodyTypedDict
-
-
-class CreateCollectionRequest(BaseModel):
-    project_name: Annotated[
-        str,
-        pydantic.Field(alias="projectName"),
-        FieldMetadata(path=PathParamMetadata(style="simple", explode=False)),
-    ]
-    r"""Project name."""
-
-    request_body: Annotated[
-        CreateCollectionRequestBody,
-        FieldMetadata(request=RequestMetadata(media_type="application/json")),
-    ]
 
 
 class CreateCollectionResponseTypedDict(TypedDict):

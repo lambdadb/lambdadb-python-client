@@ -9,10 +9,9 @@ from typing import Any, Dict, List, Mapping, Optional
 
 
 class Docs(BaseSDK):
-    def upsert(
+    def upsert_docs(
         self,
         *,
-        project_name: str,
         collection_name: str,
         docs: List[Dict[str, Any]],
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -22,7 +21,6 @@ class Docs(BaseSDK):
     ) -> models.MessageResponse:
         r"""Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param docs: A list of documents to upsert.
         :param retries: Override the default retry configuration for this method
@@ -41,7 +39,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.UpsertDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.UpsertDocsRequestBody(
                 docs=docs,
@@ -50,7 +47,7 @@ class Docs(BaseSDK):
 
         req = self._build_request(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/upsert",
+            path="/collections/{collectionName}/docs/upsert",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -131,10 +128,9 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def upsert_async(
+    async def upsert_docs_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         docs: List[Dict[str, Any]],
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -144,7 +140,6 @@ class Docs(BaseSDK):
     ) -> models.MessageResponse:
         r"""Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param docs: A list of documents to upsert.
         :param retries: Override the default retry configuration for this method
@@ -163,7 +158,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.UpsertDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.UpsertDocsRequestBody(
                 docs=docs,
@@ -172,7 +166,7 @@ class Docs(BaseSDK):
 
         req = self._build_request_async(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/upsert",
+            path="/collections/{collectionName}/docs/upsert",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -253,10 +247,9 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def get_bulk_upsert(
+    def get_bulk_upsert_docs(
         self,
         *,
-        project_name: str,
         collection_name: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -265,7 +258,6 @@ class Docs(BaseSDK):
     ) -> models.GetBulkUpsertDocsResponse:
         r"""Request required info to upload documents.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -283,13 +275,12 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.GetBulkUpsertDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
         )
 
         req = self._build_request(
             method="GET",
-            path="/projects/{projectName}/collections/{collectionName}/docs/bulk-upsert",
+            path="/collections/{collectionName}/docs/bulk-upsert",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -364,10 +355,9 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def get_bulk_upsert_async(
+    async def get_bulk_upsert_docs_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -376,7 +366,6 @@ class Docs(BaseSDK):
     ) -> models.GetBulkUpsertDocsResponse:
         r"""Request required info to upload documents.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -394,13 +383,12 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.GetBulkUpsertDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
         )
 
         req = self._build_request_async(
             method="GET",
-            path="/projects/{projectName}/collections/{collectionName}/docs/bulk-upsert",
+            path="/collections/{collectionName}/docs/bulk-upsert",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -475,10 +463,9 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def bulk_upsert(
+    def bulk_upsert_docs(
         self,
         *,
-        project_name: str,
         collection_name: str,
         object_key: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -488,7 +475,6 @@ class Docs(BaseSDK):
     ) -> models.MessageResponse:
         r"""Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param object_key: Object key uploaded based on bulk upsert info.
         :param retries: Override the default retry configuration for this method
@@ -507,7 +493,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.BulkUpsertDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.BulkUpsertDocsRequestBody(
                 object_key=object_key,
@@ -516,7 +501,7 @@ class Docs(BaseSDK):
 
         req = self._build_request(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/bulk-upsert",
+            path="/collections/{collectionName}/docs/bulk-upsert",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -601,10 +586,9 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def bulk_upsert_async(
+    async def bulk_upsert_docs_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         object_key: str,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -614,7 +598,6 @@ class Docs(BaseSDK):
     ) -> models.MessageResponse:
         r"""Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param object_key: Object key uploaded based on bulk upsert info.
         :param retries: Override the default retry configuration for this method
@@ -633,7 +616,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.BulkUpsertDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.BulkUpsertDocsRequestBody(
                 object_key=object_key,
@@ -642,7 +624,7 @@ class Docs(BaseSDK):
 
         req = self._build_request_async(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/bulk-upsert",
+            path="/collections/{collectionName}/docs/bulk-upsert",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -730,7 +712,6 @@ class Docs(BaseSDK):
     def update_docs(
         self,
         *,
-        project_name: str,
         collection_name: str,
         docs: List[Dict[str, Any]],
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -740,7 +721,6 @@ class Docs(BaseSDK):
     ) -> models.MessageResponse:
         r"""Update documents in a collection. Note that the maximum supported payload size is 6MB.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param docs: A list of documents to update. Each document must contain 'id' field to be updated.
         :param retries: Override the default retry configuration for this method
@@ -759,7 +739,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.UpdateDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.UpdateDocsRequestBody(
                 docs=docs,
@@ -768,7 +747,7 @@ class Docs(BaseSDK):
 
         req = self._build_request(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/update",
+            path="/collections/{collectionName}/docs/update",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -852,7 +831,6 @@ class Docs(BaseSDK):
     async def update_docs_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         docs: List[Dict[str, Any]],
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -862,7 +840,6 @@ class Docs(BaseSDK):
     ) -> models.MessageResponse:
         r"""Update documents in a collection. Note that the maximum supported payload size is 6MB.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param docs: A list of documents to update. Each document must contain 'id' field to be updated.
         :param retries: Override the default retry configuration for this method
@@ -881,7 +858,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.UpdateDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.UpdateDocsRequestBody(
                 docs=docs,
@@ -890,7 +866,7 @@ class Docs(BaseSDK):
 
         req = self._build_request_async(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/update",
+            path="/collections/{collectionName}/docs/update",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -971,10 +947,9 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def delete(
+    def delete_docs(
         self,
         *,
-        project_name: str,
         collection_name: str,
         ids: Optional[List[str]] = None,
         filter_: Optional[Dict[str, Any]] = None,
@@ -985,7 +960,6 @@ class Docs(BaseSDK):
     ) -> models.MessageResponse:
         r"""Delete documents by document IDs or query filter from a collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param ids: A list of document IDs.
         :param filter_: Query filter.
@@ -1005,7 +979,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.DeleteDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.DeleteDocsRequestBody(
                 ids=ids,
@@ -1015,7 +988,7 @@ class Docs(BaseSDK):
 
         req = self._build_request(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/delete",
+            path="/collections/{collectionName}/docs/delete",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -1096,10 +1069,9 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def delete_async(
+    async def delete_docs_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         ids: Optional[List[str]] = None,
         filter_: Optional[Dict[str, Any]] = None,
@@ -1110,7 +1082,6 @@ class Docs(BaseSDK):
     ) -> models.MessageResponse:
         r"""Delete documents by document IDs or query filter from a collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param ids: A list of document IDs.
         :param filter_: Query filter.
@@ -1130,7 +1101,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.DeleteDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.DeleteDocsRequestBody(
                 ids=ids,
@@ -1140,7 +1110,7 @@ class Docs(BaseSDK):
 
         req = self._build_request_async(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/delete",
+            path="/collections/{collectionName}/docs/delete",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -1221,10 +1191,9 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def fetch(
+    def fetch_docs(
         self,
         *,
-        project_name: str,
         collection_name: str,
         ids: List[str],
         consistent_read: Optional[bool] = False,
@@ -1236,7 +1205,6 @@ class Docs(BaseSDK):
     ) -> models.FetchDocsResponse:
         r"""Lookup and return documents by document IDs from a collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 100.
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
@@ -1257,7 +1225,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.FetchDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.FetchDocsRequestBody(
                 ids=ids,
@@ -1268,7 +1235,7 @@ class Docs(BaseSDK):
 
         req = self._build_request(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/fetch",
+            path="/collections/{collectionName}/docs/fetch",
             base_url=base_url,
             url_variables=url_variables,
             request=request,
@@ -1349,10 +1316,9 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def fetch_async(
+    async def fetch_docs_async(
         self,
         *,
-        project_name: str,
         collection_name: str,
         ids: List[str],
         consistent_read: Optional[bool] = False,
@@ -1364,7 +1330,6 @@ class Docs(BaseSDK):
     ) -> models.FetchDocsResponse:
         r"""Lookup and return documents by document IDs from a collection.
 
-        :param project_name: Project name.
         :param collection_name: Collection name.
         :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 100.
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
@@ -1385,7 +1350,6 @@ class Docs(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.FetchDocsRequest(
-            project_name=project_name,
             collection_name=collection_name,
             request_body=models.FetchDocsRequestBody(
                 ids=ids,
@@ -1396,7 +1360,7 @@ class Docs(BaseSDK):
 
         req = self._build_request_async(
             method="POST",
-            path="/projects/{projectName}/collections/{collectionName}/docs/fetch",
+            path="/collections/{collectionName}/docs/fetch",
             base_url=base_url,
             url_variables=url_variables,
             request=request,

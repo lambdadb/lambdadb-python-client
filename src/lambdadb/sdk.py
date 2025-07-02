@@ -10,7 +10,7 @@ import importlib
 from lambdadb import models, utils
 from lambdadb._hooks import SDKHooks
 from lambdadb.types import OptionalNullable, UNSET
-from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, Union, cast
+from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Union, cast
 import weakref
 
 if TYPE_CHECKING:
@@ -30,6 +30,7 @@ class LambdaDB(BaseSDK):
         project_api_key: Optional[
             Union[Optional[str], Callable[[], Optional[str]]]
         ] = None,
+        base_url: Optional[str] = None,
         server_idx: Optional[int] = None,
         server_url: Optional[str] = None,
         url_params: Optional[Dict[str, str]] = None,
@@ -42,6 +43,7 @@ class LambdaDB(BaseSDK):
         r"""Instantiates the SDK configuring it with the provided parameters.
 
         :param project_api_key: The project_api_key required for authentication
+        :param base_url: Allows setting the baseUrl variable for url substitution
         :param server_idx: The index of the server to use for all methods
         :param server_url: The server URL to use for all methods
         :param url_params: Parameters to optionally template the server URL with
@@ -81,6 +83,11 @@ class LambdaDB(BaseSDK):
         if server_url is not None:
             if url_params is not None:
                 server_url = utils.template_url(server_url, url_params)
+        server_defaults: List[Dict[str, str]] = [
+            {
+                "baseUrl": base_url or "api.lambdadb.com/projects/default",
+            },
+        ]
 
         BaseSDK.__init__(
             self,
@@ -92,6 +99,7 @@ class LambdaDB(BaseSDK):
                 security=security,
                 server_url=server_url,
                 server_idx=server_idx,
+                server_defaults=server_defaults,
                 retry_config=retry_config,
                 timeout_ms=timeout_ms,
                 debug_logger=debug_logger,

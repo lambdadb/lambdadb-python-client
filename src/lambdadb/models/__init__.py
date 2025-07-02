@@ -13,8 +13,6 @@ if TYPE_CHECKING:
     from .collectionresponse import CollectionResponse, CollectionResponseTypedDict
     from .createcollectionop import (
         CreateCollectionRequest,
-        CreateCollectionRequestBody,
-        CreateCollectionRequestBodyTypedDict,
         CreateCollectionRequestTypedDict,
         CreateCollectionResponse,
         CreateCollectionResponseTypedDict,
@@ -69,8 +67,6 @@ if TYPE_CHECKING:
         TypeVector,
     )
     from .listcollectionsop import (
-        ListCollectionsRequest,
-        ListCollectionsRequestTypedDict,
         ListCollectionsResponse,
         ListCollectionsResponseTypedDict,
     )
@@ -117,8 +113,6 @@ __all__ = [
     "CollectionResponse",
     "CollectionResponseTypedDict",
     "CreateCollectionRequest",
-    "CreateCollectionRequestBody",
-    "CreateCollectionRequestBodyTypedDict",
     "CreateCollectionRequestTypedDict",
     "CreateCollectionResponse",
     "CreateCollectionResponseTypedDict",
@@ -154,8 +148,6 @@ __all__ = [
     "IndexConfigsUnionTypedDict",
     "IndexConfigsVector",
     "IndexConfigsVectorTypedDict",
-    "ListCollectionsRequest",
-    "ListCollectionsRequestTypedDict",
     "ListCollectionsResponse",
     "ListCollectionsResponseTypedDict",
     "MessageResponse",
@@ -199,8 +191,6 @@ _dynamic_imports: dict[str, str] = {
     "CollectionResponse": ".collectionresponse",
     "CollectionResponseTypedDict": ".collectionresponse",
     "CreateCollectionRequest": ".createcollectionop",
-    "CreateCollectionRequestBody": ".createcollectionop",
-    "CreateCollectionRequestBodyTypedDict": ".createcollectionop",
     "CreateCollectionRequestTypedDict": ".createcollectionop",
     "CreateCollectionResponse": ".createcollectionop",
     "CreateCollectionResponseTypedDict": ".createcollectionop",
@@ -241,8 +231,6 @@ _dynamic_imports: dict[str, str] = {
     "Type": ".indexconfigs_union",
     "TypeText": ".indexconfigs_union",
     "TypeVector": ".indexconfigs_union",
-    "ListCollectionsRequest": ".listcollectionsop",
-    "ListCollectionsRequestTypedDict": ".listcollectionsop",
     "ListCollectionsResponse": ".listcollectionsop",
     "ListCollectionsResponseTypedDict": ".listcollectionsop",
     "MessageResponse": ".messageresponse",

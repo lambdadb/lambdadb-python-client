@@ -118,7 +118,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list(project_name="<value>")
+    res = lambda_db.collections.list_collections()
 
     # Handle response
     print(res)
@@ -138,7 +138,7 @@ async def main():
         project_api_key="<YOUR_PROJECT_API_KEY>",
     ) as lambda_db:
 
-        res = await lambda_db.collections.list_async(project_name="<value>")
+        res = await lambda_db.collections.list_collections_async()
 
         # Handle response
         print(res)
@@ -167,7 +167,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list(project_name="<value>")
+    res = lambda_db.collections.list_collections()
 
     # Handle response
     print(res)
@@ -183,21 +183,21 @@ with LambdaDB(
 
 ### [collections](docs/sdks/collections/README.md)
 
-* [list](docs/sdks/collections/README.md#list) - List all collections in an existing project.
-* [create](docs/sdks/collections/README.md#create) - Create a collection.
-* [delete](docs/sdks/collections/README.md#delete) - Delete an existing collection.
-* [get](docs/sdks/collections/README.md#get) - Get metadata of an existing collection.
-* [update](docs/sdks/collections/README.md#update) - Configure a collection.
-* [query](docs/sdks/collections/README.md#query) - Search a collection with a query and return the most similar documents.
+* [list_collections](docs/sdks/collections/README.md#list_collections) - List all collections in an existing project.
+* [create_collection](docs/sdks/collections/README.md#create_collection) - Create a collection.
+* [delete_collection](docs/sdks/collections/README.md#delete_collection) - Delete an existing collection.
+* [get_collection](docs/sdks/collections/README.md#get_collection) - Get metadata of an existing collection.
+* [update_collection](docs/sdks/collections/README.md#update_collection) - Configure a collection.
+* [query_collection](docs/sdks/collections/README.md#query_collection) - Search a collection with a query and return the most similar documents.
 
 #### [collections.docs](docs/sdks/docs/README.md)
 
-* [upsert](docs/sdks/docs/README.md#upsert) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
-* [get_bulk_upsert](docs/sdks/docs/README.md#get_bulk_upsert) - Request required info to upload documents.
-* [bulk_upsert](docs/sdks/docs/README.md#bulk_upsert) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
+* [upsert_docs](docs/sdks/docs/README.md#upsert_docs) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
+* [get_bulk_upsert_docs](docs/sdks/docs/README.md#get_bulk_upsert_docs) - Request required info to upload documents.
+* [bulk_upsert_docs](docs/sdks/docs/README.md#bulk_upsert_docs) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 * [update_docs](docs/sdks/docs/README.md#update_docs) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
-* [delete](docs/sdks/docs/README.md#delete) - Delete documents by document IDs or query filter from a collection.
-* [fetch](docs/sdks/docs/README.md#fetch) - Lookup and return documents by document IDs from a collection.
+* [delete_docs](docs/sdks/docs/README.md#delete_docs) - Delete documents by document IDs or query filter from a collection.
+* [fetch_docs](docs/sdks/docs/README.md#fetch_docs) - Lookup and return documents by document IDs from a collection.
 
 
 </details>
@@ -218,7 +218,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list(project_name="<value>",
+    res = lambda_db.collections.list_collections(,
         RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False))
 
     # Handle response
@@ -237,7 +237,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list(project_name="<value>")
+    res = lambda_db.collections.list_collections()
 
     # Handle response
     print(res)
@@ -270,7 +270,7 @@ with LambdaDB(
     res = None
     try:
 
-        res = lambda_db.collections.list(project_name="<value>")
+        res = lambda_db.collections.list_collections()
 
         # Handle response
         print(res)
@@ -320,6 +320,32 @@ with LambdaDB(
 <!-- Start Server Selection [server] -->
 ## Server Selection
 
+### Server Variables
+
+The default server `https://{baseUrl}` contains variables and is set to `https://api.lambdadb.com/projects/default` by default. To override default values, the following parameters are available when initializing the SDK client instance:
+
+| Variable  | Parameter       | Default                               | Description             |
+| --------- | --------------- | ------------------------------------- | ----------------------- |
+| `baseUrl` | `base_url: str` | `"api.lambdadb.com/projects/default"` | The base URL of the API |
+
+#### Example
+
+```python
+from lambdadb import LambdaDB
+
+
+with LambdaDB(
+    base_url="https://functional-jury.net/"
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.list_collections()
+
+    # Handle response
+    print(res)
+
+```
+
 ### Override Server URL Per-Client
 
 The default server can be overridden globally by passing a URL to the `server_url: str` optional parameter when initializing the SDK client instance. For example:
@@ -328,11 +354,11 @@ from lambdadb import LambdaDB
 
 
 with LambdaDB(
-    server_url="https://{baseUrl}",
+    server_url="https://api.lambdadb.com/projects/default",
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list(project_name="<value>")
+    res = lambda_db.collections.list_collections()
 
     # Handle response
     print(res)

@@ -3,24 +3,8 @@
 from __future__ import annotations
 from .collectionresponse import CollectionResponse, CollectionResponseTypedDict
 from lambdadb.types import BaseModel
-from lambdadb.utils import FieldMetadata, PathParamMetadata
-import pydantic
 from typing import List
-from typing_extensions import Annotated, TypedDict
-
-
-class ListCollectionsRequestTypedDict(TypedDict):
-    project_name: str
-    r"""Project name."""
-
-
-class ListCollectionsRequest(BaseModel):
-    project_name: Annotated[
-        str,
-        pydantic.Field(alias="projectName"),
-        FieldMetadata(path=PathParamMetadata(style="simple", explode=False)),
-    ]
-    r"""Project name."""
+from typing_extensions import TypedDict
 
 
 class ListCollectionsResponseTypedDict(TypedDict):

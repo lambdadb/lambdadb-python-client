@@ -5,14 +5,14 @@
 
 ### Available Operations
 
-* [upsert](#upsert) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
-* [get_bulk_upsert](#get_bulk_upsert) - Request required info to upload documents.
-* [bulk_upsert](#bulk_upsert) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
+* [upsert_docs](#upsert_docs) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
+* [get_bulk_upsert_docs](#get_bulk_upsert_docs) - Request required info to upload documents.
+* [bulk_upsert_docs](#bulk_upsert_docs) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 * [update_docs](#update_docs) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
-* [delete](#delete) - Delete documents by document IDs or query filter from a collection.
-* [fetch](#fetch) - Lookup and return documents by document IDs from a collection.
+* [delete_docs](#delete_docs) - Delete documents by document IDs or query filter from a collection.
+* [fetch_docs](#fetch_docs) - Lookup and return documents by document IDs from a collection.
 
-## upsert
+## upsert_docs
 
 Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 
@@ -26,7 +26,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.docs.upsert(project_name="<value>", collection_name="<value>", docs=[
+    res = lambda_db.collections.docs.upsert_docs(collection_name="<value>", docs=[
         {
             "example-doc1": {
                 "example-field1": "example-value1",
@@ -58,7 +58,6 @@ with LambdaDB(
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
 | `docs`                                                              | List[Dict[str, *Any*]]                                              | :heavy_check_mark:                                                  | A list of documents to upsert.                                      |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
@@ -78,7 +77,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## get_bulk_upsert
+## get_bulk_upsert_docs
 
 Request required info to upload documents.
 
@@ -92,7 +91,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.docs.get_bulk_upsert(project_name="<value>", collection_name="<value>")
+    res = lambda_db.collections.docs.get_bulk_upsert_docs(collection_name="<value>")
 
     # Handle response
     print(res)
@@ -103,7 +102,6 @@ with LambdaDB(
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
@@ -121,7 +119,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## bulk_upsert
+## bulk_upsert_docs
 
 Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 
@@ -135,7 +133,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.docs.bulk_upsert(project_name="<value>", collection_name="<value>", object_key="example-object-key")
+    res = lambda_db.collections.docs.bulk_upsert_docs(collection_name="<value>", object_key="example-object-key")
 
     # Handle response
     print(res)
@@ -146,7 +144,6 @@ with LambdaDB(
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
 | `object_key`                                                        | *str*                                                               | :heavy_check_mark:                                                  | Object key uploaded based on bulk upsert info.                      |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
@@ -180,7 +177,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.docs.update_docs(project_name="<value>", collection_name="<value>", docs=[
+    res = lambda_db.collections.docs.update_docs(collection_name="<value>", docs=[
         {
             "example-doc1": {
                 "id": "example-id1",
@@ -214,7 +211,6 @@ with LambdaDB(
 
 | Parameter                                                                           | Type                                                                                | Required                                                                            | Description                                                                         |
 | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `project_name`                                                                      | *str*                                                                               | :heavy_check_mark:                                                                  | Project name.                                                                       |
 | `collection_name`                                                                   | *str*                                                                               | :heavy_check_mark:                                                                  | Collection name.                                                                    |
 | `docs`                                                                              | List[Dict[str, *Any*]]                                                              | :heavy_check_mark:                                                                  | A list of documents to update. Each document must contain 'id' field to be updated. |
 | `retries`                                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                    | :heavy_minus_sign:                                                                  | Configuration to override the default retry behavior of the client.                 |
@@ -234,7 +230,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## delete
+## delete_docs
 
 Delete documents by document IDs or query filter from a collection.
 
@@ -248,7 +244,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.docs.delete(project_name="<value>", collection_name="<value>", ids=[
+    res = lambda_db.collections.docs.delete_docs(collection_name="<value>", ids=[
         "example-doc-id-1",
         "example-doc-id-2",
     ])
@@ -262,7 +258,6 @@ with LambdaDB(
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
 | `ids`                                                               | List[*str*]                                                         | :heavy_minus_sign:                                                  | A list of document IDs.                                             |
 | `filter_`                                                           | Dict[str, *Any*]                                                    | :heavy_minus_sign:                                                  | Query filter.                                                       |
@@ -283,7 +278,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## fetch
+## fetch_docs
 
 Lookup and return documents by document IDs from a collection.
 
@@ -297,7 +292,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.docs.fetch(project_name="<value>", collection_name="<value>", ids=[
+    res = lambda_db.collections.docs.fetch_docs(collection_name="<value>", ids=[
         "example-doc-id-1",
         "example-doc-id-2",
     ], consistent_read=False, include_vectors=False)
@@ -311,7 +306,6 @@ with LambdaDB(
 
 | Parameter                                                                                                                                                                                                                   | Type                                                                                                                                                                                                                        | Required                                                                                                                                                                                                                    | Description                                                                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `project_name`                                                                                                                                                                                                              | *str*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Project name.                                                                                                                                                                                                               |
 | `collection_name`                                                                                                                                                                                                           | *str*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Collection name.                                                                                                                                                                                                            |
 | `ids`                                                                                                                                                                                                                       | List[*str*]                                                                                                                                                                                                                 | :heavy_check_mark:                                                                                                                                                                                                          | A list of document IDs to fetch. Note that the maximum number of document IDs is 100.                                                                                                                                       |
 | `consistent_read`                                                                                                                                                                                                           | *Optional[bool]*                                                                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value. |

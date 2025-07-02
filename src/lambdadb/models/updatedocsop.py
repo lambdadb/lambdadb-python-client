@@ -19,21 +19,12 @@ class UpdateDocsRequestBody(BaseModel):
 
 
 class UpdateDocsRequestTypedDict(TypedDict):
-    project_name: str
-    r"""Project name."""
     collection_name: str
     r"""Collection name."""
     request_body: UpdateDocsRequestBodyTypedDict
 
 
 class UpdateDocsRequest(BaseModel):
-    project_name: Annotated[
-        str,
-        pydantic.Field(alias="projectName"),
-        FieldMetadata(path=PathParamMetadata(style="simple", explode=False)),
-    ]
-    r"""Project name."""
-
     collection_name: Annotated[
         str,
         pydantic.Field(alias="collectionName"),

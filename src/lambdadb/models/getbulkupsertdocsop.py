@@ -10,20 +10,11 @@ from typing_extensions import Annotated, NotRequired, TypedDict
 
 
 class GetBulkUpsertDocsRequestTypedDict(TypedDict):
-    project_name: str
-    r"""Project name."""
     collection_name: str
     r"""Collection name."""
 
 
 class GetBulkUpsertDocsRequest(BaseModel):
-    project_name: Annotated[
-        str,
-        pydantic.Field(alias="projectName"),
-        FieldMetadata(path=PathParamMetadata(style="simple", explode=False)),
-    ]
-    r"""Project name."""
-
     collection_name: Annotated[
         str,
         pydantic.Field(alias="collectionName"),

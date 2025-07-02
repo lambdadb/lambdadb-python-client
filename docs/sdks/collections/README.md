@@ -5,14 +5,14 @@
 
 ### Available Operations
 
-* [list](#list) - List all collections in an existing project.
-* [create](#create) - Create a collection.
-* [delete](#delete) - Delete an existing collection.
-* [get](#get) - Get metadata of an existing collection.
-* [update](#update) - Configure a collection.
-* [query](#query) - Search a collection with a query and return the most similar documents.
+* [list_collections](#list_collections) - List all collections in an existing project.
+* [create_collection](#create_collection) - Create a collection.
+* [delete_collection](#delete_collection) - Delete an existing collection.
+* [get_collection](#get_collection) - Get metadata of an existing collection.
+* [update_collection](#update_collection) - Configure a collection.
+* [query_collection](#query_collection) - Search a collection with a query and return the most similar documents.
 
-## list
+## list_collections
 
 List all collections in an existing project.
 
@@ -26,7 +26,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list(project_name="<value>")
+    res = lambda_db.collections.list_collections()
 
     # Handle response
     print(res)
@@ -37,7 +37,6 @@ with LambdaDB(
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
 ### Response
@@ -54,7 +53,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## create
+## create_collection
 
 Create a collection.
 
@@ -68,7 +67,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.create(project_name="<value>", collection_name="example-collection-name", index_configs={
+    res = lambda_db.collections.create_collection(collection_name="example-collection-name", index_configs={
         "example-field1": {
             "type": models.TypeText.TEXT,
             "analyzers": [
@@ -91,7 +90,6 @@ with LambdaDB(
 
 | Parameter                                                                               | Type                                                                                    | Required                                                                                | Description                                                                             |
 | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `project_name`                                                                          | *str*                                                                                   | :heavy_check_mark:                                                                      | Project name.                                                                           |
 | `collection_name`                                                                       | *str*                                                                                   | :heavy_check_mark:                                                                      | Collection name must be unique within a project and the supported maximum length is 52. |
 | `index_configs`                                                                         | Dict[str, [models.IndexConfigsUnion](../../models/indexconfigsunion.md)]                | :heavy_minus_sign:                                                                      | N/A                                                                                     |
 | `source_project_name`                                                                   | *Optional[str]*                                                                         | :heavy_minus_sign:                                                                      | N/A                                                                                     |
@@ -115,7 +113,7 @@ with LambdaDB(
 | errors.InternalServerError        | 500                               | application/json                  |
 | errors.APIError                   | 4XX, 5XX                          | \*/\*                             |
 
-## delete
+## delete_collection
 
 Delete an existing collection.
 
@@ -129,7 +127,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.delete(project_name="<value>", collection_name="<value>")
+    res = lambda_db.collections.delete_collection(collection_name="<value>")
 
     # Handle response
     print(res)
@@ -140,7 +138,6 @@ with LambdaDB(
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
@@ -158,7 +155,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## get
+## get_collection
 
 Get metadata of an existing collection.
 
@@ -172,7 +169,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.get(project_name="<value>", collection_name="<value>")
+    res = lambda_db.collections.get_collection(collection_name="<value>")
 
     # Handle response
     print(res)
@@ -183,7 +180,6 @@ with LambdaDB(
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
@@ -201,7 +197,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## update
+## update_collection
 
 Configure a collection.
 
@@ -215,7 +211,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.update(project_name="<value>", collection_name="<value>", index_configs={
+    res = lambda_db.collections.update_collection(collection_name="<value>", index_configs={
         "example-field1": {
             "type": models.TypeText.TEXT,
             "analyzers": [
@@ -241,7 +237,6 @@ with LambdaDB(
 
 | Parameter                                                                | Type                                                                     | Required                                                                 | Description                                                              |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| `project_name`                                                           | *str*                                                                    | :heavy_check_mark:                                                       | Project name.                                                            |
 | `collection_name`                                                        | *str*                                                                    | :heavy_check_mark:                                                       | Collection name.                                                         |
 | `index_configs`                                                          | Dict[str, [models.IndexConfigsUnion](../../models/indexconfigsunion.md)] | :heavy_check_mark:                                                       | N/A                                                                      |
 | `retries`                                                                | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)         | :heavy_minus_sign:                                                       | Configuration to override the default retry behavior of the client.      |
@@ -261,7 +256,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## query
+## query_collection
 
 Search a collection with a query and return the most similar documents.
 
@@ -275,7 +270,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.query(project_name="<value>", collection_name="<value>", size=2, query={
+    res = lambda_db.collections.query_collection(collection_name="<value>", size=2, query={
         "queryString": {
             "query": "example-field1:example-value",
         },
@@ -290,7 +285,6 @@ with LambdaDB(
 
 | Parameter                                                                                                                                                                                                                   | Type                                                                                                                                                                                                                        | Required                                                                                                                                                                                                                    | Description                                                                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `project_name`                                                                                                                                                                                                              | *str*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Project name.                                                                                                                                                                                                               |
 | `collection_name`                                                                                                                                                                                                           | *str*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Collection name.                                                                                                                                                                                                            |
 | `size`                                                                                                                                                                                                                      | *int*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Number of documents to return. Note that the maximum number of documents is 100.                                                                                                                                            |
 | `query`                                                                                                                                                                                                                     | Dict[str, *Any*]                                                                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | Query object.                                                                                                                                                                                                               |

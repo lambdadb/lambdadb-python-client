@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: 5215e94c4d4fb2aa6dac04d594844ba4
+  docChecksum: 3fc92eb931034ff00e6d969aab3aba35
   docVersion: 1.1.1
   speakeasyVersion: 1.574.1
   generationVersion: 2.647.2
-  releaseVersion: 0.3.6
-  configChecksum: b32746c5753378623f113ee01c96e97a
+  releaseVersion: 0.4.0
+  configChecksum: edc86fdc5da882ab162361132e3f3e47
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
@@ -27,7 +27,6 @@ features:
     globalSecurityFlattening: 1.0.0
     globalServerURLs: 3.1.1
     methodArguments: 1.0.2
-    nameOverrides: 3.0.1
     responseFormat: 1.0.1
     retries: 3.0.2
     sdkHooks: 1.1.0
@@ -51,7 +50,6 @@ generatedFiles:
   - docs/models/bulkupsertdocsrequestbody.md
   - docs/models/collectionresponse.md
   - docs/models/createcollectionrequest.md
-  - docs/models/createcollectionrequestbody.md
   - docs/models/createcollectionresponse.md
   - docs/models/deletecollectionrequest.md
   - docs/models/deletedocsrequest.md
@@ -70,7 +68,6 @@ generatedFiles:
   - docs/models/indexconfigstext.md
   - docs/models/indexconfigsunion.md
   - docs/models/indexconfigsvector.md
-  - docs/models/listcollectionsrequest.md
   - docs/models/listcollectionsresponse.md
   - docs/models/messageresponse.md
   - docs/models/querycollectiondoc.md

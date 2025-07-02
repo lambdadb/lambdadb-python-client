@@ -8,11 +8,11 @@ from ._version import (
 )
 from .httpclient import AsyncHttpClient, HttpClient
 from .utils import Logger, RetryConfig, remove_suffix
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from lambdadb import models
 from lambdadb.types import OptionalNullable, UNSET
 from pydantic import Field
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 
 SERVERS = [
@@ -32,6 +32,7 @@ class SDKConfiguration:
     security: Optional[Union[models.Security, Callable[[], models.Security]]] = None
     server_url: Optional[str] = ""
     server_idx: Optional[int] = 0
+    server_defaults: List[Dict[str, str]] = field(default_factory=List)
     language: str = "python"
     openapi_doc_version: str = __openapi_doc_version__
     sdk_version: str = __version__
@@ -46,4 +47,4 @@ class SDKConfiguration:
         if self.server_idx is None:
             self.server_idx = 0
 
-        return SERVERS[self.server_idx], {}
+        return SERVERS[self.server_idx], self.server_defaults[self.server_idx]
