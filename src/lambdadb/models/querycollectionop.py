@@ -4,36 +4,20 @@ from __future__ import annotations
 from lambdadb.types import BaseModel
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
-
-
-class QueryTypedDict(TypedDict):
-    r"""Query object."""
-
-
-class Query(BaseModel):
-    r"""Query object."""
-
-
-class SortTypedDict(TypedDict):
-    pass
-
-
-class Sort(BaseModel):
-    pass
 
 
 class QueryCollectionRequestBodyTypedDict(TypedDict):
     size: int
     r"""Number of documents to return. Note that the maximum number of documents is 100."""
-    query: NotRequired[QueryTypedDict]
+    query: NotRequired[Dict[str, Any]]
     r"""Query object."""
     consistent_read: NotRequired[bool]
     r"""If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value."""
     include_vectors: NotRequired[bool]
     r"""If your application need to include vector values in the response, set includeVectors to true."""
-    sort: NotRequired[List[SortTypedDict]]
+    sort: NotRequired[List[Dict[str, Any]]]
     r"""List of field name, sort direction pairs."""
     fields: NotRequired[List[str]]
     r"""List of field name to include in results"""
@@ -43,7 +27,7 @@ class QueryCollectionRequestBody(BaseModel):
     size: int
     r"""Number of documents to return. Note that the maximum number of documents is 100."""
 
-    query: Optional[Query] = None
+    query: Optional[Dict[str, Any]] = None
     r"""Query object."""
 
     consistent_read: Annotated[
@@ -56,7 +40,7 @@ class QueryCollectionRequestBody(BaseModel):
     ] = False
     r"""If your application need to include vector values in the response, set includeVectors to true."""
 
-    sort: Optional[List[Sort]] = None
+    sort: Optional[List[Dict[str, Any]]] = None
     r"""List of field name, sort direction pairs."""
 
     fields: Optional[List[str]] = None
@@ -92,20 +76,12 @@ class QueryCollectionRequest(BaseModel):
     ]
 
 
-class QueryCollectionDocDocTypedDict(TypedDict):
-    pass
-
-
-class QueryCollectionDocDoc(BaseModel):
-    pass
-
-
 class QueryCollectionDocTypedDict(TypedDict):
     collection: str
     r"""Collection name."""
     score: float
     r"""Document similarity score."""
-    doc: QueryCollectionDocDocTypedDict
+    doc: Dict[str, Any]
 
 
 class QueryCollectionDoc(BaseModel):
@@ -115,7 +91,7 @@ class QueryCollectionDoc(BaseModel):
     score: float
     r"""Document similarity score."""
 
-    doc: QueryCollectionDocDoc
+    doc: Dict[str, Any]
 
 
 class QueryCollectionResponseTypedDict(TypedDict):

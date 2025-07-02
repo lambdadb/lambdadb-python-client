@@ -4,22 +4,14 @@ from __future__ import annotations
 from lambdadb.types import BaseModel
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
-
-
-class FilterTypedDict(TypedDict):
-    r"""Query filter."""
-
-
-class Filter(BaseModel):
-    r"""Query filter."""
 
 
 class DeleteDocsRequestBodyTypedDict(TypedDict):
     ids: NotRequired[List[str]]
     r"""A list of document IDs."""
-    filter_: NotRequired[FilterTypedDict]
+    filter_: NotRequired[Dict[str, Any]]
     r"""Query filter."""
 
 
@@ -27,7 +19,7 @@ class DeleteDocsRequestBody(BaseModel):
     ids: Optional[List[str]] = None
     r"""A list of document IDs."""
 
-    filter_: Annotated[Optional[Filter], pydantic.Field(alias="filter")] = None
+    filter_: Annotated[Optional[Dict[str, Any]], pydantic.Field(alias="filter")] = None
     r"""Query filter."""
 
 

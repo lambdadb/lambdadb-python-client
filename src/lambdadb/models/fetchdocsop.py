@@ -4,7 +4,7 @@ from __future__ import annotations
 from lambdadb.types import BaseModel
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
 
@@ -61,23 +61,15 @@ class FetchDocsRequest(BaseModel):
     ]
 
 
-class FetchDocsDocDocTypedDict(TypedDict):
-    pass
-
-
-class FetchDocsDocDoc(BaseModel):
-    pass
-
-
 class FetchDocsDocTypedDict(TypedDict):
     collection: str
-    doc: FetchDocsDocDocTypedDict
+    doc: Dict[str, Any]
 
 
 class FetchDocsDoc(BaseModel):
     collection: str
 
-    doc: FetchDocsDocDoc
+    doc: Dict[str, Any]
 
 
 class FetchDocsResponseTypedDict(TypedDict):

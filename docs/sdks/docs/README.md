@@ -27,8 +27,26 @@ with LambdaDB(
 ) as lambda_db:
 
     res = lambda_db.collections.docs.upsert(project_name="<value>", collection_name="<value>", docs=[
-        {},
-        {},
+        {
+            "example-doc1": {
+                "example-field1": "example-value1",
+                "example-field2": [
+                    0.1,
+                    0.2,
+                    0.3,
+                ],
+            },
+        },
+        {
+            "example-doc2": {
+                "example-field1": "example-value2",
+                "example-field2": [
+                    0.4,
+                    0.5,
+                    0.6,
+                ],
+            },
+        },
     ])
 
     # Handle response
@@ -42,7 +60,7 @@ with LambdaDB(
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
-| `docs`                                                              | List[[models.UpsertDocsDoc](../../models/upsertdocsdoc.md)]         | :heavy_check_mark:                                                  | A list of documents to upsert.                                      |
+| `docs`                                                              | List[Dict[str, *Any*]]                                              | :heavy_check_mark:                                                  | A list of documents to upsert.                                      |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
 ### Response
@@ -163,8 +181,28 @@ with LambdaDB(
 ) as lambda_db:
 
     res = lambda_db.collections.docs.update_docs(project_name="<value>", collection_name="<value>", docs=[
-        {},
-        {},
+        {
+            "example-doc1": {
+                "id": "example-id1",
+                "example-field1": "example-value1",
+                "example-field2": [
+                    0.1,
+                    0.2,
+                    0.3,
+                ],
+            },
+        },
+        {
+            "example-doc2": {
+                "id": "example-id2",
+                "example-field1": "example-value2",
+                "example-field2": [
+                    0.4,
+                    0.5,
+                    0.6,
+                ],
+            },
+        },
     ])
 
     # Handle response
@@ -178,7 +216,7 @@ with LambdaDB(
 | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | `project_name`                                                                      | *str*                                                                               | :heavy_check_mark:                                                                  | Project name.                                                                       |
 | `collection_name`                                                                   | *str*                                                                               | :heavy_check_mark:                                                                  | Collection name.                                                                    |
-| `docs`                                                                              | List[[models.UpdateDocsDoc](../../models/updatedocsdoc.md)]                         | :heavy_check_mark:                                                                  | A list of documents to update. Each document must contain 'id' field to be updated. |
+| `docs`                                                                              | List[Dict[str, *Any*]]                                                              | :heavy_check_mark:                                                                  | A list of documents to update. Each document must contain 'id' field to be updated. |
 | `retries`                                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                    | :heavy_minus_sign:                                                                  | Configuration to override the default retry behavior of the client.                 |
 
 ### Response
@@ -227,7 +265,7 @@ with LambdaDB(
 | `project_name`                                                      | *str*                                                               | :heavy_check_mark:                                                  | Project name.                                                       |
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
 | `ids`                                                               | List[*str*]                                                         | :heavy_minus_sign:                                                  | A list of document IDs.                                             |
-| `filter_`                                                           | [Optional[models.Filter]](../../models/filter_.md)                  | :heavy_minus_sign:                                                  | Query filter.                                                       |
+| `filter_`                                                           | Dict[str, *Any*]                                                    | :heavy_minus_sign:                                                  | Query filter.                                                       |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
 ### Response

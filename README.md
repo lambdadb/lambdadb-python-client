@@ -248,29 +248,18 @@ with LambdaDB(
 <!-- Start Error Handling [errors] -->
 ## Error Handling
 
-Handling errors in this SDK should largely match your expectations. All operations return a response object or raise an exception.
+[`LambdaDBError`](./src/lambdadb/errors/lambdadberror.py) is the base class for all HTTP error responses. It has the following properties:
 
-By default, an API error will raise a errors.APIError exception, which has the following properties:
-
-| Property        | Type             | Description           |
-|-----------------|------------------|-----------------------|
-| `.status_code`  | *int*            | The HTTP status code  |
-| `.message`      | *str*            | The error message     |
-| `.raw_response` | *httpx.Response* | The raw HTTP response |
-| `.body`         | *str*            | The response content  |
-
-When custom error responses are specified for an operation, the SDK may also raise their associated exceptions. You can refer to respective *Errors* tables in SDK docs for more details on possible exception types for each operation. For example, the `list_async` method may raise the following exceptions:
-
-| Error Type                   | Status Code | Content Type     |
-| ---------------------------- | ----------- | ---------------- |
-| errors.UnauthenticatedError  | 401         | application/json |
-| errors.ResourceNotFoundError | 404         | application/json |
-| errors.TooManyRequestsError  | 429         | application/json |
-| errors.InternalServerError   | 500         | application/json |
-| errors.APIError              | 4XX, 5XX    | \*/\*            |
+| Property           | Type             | Description                                                                             |
+| ------------------ | ---------------- | --------------------------------------------------------------------------------------- |
+| `err.message`      | `str`            | Error message                                                                           |
+| `err.status_code`  | `int`            | HTTP response status code eg `404`                                                      |
+| `err.headers`      | `httpx.Headers`  | HTTP response headers                                                                   |
+| `err.body`         | `str`            | HTTP body. Can be empty string if no body is returned.                                  |
+| `err.raw_response` | `httpx.Response` | Raw HTTP response                                                                       |
+| `err.data`         |                  | Optional. Some errors may contain structured data. [See Error Classes](#error-classes). |
 
 ### Example
-
 ```python
 from lambdadb import LambdaDB, errors
 
@@ -286,22 +275,46 @@ with LambdaDB(
         # Handle response
         print(res)
 
-    except errors.UnauthenticatedError as e:
-        # handle e.data: errors.UnauthenticatedErrorData
-        raise(e)
-    except errors.ResourceNotFoundError as e:
-        # handle e.data: errors.ResourceNotFoundErrorData
-        raise(e)
-    except errors.TooManyRequestsError as e:
-        # handle e.data: errors.TooManyRequestsErrorData
-        raise(e)
-    except errors.InternalServerError as e:
-        # handle e.data: errors.InternalServerErrorData
-        raise(e)
-    except errors.APIError as e:
-        # handle exception
-        raise(e)
+
+    except errors.LambdaDBError as e:
+        # The base class for HTTP error responses
+        print(e.message)
+        print(e.status_code)
+        print(e.body)
+        print(e.headers)
+        print(e.raw_response)
+
+        # Depending on the method different errors may be thrown
+        if isinstance(e, errors.UnauthenticatedError):
+            print(e.data.message)  # Optional[str]
 ```
+
+### Error Classes
+**Primary errors:**
+* [`LambdaDBError`](./src/lambdadb/errors/lambdadberror.py): The base class for HTTP error responses.
+  * [`UnauthenticatedError`](./src/lambdadb/errors/unauthenticatederror.py): Unauthenticated. Status code `401`.
+  * [`TooManyRequestsError`](./src/lambdadb/errors/toomanyrequestserror.py): Too many requests. Status code `429`.
+  * [`InternalServerError`](./src/lambdadb/errors/internalservererror.py): Internal server error. Status code `500`.
+  * [`ResourceNotFoundError`](./src/lambdadb/errors/resourcenotfounderror.py): Resource not found. Status code `404`. *
+
+<details><summary>Less common errors (7)</summary>
+
+<br />
+
+**Network errors:**
+* [`httpx.RequestError`](https://www.python-httpx.org/exceptions/#httpx.RequestError): Base class for request errors.
+    * [`httpx.ConnectError`](https://www.python-httpx.org/exceptions/#httpx.ConnectError): HTTP client was unable to make a request to a server.
+    * [`httpx.TimeoutException`](https://www.python-httpx.org/exceptions/#httpx.TimeoutException): HTTP request timed out.
+
+
+**Inherit from [`LambdaDBError`](./src/lambdadb/errors/lambdadberror.py)**:
+* [`BadRequestError`](./src/lambdadb/errors/badrequesterror.py): Bad request. Status code `400`. Applicable to 8 of 12 methods.*
+* [`ResourceAlreadyExistsError`](./src/lambdadb/errors/resourcealreadyexistserror.py): Resource already exists. Status code `409`. Applicable to 1 of 12 methods.*
+* [`ResponseValidationError`](./src/lambdadb/errors/responsevalidationerror.py): Type mismatch between the response data and the expected Pydantic model. Provides access to the Pydantic validation error via the `cause` attribute.
+
+</details>
+
+\* Check [the method documentation](#available-resources-and-operations) to see if the error is applicable.
 <!-- End Error Handling [errors] -->
 
 <!-- Start Server Selection [server] -->

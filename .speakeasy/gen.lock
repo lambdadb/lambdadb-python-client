@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: 5641822f2dec67cb4c9954e1cc5f499e
+  docChecksum: 5215e94c4d4fb2aa6dac04d594844ba4
   docVersion: 1.1.1
-  speakeasyVersion: 1.573.0
-  generationVersion: 2.644.1
-  releaseVersion: 0.3.5
-  configChecksum: b6ace5e6a43b443792781d78f08ee9e6
+  speakeasyVersion: 1.574.1
+  generationVersion: 2.647.2
+  releaseVersion: 0.3.6
+  configChecksum: b32746c5753378623f113ee01c96e97a
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
@@ -57,11 +57,9 @@ generatedFiles:
   - docs/models/deletedocsrequest.md
   - docs/models/deletedocsrequestbody.md
   - docs/models/fetchdocsdoc.md
-  - docs/models/fetchdocsdocdoc.md
   - docs/models/fetchdocsrequest.md
   - docs/models/fetchdocsrequestbody.md
   - docs/models/fetchdocsresponse.md
-  - docs/models/filter_.md
   - docs/models/getbulkupsertdocsrequest.md
   - docs/models/getbulkupsertdocsresponse.md
   - docs/models/getbulkupsertdocstype.md
@@ -75,15 +73,12 @@ generatedFiles:
   - docs/models/listcollectionsrequest.md
   - docs/models/listcollectionsresponse.md
   - docs/models/messageresponse.md
-  - docs/models/query.md
   - docs/models/querycollectiondoc.md
-  - docs/models/querycollectiondocdoc.md
   - docs/models/querycollectionrequest.md
   - docs/models/querycollectionrequestbody.md
   - docs/models/querycollectionresponse.md
   - docs/models/security.md
   - docs/models/similarity.md
-  - docs/models/sort.md
   - docs/models/status.md
   - docs/models/type.md
   - docs/models/typetext.md
@@ -91,10 +86,8 @@ generatedFiles:
   - docs/models/updatecollectionrequest.md
   - docs/models/updatecollectionrequestbody.md
   - docs/models/updatecollectionresponse.md
-  - docs/models/updatedocsdoc.md
   - docs/models/updatedocsrequest.md
   - docs/models/updatedocsrequestbody.md
-  - docs/models/upsertdocsdoc.md
   - docs/models/upsertdocsrequest.md
   - docs/models/upsertdocsrequestbody.md
   - docs/models/utils/retryconfig.md
@@ -119,8 +112,11 @@ generatedFiles:
   - src/lambdadb/errors/apierror.py
   - src/lambdadb/errors/badrequest_error.py
   - src/lambdadb/errors/internalservererror.py
+  - src/lambdadb/errors/lambdadberror.py
+  - src/lambdadb/errors/no_response_error.py
   - src/lambdadb/errors/resourcealreadyexists_error.py
   - src/lambdadb/errors/resourcenotfound_error.py
+  - src/lambdadb/errors/responsevalidationerror.py
   - src/lambdadb/errors/toomanyrequests_error.py
   - src/lambdadb/errors/unauthenticated_error.py
   - src/lambdadb/httpclient.py
@@ -406,10 +402,10 @@ examples:
           projectName: "<value>"
           collectionName: "<value>"
       requestBody:
-        application/json: {"size": 2, "query": {}, "consistentRead": false, "includeVectors": false}
+        application/json: {"size": 2, "query": {"queryString": {"query": "example-field1:example-value"}}, "consistentRead": false, "includeVectors": false}
       responses:
         "200":
-          application/json: {"took": 10, "maxScore": 1, "total": 2, "docs": [{"collection": "example-collection-name", "score": 1, "doc": {}}, {"collection": "example-collection-name", "score": 0.9, "doc": {}}]}
+          application/json: {"took": 10, "maxScore": 1, "total": 2, "docs": [{"collection": "example-collection-name", "score": 1, "doc": {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"collection": "example-collection-name", "score": 0.9, "doc": {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}]}
         "400":
           application/json: {"message": "Invalid request"}
         "401":
@@ -427,7 +423,7 @@ examples:
           projectName: "<value>"
           collectionName: "<value>"
       requestBody:
-        application/json: {"docs": [{}, {}]}
+        application/json: {"docs": [{"example-doc1": {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"example-doc2": {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}]}
       responses:
         "202":
           application/json: {"message": "Upsert request is accepted"}
@@ -506,7 +502,7 @@ examples:
           projectName: "<value>"
           collectionName: "<value>"
       requestBody:
-        application/json: {"filter": {}}
+        application/json: {"filter": {"queryString": {"query": "example-field1:example-value"}}}
       responses:
         "202":
           application/json: {"message": "<value>"}
@@ -550,7 +546,7 @@ examples:
         application/json: {"ids": ["example-doc-id-1", "example-doc-id-2"], "consistentRead": false, "includeVectors": false}
       responses:
         "200":
-          application/json: {"total": 2, "took": 10, "docs": [{"collection": "example-collection-name", "doc": {}}, {"collection": "example-collection-name", "doc": {}}]}
+          application/json: {"total": 2, "took": 10, "docs": [{"collection": "example-collection-name", "doc": {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"collection": "example-collection-name", "doc": {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}]}
         "400":
           application/json: {"message": "Invalid request"}
         "401":
@@ -596,7 +592,7 @@ examples:
           projectName: "<value>"
           collectionName: "<value>"
       requestBody:
-        application/json: {"docs": [{}, {}]}
+        application/json: {"docs": [{"example-doc1": {"id": "example-id1", "example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"example-doc2": {"id": "example-id2", "example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}]}
       responses:
         "202":
           application/json: {"message": "Update request is accepted"}

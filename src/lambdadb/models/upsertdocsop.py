@@ -4,25 +4,17 @@ from __future__ import annotations
 from lambdadb.types import BaseModel
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
-from typing import List
+from typing import Any, Dict, List
 from typing_extensions import Annotated, TypedDict
 
 
-class UpsertDocsDocTypedDict(TypedDict):
-    pass
-
-
-class UpsertDocsDoc(BaseModel):
-    pass
-
-
 class UpsertDocsRequestBodyTypedDict(TypedDict):
-    docs: List[UpsertDocsDocTypedDict]
+    docs: List[Dict[str, Any]]
     r"""A list of documents to upsert."""
 
 
 class UpsertDocsRequestBody(BaseModel):
-    docs: List[UpsertDocsDoc]
+    docs: List[Dict[str, Any]]
     r"""A list of documents to upsert."""
 
 
