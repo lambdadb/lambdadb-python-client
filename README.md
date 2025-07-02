@@ -118,7 +118,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list_collections()
+    res = lambda_db.collections.list()
 
     # Handle response
     print(res)
@@ -138,7 +138,7 @@ async def main():
         project_api_key="<YOUR_PROJECT_API_KEY>",
     ) as lambda_db:
 
-        res = await lambda_db.collections.list_collections_async()
+        res = await lambda_db.collections.list_async()
 
         # Handle response
         print(res)
@@ -167,7 +167,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list_collections()
+    res = lambda_db.collections.list()
 
     # Handle response
     print(res)
@@ -183,21 +183,21 @@ with LambdaDB(
 
 ### [collections](docs/sdks/collections/README.md)
 
-* [list_collections](docs/sdks/collections/README.md#list_collections) - List all collections in an existing project.
-* [create_collection](docs/sdks/collections/README.md#create_collection) - Create a collection.
-* [delete_collection](docs/sdks/collections/README.md#delete_collection) - Delete an existing collection.
-* [get_collection](docs/sdks/collections/README.md#get_collection) - Get metadata of an existing collection.
-* [update_collection](docs/sdks/collections/README.md#update_collection) - Configure a collection.
-* [query_collection](docs/sdks/collections/README.md#query_collection) - Search a collection with a query and return the most similar documents.
+* [list](docs/sdks/collections/README.md#list) - List all collections in an existing project.
+* [create](docs/sdks/collections/README.md#create) - Create a collection.
+* [delete](docs/sdks/collections/README.md#delete) - Delete an existing collection.
+* [get](docs/sdks/collections/README.md#get) - Get metadata of an existing collection.
+* [update](docs/sdks/collections/README.md#update) - Configure a collection.
+* [query](docs/sdks/collections/README.md#query) - Search a collection with a query and return the most similar documents.
 
 #### [collections.docs](docs/sdks/docs/README.md)
 
-* [upsert_docs](docs/sdks/docs/README.md#upsert_docs) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
-* [get_bulk_upsert_docs](docs/sdks/docs/README.md#get_bulk_upsert_docs) - Request required info to upload documents.
-* [bulk_upsert_docs](docs/sdks/docs/README.md#bulk_upsert_docs) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
-* [update_docs](docs/sdks/docs/README.md#update_docs) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
-* [delete_docs](docs/sdks/docs/README.md#delete_docs) - Delete documents by document IDs or query filter from a collection.
-* [fetch_docs](docs/sdks/docs/README.md#fetch_docs) - Lookup and return documents by document IDs from a collection.
+* [upsert](docs/sdks/docs/README.md#upsert) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
+* [get_bulk_upsert](docs/sdks/docs/README.md#get_bulk_upsert) - Request required info to upload documents.
+* [bulk_upsert](docs/sdks/docs/README.md#bulk_upsert) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
+* [update](docs/sdks/docs/README.md#update) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
+* [delete](docs/sdks/docs/README.md#delete) - Delete documents by document IDs or query filter from a collection.
+* [fetch](docs/sdks/docs/README.md#fetch) - Lookup and return documents by document IDs from a collection.
 
 
 </details>
@@ -218,7 +218,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list_collections(,
+    res = lambda_db.collections.list(,
         RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False))
 
     # Handle response
@@ -237,7 +237,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list_collections()
+    res = lambda_db.collections.list()
 
     # Handle response
     print(res)
@@ -270,7 +270,7 @@ with LambdaDB(
     res = None
     try:
 
-        res = lambda_db.collections.list_collections()
+        res = lambda_db.collections.list()
 
         # Handle response
         print(res)
@@ -339,7 +339,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list_collections()
+    res = lambda_db.collections.list()
 
     # Handle response
     print(res)
@@ -358,7 +358,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list_collections()
+    res = lambda_db.collections.list()
 
     # Handle response
     print(res)

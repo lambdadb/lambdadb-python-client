@@ -5,14 +5,14 @@
 
 ### Available Operations
 
-* [list_collections](#list_collections) - List all collections in an existing project.
-* [create_collection](#create_collection) - Create a collection.
-* [delete_collection](#delete_collection) - Delete an existing collection.
-* [get_collection](#get_collection) - Get metadata of an existing collection.
-* [update_collection](#update_collection) - Configure a collection.
-* [query_collection](#query_collection) - Search a collection with a query and return the most similar documents.
+* [list](#list) - List all collections in an existing project.
+* [create](#create) - Create a collection.
+* [delete](#delete) - Delete an existing collection.
+* [get](#get) - Get metadata of an existing collection.
+* [update](#update) - Configure a collection.
+* [query](#query) - Search a collection with a query and return the most similar documents.
 
-## list_collections
+## list
 
 List all collections in an existing project.
 
@@ -26,7 +26,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list_collections()
+    res = lambda_db.collections.list()
 
     # Handle response
     print(res)
@@ -53,7 +53,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## create_collection
+## create
 
 Create a collection.
 
@@ -67,7 +67,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.create_collection(collection_name="example-collection-name", index_configs={
+    res = lambda_db.collections.create(collection_name="example-collection-name", index_configs={
         "example-field1": {
             "type": models.TypeText.TEXT,
             "analyzers": [
@@ -113,7 +113,7 @@ with LambdaDB(
 | errors.InternalServerError        | 500                               | application/json                  |
 | errors.APIError                   | 4XX, 5XX                          | \*/\*                             |
 
-## delete_collection
+## delete
 
 Delete an existing collection.
 
@@ -127,7 +127,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.delete_collection(collection_name="<value>")
+    res = lambda_db.collections.delete(collection_name="<value>")
 
     # Handle response
     print(res)
@@ -155,7 +155,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## get_collection
+## get
 
 Get metadata of an existing collection.
 
@@ -169,7 +169,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.get_collection(collection_name="<value>")
+    res = lambda_db.collections.get(collection_name="<value>")
 
     # Handle response
     print(res)
@@ -197,7 +197,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## update_collection
+## update
 
 Configure a collection.
 
@@ -211,7 +211,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.update_collection(collection_name="<value>", index_configs={
+    res = lambda_db.collections.update(collection_name="<value>", index_configs={
         "example-field1": {
             "type": models.TypeText.TEXT,
             "analyzers": [
@@ -256,7 +256,7 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-## query_collection
+## query
 
 Search a collection with a query and return the most similar documents.
 
@@ -270,7 +270,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.query_collection(collection_name="<value>", size=2, query={
+    res = lambda_db.collections.query(collection_name="<value>", size=2, query={
         "queryString": {
             "query": "example-field1:example-value",
         },

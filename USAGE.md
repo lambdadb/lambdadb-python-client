@@ -8,7 +8,7 @@ with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 
-    res = lambda_db.collections.list_collections()
+    res = lambda_db.collections.list()
 
     # Handle response
     print(res)
@@ -28,7 +28,7 @@ async def main():
         project_api_key="<YOUR_PROJECT_API_KEY>",
     ) as lambda_db:
 
-        res = await lambda_db.collections.list_collections_async()
+        res = await lambda_db.collections.list_async()
 
         # Handle response
         print(res)

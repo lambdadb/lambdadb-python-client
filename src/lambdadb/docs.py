@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Mapping, Optional
 
 
 class Docs(BaseSDK):
-    def upsert_docs(
+    def upsert(
         self,
         *,
         collection_name: str,
@@ -128,7 +128,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def upsert_docs_async(
+    async def upsert_async(
         self,
         *,
         collection_name: str,
@@ -247,7 +247,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def get_bulk_upsert_docs(
+    def get_bulk_upsert(
         self,
         *,
         collection_name: str,
@@ -355,7 +355,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def get_bulk_upsert_docs_async(
+    async def get_bulk_upsert_async(
         self,
         *,
         collection_name: str,
@@ -463,7 +463,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def bulk_upsert_docs(
+    def bulk_upsert(
         self,
         *,
         collection_name: str,
@@ -586,7 +586,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def bulk_upsert_docs_async(
+    async def bulk_upsert_async(
         self,
         *,
         collection_name: str,
@@ -709,7 +709,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def update_docs(
+    def update(
         self,
         *,
         collection_name: str,
@@ -828,7 +828,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def update_docs_async(
+    async def update_async(
         self,
         *,
         collection_name: str,
@@ -947,7 +947,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def delete_docs(
+    def delete(
         self,
         *,
         collection_name: str,
@@ -1069,7 +1069,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def delete_docs_async(
+    async def delete_async(
         self,
         *,
         collection_name: str,
@@ -1191,7 +1191,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def fetch_docs(
+    def fetch(
         self,
         *,
         collection_name: str,
@@ -1316,7 +1316,7 @@ class Docs(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def fetch_docs_async(
+    async def fetch_async(
         self,
         *,
         collection_name: str,

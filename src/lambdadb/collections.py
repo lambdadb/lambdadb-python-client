@@ -21,7 +21,7 @@ class Collections(BaseSDK):
     def _init_sdks(self):
         self.docs = Docs(self.sdk_configuration)
 
-    def list_collections(
+    def list(
         self,
         *,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -122,7 +122,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def list_collections_async(
+    async def list_async(
         self,
         *,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -223,7 +223,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def create_collection(
+    def create(
         self,
         *,
         collection_name: str,
@@ -361,7 +361,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def create_collection_async(
+    async def create_async(
         self,
         *,
         collection_name: str,
@@ -499,7 +499,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def delete_collection(
+    def delete(
         self,
         *,
         collection_name: str,
@@ -605,7 +605,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def delete_collection_async(
+    async def delete_async(
         self,
         *,
         collection_name: str,
@@ -711,7 +711,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def get_collection(
+    def get(
         self,
         *,
         collection_name: str,
@@ -817,7 +817,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def get_collection_async(
+    async def get_async(
         self,
         *,
         collection_name: str,
@@ -923,7 +923,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def update_collection(
+    def update(
         self,
         *,
         collection_name: str,
@@ -1053,7 +1053,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def update_collection_async(
+    async def update_async(
         self,
         *,
         collection_name: str,
@@ -1183,7 +1183,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    def query_collection(
+    def query(
         self,
         *,
         collection_name: str,
@@ -1323,7 +1323,7 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
-    async def query_collection_async(
+    async def query_async(
         self,
         *,
         collection_name: str,
