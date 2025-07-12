@@ -5,6 +5,7 @@ from lambdadb import errors, models, utils
 from lambdadb._hooks import HookContext
 from lambdadb.types import OptionalNullable, UNSET
 from lambdadb.utils import get_security_from_env
+from lambdadb.utils.unmarshal_json_response import unmarshal_json_response
 from typing import Any, Dict, List, Mapping, Optional
 
 
@@ -93,29 +94,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json_response(models.MessageResponse, http_res)
+            return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -212,29 +213,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json_response(models.MessageResponse, http_res)
+            return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -323,26 +324,24 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json_response(
-                models.GetBulkUpsertDocsResponse, http_res
-            )
+            return unmarshal_json_response(models.GetBulkUpsertDocsResponse, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -431,26 +430,24 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json_response(
-                models.GetBulkUpsertDocsResponse, http_res
-            )
+            return unmarshal_json_response(models.GetBulkUpsertDocsResponse, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -551,29 +548,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json_response(models.MessageResponse, http_res)
+            return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -674,29 +671,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json_response(models.MessageResponse, http_res)
+            return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -793,29 +790,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json_response(models.MessageResponse, http_res)
+            return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -912,29 +909,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json_response(models.MessageResponse, http_res)
+            return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -1034,29 +1031,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json_response(models.MessageResponse, http_res)
+            return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -1156,29 +1153,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "202", "application/json"):
-            return utils.unmarshal_json_response(models.MessageResponse, http_res)
+            return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -1281,29 +1278,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json_response(models.FetchDocsResponse, http_res)
+            return unmarshal_json_response(models.FetchDocsResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
@@ -1406,29 +1403,29 @@ class Docs(BaseSDK):
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
-            return utils.unmarshal_json_response(models.FetchDocsResponse, http_res)
+            return unmarshal_json_response(models.FetchDocsResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.BadRequestErrorData, http_res
             )
             raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
             )
             raise errors.UnauthenticatedError(response_data, http_res)
         if utils.match_response(http_res, "404", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
         if utils.match_response(http_res, "429", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
             )
             raise errors.TooManyRequestsError(response_data, http_res)
         if utils.match_response(http_res, "500", "application/json"):
-            response_data = utils.unmarshal_json_response(
+            response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
             raise errors.InternalServerError(response_data, http_res)
