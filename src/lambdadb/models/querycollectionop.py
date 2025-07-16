@@ -9,10 +9,10 @@ from typing_extensions import Annotated, NotRequired, TypedDict
 
 
 class QueryCollectionRequestBodyTypedDict(TypedDict):
-    size: int
-    r"""Number of documents to return. Note that the maximum number of documents is 100."""
-    query: NotRequired[Dict[str, Any]]
+    query: Dict[str, Any]
     r"""Query object."""
+    size: NotRequired[int]
+    r"""Number of documents to return. Note that the maximum number of documents is 100."""
     consistent_read: NotRequired[bool]
     r"""If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value."""
     include_vectors: NotRequired[bool]
@@ -24,11 +24,11 @@ class QueryCollectionRequestBodyTypedDict(TypedDict):
 
 
 class QueryCollectionRequestBody(BaseModel):
-    size: int
-    r"""Number of documents to return. Note that the maximum number of documents is 100."""
-
-    query: Optional[Dict[str, Any]] = None
+    query: Dict[str, Any]
     r"""Query object."""
+
+    size: Optional[int] = None
+    r"""Number of documents to return. Note that the maximum number of documents is 100."""
 
     consistent_read: Annotated[
         Optional[bool], pydantic.Field(alias="consistentRead")
@@ -90,12 +90,12 @@ class QueryCollectionResponseTypedDict(TypedDict):
 
     took: int
     r"""Elapsed time in milliseconds."""
-    max_score: float
-    r"""Maximum score."""
     total: int
     r"""Total number of documents returned."""
     docs: List[QueryCollectionDocTypedDict]
     r"""List of documents."""
+    max_score: NotRequired[float]
+    r"""Maximum score."""
 
 
 class QueryCollectionResponse(BaseModel):
@@ -104,11 +104,11 @@ class QueryCollectionResponse(BaseModel):
     took: int
     r"""Elapsed time in milliseconds."""
 
-    max_score: Annotated[float, pydantic.Field(alias="maxScore")]
-    r"""Maximum score."""
-
     total: int
     r"""Total number of documents returned."""
 
     docs: List[QueryCollectionDoc]
     r"""List of documents."""
+
+    max_score: Annotated[Optional[float], pydantic.Field(alias="maxScore")] = None
+    r"""Maximum score."""

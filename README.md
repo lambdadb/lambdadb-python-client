@@ -322,11 +322,11 @@ with LambdaDB(
 
 ### Server Variables
 
-The default server `https://{baseUrl}` contains variables and is set to `https://api.lambdadb.com/projects/default` by default. To override default values, the following parameters are available when initializing the SDK client instance:
+The default server `https://{projectHost}` contains variables and is set to `https://api.lambdadb.com/projects/default` by default. To override default values, the following parameters are available when initializing the SDK client instance:
 
-| Variable  | Parameter       | Default                               | Description             |
-| --------- | --------------- | ------------------------------------- | ----------------------- |
-| `baseUrl` | `base_url: str` | `"api.lambdadb.com/projects/default"` | The base URL of the API |
+| Variable      | Parameter           | Default                               | Description                |
+| ------------- | ------------------- | ------------------------------------- | -------------------------- |
+| `projectHost` | `project_host: str` | `"api.lambdadb.com/projects/default"` | The project URL of the API |
 
 #### Example
 
@@ -335,7 +335,7 @@ from lambdadb import LambdaDB
 
 
 with LambdaDB(
-    base_url="https://functional-jury.net/"
+    project_host="<value>"
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 

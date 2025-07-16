@@ -30,7 +30,7 @@ class LambdaDB(BaseSDK):
         project_api_key: Optional[
             Union[Optional[str], Callable[[], Optional[str]]]
         ] = None,
-        base_url: Optional[str] = None,
+        project_host: Optional[str] = None,
         server_idx: Optional[int] = None,
         server_url: Optional[str] = None,
         url_params: Optional[Dict[str, str]] = None,
@@ -43,7 +43,7 @@ class LambdaDB(BaseSDK):
         r"""Instantiates the SDK configuring it with the provided parameters.
 
         :param project_api_key: The project_api_key required for authentication
-        :param base_url: Allows setting the baseUrl variable for url substitution
+        :param project_host: Allows setting the projectHost variable for url substitution
         :param server_idx: The index of the server to use for all methods
         :param server_url: The server URL to use for all methods
         :param url_params: Parameters to optionally template the server URL with
@@ -85,7 +85,7 @@ class LambdaDB(BaseSDK):
                 server_url = utils.template_url(server_url, url_params)
         server_defaults: List[Dict[str, str]] = [
             {
-                "baseUrl": base_url or "api.lambdadb.com/projects/default",
+                "projectHost": project_host or "api.lambdadb.com/projects/default",
             },
         ]
 

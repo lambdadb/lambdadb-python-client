@@ -16,7 +16,7 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 
 SERVERS = [
-    "https://{baseUrl}",
+    "https://{projectHost}",
     # LambdaDB API endpoints
 ]
 """Contains the list of servers available to the SDK"""

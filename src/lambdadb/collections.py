@@ -1176,8 +1176,8 @@ class Collections(BaseSDK):
         self,
         *,
         collection_name: str,
-        size: int,
-        query: Optional[Dict[str, Any]] = None,
+        query: Dict[str, Any],
+        size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
         sort: Optional[List[Dict[str, Any]]] = None,
@@ -1190,8 +1190,8 @@ class Collections(BaseSDK):
         r"""Search a collection with a query and return the most similar documents.
 
         :param collection_name: Collection name.
-        :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param query: Query object.
+        :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
@@ -1314,8 +1314,8 @@ class Collections(BaseSDK):
         self,
         *,
         collection_name: str,
-        size: int,
-        query: Optional[Dict[str, Any]] = None,
+        query: Dict[str, Any],
+        size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
         sort: Optional[List[Dict[str, Any]]] = None,
@@ -1328,8 +1328,8 @@ class Collections(BaseSDK):
         r"""Search a collection with a query and return the most similar documents.
 
         :param collection_name: Collection name.
-        :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param query: Query object.
+        :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
