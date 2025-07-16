@@ -29,3 +29,13 @@ Based on:
 - [python v0.5.2] .
 ### Releases
 - [PyPI v0.5.2] https://pypi.org/project/lambdadb/0.5.2 - .
+
+## 2025-07-16 00:43:38
+### Changes
+Based on:
+- OpenAPI Doc  
+- Speakeasy CLI 1.582.0 (2.657.1) https://github.com/speakeasy-api/speakeasy
+### Generated
+- [python v0.5.3] .
+### Releases
+- [PyPI v0.5.3] https://pypi.org/project/lambdadb/0.5.3 - .
