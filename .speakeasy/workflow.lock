@@ -1,4 +1,4 @@
-speakeasyVersion: 1.576.1
+speakeasyVersion: 1.582.0
 sources:
     lambdadb-OAS:
         sourceNamespace: lambdadb-oas

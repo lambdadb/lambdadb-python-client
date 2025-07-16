@@ -3,10 +3,10 @@ id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
   docChecksum: 9d0d1c370257efea20fda3eacd2368ba
   docVersion: 1.1.1
-  speakeasyVersion: 1.576.1
-  generationVersion: 2.651.2
-  releaseVersion: 0.5.2
-  configChecksum: a520d72ddff565010999b793671971cc
+  speakeasyVersion: 1.582.0
+  generationVersion: 2.657.1
+  releaseVersion: 0.5.3
+  configChecksum: 8c7d63f7f206c83bed04b646b22e6627
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
@@ -19,7 +19,7 @@ features:
     devContainers: 3.0.0
     enumUnions: 0.1.0
     envVarSecurityUsage: 0.3.2
-    examples: 3.0.1
+    examples: 3.0.2
     flatRequests: 1.0.1
     flattening: 3.1.1
     globalSecurity: 3.0.3
@@ -37,7 +37,6 @@ generatedFiles:
   - .devcontainer/devcontainer.json
   - .devcontainer/setup.sh
   - .gitattributes
-  - .python-version
   - .vscode/settings.json
   - USAGE.md
   - docs/errors/badrequesterror.md
@@ -155,6 +154,7 @@ generatedFiles:
   - src/lambdadb/utils/retries.py
   - src/lambdadb/utils/security.py
   - src/lambdadb/utils/serializers.py
+  - src/lambdadb/utils/unmarshal_json_response.py
   - src/lambdadb/utils/url.py
   - src/lambdadb/utils/values.py
 examples:
