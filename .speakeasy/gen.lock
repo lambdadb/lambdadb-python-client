@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: 883b6346c3b53e5b2efd22d0d71be5af
+  docChecksum: 40d4efa50bc506ae353869e7341fe2ec
   docVersion: 1.1.1
   speakeasyVersion: 1.582.0
   generationVersion: 2.657.1
-  releaseVersion: 0.5.4
-  configChecksum: 15dff787106f63ef8d6c0451febb0dd6
+  releaseVersion: 0.5.5
+  configChecksum: ef53ee851d8f9fdde4ab4fc87433ddc7
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true

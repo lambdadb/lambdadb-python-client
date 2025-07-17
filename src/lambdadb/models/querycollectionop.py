@@ -70,19 +70,19 @@ class QueryCollectionRequest(BaseModel):
 class QueryCollectionDocTypedDict(TypedDict):
     collection: str
     r"""Collection name."""
-    score: float
-    r"""Document similarity score."""
     doc: Dict[str, Any]
+    score: NotRequired[float]
+    r"""Document similarity score."""
 
 
 class QueryCollectionDoc(BaseModel):
     collection: str
     r"""Collection name."""
 
-    score: float
-    r"""Document similarity score."""
-
     doc: Dict[str, Any]
+
+    score: Optional[float] = None
+    r"""Document similarity score."""
 
 
 class QueryCollectionResponseTypedDict(TypedDict):
