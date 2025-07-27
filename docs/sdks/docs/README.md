@@ -28,24 +28,20 @@ with LambdaDB(
 
     res = lambda_db.collections.docs.upsert(collection_name="<value>", docs=[
         {
-            "example-doc1": {
-                "example-field1": "example-value1",
-                "example-field2": [
-                    0.1,
-                    0.2,
-                    0.3,
-                ],
-            },
+            "example-field1": "example-value1",
+            "example-field2": [
+                0.1,
+                0.2,
+                0.3,
+            ],
         },
         {
-            "example-doc2": {
-                "example-field1": "example-value2",
-                "example-field2": [
-                    0.4,
-                    0.5,
-                    0.6,
-                ],
-            },
+            "example-field1": "example-value2",
+            "example-field2": [
+                0.4,
+                0.5,
+                0.6,
+            ],
         },
     ])
 
@@ -179,26 +175,22 @@ with LambdaDB(
 
     res = lambda_db.collections.docs.update(collection_name="<value>", docs=[
         {
-            "example-doc1": {
-                "id": "example-id1",
-                "example-field1": "example-value1",
-                "example-field2": [
-                    0.1,
-                    0.2,
-                    0.3,
-                ],
-            },
+            "id": "example-id1",
+            "example-field1": "example-value1",
+            "example-field2": [
+                0.1,
+                0.2,
+                0.3,
+            ],
         },
         {
-            "example-doc2": {
-                "id": "example-id2",
-                "example-field1": "example-value2",
-                "example-field2": [
-                    0.4,
-                    0.5,
-                    0.6,
-                ],
-            },
+            "id": "example-id2",
+            "example-field1": "example-value2",
+            "example-field2": [
+                0.4,
+                0.5,
+                0.6,
+            ],
         },
     ])
 
