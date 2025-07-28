@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: 40d4efa50bc506ae353869e7341fe2ec
+  docChecksum: 61e623a53a7c55fe48dfab6c127ed0a5
   docVersion: 1.1.1
-  speakeasyVersion: 1.582.0
-  generationVersion: 2.657.1
-  releaseVersion: 0.5.5
-  configChecksum: ef53ee851d8f9fdde4ab4fc87433ddc7
+  speakeasyVersion: 1.590.0
+  generationVersion: 2.666.0
+  releaseVersion: 0.5.6
+  configChecksum: c9128534bb634131bd8444e9372c4f0a
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
@@ -421,7 +421,7 @@ examples:
           projectName: "<value>"
           collectionName: "<value>"
       requestBody:
-        application/json: {"docs": [{"example-doc1": {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"example-doc2": {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}]}
+        application/json: {"docs": [{"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}, {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}]}
       responses:
         "202":
           application/json: {"message": "Upsert request is accepted"}
@@ -590,7 +590,7 @@ examples:
           projectName: "<value>"
           collectionName: "<value>"
       requestBody:
-        application/json: {"docs": [{"example-doc1": {"id": "example-id1", "example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"example-doc2": {"id": "example-id2", "example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}]}
+        application/json: {"docs": [{"id": "example-id1", "example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}, {"id": "example-id2", "example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}]}
       responses:
         "202":
           application/json: {"message": "Update request is accepted"}
