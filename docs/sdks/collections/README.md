@@ -18,6 +18,7 @@ List all collections in an existing project.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="listCollections" method="get" path="/collections" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -59,6 +60,7 @@ Create a collection.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="createCollection" method="post" path="/collections" -->
 ```python
 from lambdadb import LambdaDB, models
 
@@ -119,6 +121,7 @@ Delete an existing collection.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="deleteCollection" method="delete" path="/collections/{collectionName}" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -161,6 +164,7 @@ Get metadata of an existing collection.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="getCollection" method="get" path="/collections/{collectionName}" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -203,6 +207,7 @@ Configure a collection.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="updateCollection" method="patch" path="/collections/{collectionName}" -->
 ```python
 from lambdadb import LambdaDB, models
 
@@ -262,6 +267,7 @@ Search a collection with a query and return the most similar documents.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="queryCollection" method="post" path="/collections/{collectionName}/query" -->
 ```python
 from lambdadb import LambdaDB
 
