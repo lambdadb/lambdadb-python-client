@@ -18,6 +18,7 @@ Upsert documents into a collection. Note that the maximum supported payload size
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="upsertDocs" method="post" path="/collections/{collectionName}/docs/upsert" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -79,6 +80,7 @@ Request required info to upload documents.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="getBulkUpsertDocs" method="get" path="/collections/{collectionName}/docs/bulk-upsert" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -121,6 +123,7 @@ Bulk upsert documents into a collection. Note that the maximum supported object 
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="bulkUpsertDocs" method="post" path="/collections/{collectionName}/docs/bulk-upsert" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -165,6 +168,7 @@ Update documents in a collection. Note that the maximum supported payload size i
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="updateDocs" method="post" path="/collections/{collectionName}/docs/update" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -228,6 +232,7 @@ Delete documents by document IDs or query filter from a collection.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="deleteDocs" method="post" path="/collections/{collectionName}/docs/delete" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -276,6 +281,7 @@ Lookup and return documents by document IDs from a collection.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="fetchDocs" method="post" path="/collections/{collectionName}/docs/fetch" -->
 ```python
 from lambdadb import LambdaDB
 
