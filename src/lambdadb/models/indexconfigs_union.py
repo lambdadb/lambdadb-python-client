@@ -36,7 +36,7 @@ class Similarity(str, Enum):
     r"""Vector similarity metric."""
 
     COSINE = "cosine"
-    L2_NORM = "l2_norm"
+    EUCLIDEAN = "euclidean"
     DOT_PRODUCT = "dot_product"
     MAX_INNER_PRODUCT = "max_inner_product"
 
