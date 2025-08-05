@@ -21,3 +21,9 @@ value: models.IndexConfigsVector = /* values here */
 value: models.IndexConfigs = /* values here */
 ```
 
+### `models.IndexConfigsObject`
+
+```python
+value: models.IndexConfigsObject = /* values here */
+```
+

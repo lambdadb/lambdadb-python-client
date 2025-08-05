@@ -3,8 +3,26 @@
 from __future__ import annotations
 from enum import Enum
 from lambdadb.types import BaseModel
-from typing import List, Optional, Union
-from typing_extensions import NotRequired, TypeAliasType, TypedDict
+import pydantic
+from typing import Any, Dict, List, Optional, Union
+from typing_extensions import Annotated, NotRequired, TypeAliasType, TypedDict
+
+
+class TypeObject(str, Enum):
+    OBJECT = "object"
+
+
+class IndexConfigsObjectTypedDict(TypedDict):
+    type: TypeObject
+    object_index_configs: Dict[str, Any]
+
+
+class IndexConfigsObject(BaseModel):
+    type: TypeObject
+
+    object_index_configs: Annotated[
+        Dict[str, Any], pydantic.Field(alias="objectIndexConfigs")
+    ]
 
 
 class Type(str, Enum):
@@ -86,11 +104,15 @@ class IndexConfigsText(BaseModel):
 IndexConfigsUnionTypedDict = TypeAliasType(
     "IndexConfigsUnionTypedDict",
     Union[
-        IndexConfigsTypedDict, IndexConfigsTextTypedDict, IndexConfigsVectorTypedDict
+        IndexConfigsTypedDict,
+        IndexConfigsTextTypedDict,
+        IndexConfigsObjectTypedDict,
+        IndexConfigsVectorTypedDict,
     ],
 )
 
 
 IndexConfigsUnion = TypeAliasType(
-    "IndexConfigsUnion", Union[IndexConfigs, IndexConfigsText, IndexConfigsVector]
+    "IndexConfigsUnion",
+    Union[IndexConfigs, IndexConfigsText, IndexConfigsObject, IndexConfigsVector],
 )
