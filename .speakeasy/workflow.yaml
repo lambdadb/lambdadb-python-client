@@ -7,7 +7,7 @@ sources:
         overlays:
             - location: .speakeasy/speakeasy-modifications-overlay.yaml
         registry:
-            location: registry.speakeasyapi.dev/lambdadb/lambdadb-python/lambdadb-oas
+            location: registry.speakeasyapi.dev/lambdadb-ayw/lambdadb-python/lambdadb-oas
 targets:
     lambdadb:
         target: python
@@ -17,7 +17,7 @@ targets:
                 token: $pypi_token
         codeSamples:
             registry:
-                location: registry.speakeasyapi.dev/lambdadb/lambdadb-python/lambdadb-oas-code-samples
+                location: registry.speakeasyapi.dev/lambdadb-ayw/lambdadb-python/lambdadb-oas-code-samples
             labelOverride:
                 fixedValue: Python (SDK)
             blocking: false

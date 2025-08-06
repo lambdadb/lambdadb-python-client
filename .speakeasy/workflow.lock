@@ -1,9 +1,9 @@
-speakeasyVersion: 1.596.1
+speakeasyVersion: 1.598.0
 sources:
     lambdadb-OAS:
         sourceNamespace: lambdadb-oas
-        sourceRevisionDigest: sha256:c4706c08631c8e464f7da425ebf12d419d9fe73be9482fb0768b463abf3ef08c
-        sourceBlobDigest: sha256:2779c016a96af05ac396abcdb4e72d21da07b8686596f1a4a6cf48421408a923
+        sourceRevisionDigest: sha256:8931d6475a0b9b0d6daea67ac9f546e6863695ece429131f90cef69b011e24be
+        sourceBlobDigest: sha256:1041c01bb3cc62ce97db1a988a4a277af611f0391c898780ca829d04983c00b9
         tags:
             - latest
             - 1.1.1
@@ -11,8 +11,10 @@ targets:
     lambdadb:
         source: lambdadb-OAS
         sourceNamespace: lambdadb-oas
-        sourceRevisionDigest: sha256:c4706c08631c8e464f7da425ebf12d419d9fe73be9482fb0768b463abf3ef08c
-        sourceBlobDigest: sha256:2779c016a96af05ac396abcdb4e72d21da07b8686596f1a4a6cf48421408a923
+        sourceRevisionDigest: sha256:8931d6475a0b9b0d6daea67ac9f546e6863695ece429131f90cef69b011e24be
+        sourceBlobDigest: sha256:1041c01bb3cc62ce97db1a988a4a277af611f0391c898780ca829d04983c00b9
+        codeSamplesNamespace: lambdadb-oas-code-samples
+        codeSamplesRevisionDigest: sha256:93a36a45087448b055ed207cf990a6851808fd6bfd8de61a1b9269c00875d322
 workflow:
     workflowVersion: 1.0.0
     speakeasyVersion: latest
@@ -23,7 +25,7 @@ workflow:
             overlays:
                 - location: .speakeasy/speakeasy-modifications-overlay.yaml
             registry:
-                location: registry.speakeasyapi.dev/lambdadb/lambdadb-python/lambdadb-oas
+                location: registry.speakeasyapi.dev/lambdadb-ayw/lambdadb-python/lambdadb-oas
     targets:
         lambdadb:
             target: python
@@ -33,7 +35,7 @@ workflow:
                     token: $pypi_token
             codeSamples:
                 registry:
-                    location: registry.speakeasyapi.dev/lambdadb/lambdadb-python/lambdadb-oas-code-samples
+                    location: registry.speakeasyapi.dev/lambdadb-ayw/lambdadb-python/lambdadb-oas-code-samples
                 labelOverride:
                     fixedValue: Python (SDK)
                 blocking: false
