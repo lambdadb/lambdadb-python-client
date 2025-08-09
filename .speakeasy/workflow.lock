@@ -1,4 +1,4 @@
-speakeasyVersion: 1.598.0
+speakeasyVersion: 1.600.2
 sources:
     lambdadb-OAS:
         sourceNamespace: lambdadb-oas
@@ -6,6 +6,7 @@ sources:
         sourceBlobDigest: sha256:1041c01bb3cc62ce97db1a988a4a277af611f0391c898780ca829d04983c00b9
         tags:
             - latest
+            - speakeasy-sdk-regen-1754527566
             - 1.1.1
 targets:
     lambdadb:
@@ -14,7 +15,7 @@ targets:
         sourceRevisionDigest: sha256:8931d6475a0b9b0d6daea67ac9f546e6863695ece429131f90cef69b011e24be
         sourceBlobDigest: sha256:1041c01bb3cc62ce97db1a988a4a277af611f0391c898780ca829d04983c00b9
         codeSamplesNamespace: lambdadb-oas-code-samples
-        codeSamplesRevisionDigest: sha256:93a36a45087448b055ed207cf990a6851808fd6bfd8de61a1b9269c00875d322
+        codeSamplesRevisionDigest: sha256:22a0bddc14f41ba7470c94572ffbfe98e31c2af656d3947cf8b7d1131f2a1329
 workflow:
     workflowVersion: 1.0.0
     speakeasyVersion: latest
