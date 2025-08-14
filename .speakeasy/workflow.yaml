@@ -3,7 +3,7 @@ speakeasyVersion: latest
 sources:
     lambdadb-OAS:
         inputs:
-            - location: https://raw.githubusercontent.com/lambdadb/docs/main/api-reference/openapi.json
+            - location: https://raw.githubusercontent.com/lambdadb/docs/main/reference/api/openapi.json
         overlays:
             - location: .speakeasy/speakeasy-modifications-overlay.yaml
         registry:

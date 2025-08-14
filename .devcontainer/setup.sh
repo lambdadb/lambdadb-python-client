@@ -7,8 +7,9 @@ curl -fsSL https://raw.githubusercontent.com/speakeasy-api/speakeasy/main/instal
 rmdir samples || true
 mkdir samples
 
+
 python -m pip install --upgrade pip
 pip install -e .
 
 # Generate starter usage sample with speakeasy
-speakeasy generate usage -s https://raw.githubusercontent.com/lambdadb/docs/main/api-reference/openapi.json -l python -o samples/root.py
+speakeasy generate usage -s https://raw.githubusercontent.com/lambdadb/docs/main/reference/api/openapi.json -l python -o samples/root.py

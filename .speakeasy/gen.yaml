@@ -2,7 +2,7 @@ configVersion: 2.0.0
 generation:
   devContainers:
     enabled: true
-    schemaPath: https://raw.githubusercontent.com/lambdadb/docs/main/api-reference/openapi.json
+    schemaPath: https://raw.githubusercontent.com/lambdadb/docs/main/reference/api/openapi.json
   sdkClassName: LambdaDB
   maintainOpenAPIOrder: true
   usageSnippets:
@@ -25,7 +25,7 @@ generation:
     generateNewTests: false
     skipResponseBodyAssertions: false
 python:
-  version: 0.5.10
+  version: 0.5.11
   additionalDependencies:
     dev: {}
     main: {}
@@ -58,6 +58,7 @@ python:
   methodArguments: infer-optional-args
   moduleName: ""
   outputModelSuffix: output
+  packageManager: poetry
   packageName: lambdadb
   pytestFilterWarnings: []
   pytestTimeout: 0
