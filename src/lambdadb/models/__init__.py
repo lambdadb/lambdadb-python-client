@@ -3,6 +3,7 @@
 from typing import TYPE_CHECKING
 from importlib import import_module
 import builtins
+import sys
 
 if TYPE_CHECKING:
     from .bulkupsertdocsop import (
@@ -37,6 +38,14 @@ if TYPE_CHECKING:
         FetchDocsRequestTypedDict,
         FetchDocsResponse,
         FetchDocsResponseTypedDict,
+    )
+    from .fieldsselector_union import (
+        FieldsSelector1,
+        FieldsSelector1TypedDict,
+        FieldsSelector2,
+        FieldsSelector2TypedDict,
+        FieldsSelectorUnion,
+        FieldsSelectorUnionTypedDict,
     )
     from .getbulkupsertdocsop import (
         GetBulkUpsertDocsRequest,
@@ -74,7 +83,15 @@ if TYPE_CHECKING:
         ListCollectionsResponse,
         ListCollectionsResponseTypedDict,
     )
+    from .listdocsop import (
+        ListDocsRequest,
+        ListDocsRequestTypedDict,
+        ListDocsResponse,
+        ListDocsResponseTypedDict,
+    )
     from .messageresponse import MessageResponse, MessageResponseTypedDict
+    from .partitionconfig import DataType, PartitionConfig, PartitionConfigTypedDict
+    from .partitionfilter import PartitionFilter, PartitionFilterTypedDict
     from .querycollectionop import (
         QueryCollectionDoc,
         QueryCollectionDocTypedDict,
@@ -120,6 +137,7 @@ __all__ = [
     "CreateCollectionRequestTypedDict",
     "CreateCollectionResponse",
     "CreateCollectionResponseTypedDict",
+    "DataType",
     "DeleteCollectionRequest",
     "DeleteCollectionRequestTypedDict",
     "DeleteDocsRequest",
@@ -134,6 +152,12 @@ __all__ = [
     "FetchDocsRequestTypedDict",
     "FetchDocsResponse",
     "FetchDocsResponseTypedDict",
+    "FieldsSelector1",
+    "FieldsSelector1TypedDict",
+    "FieldsSelector2",
+    "FieldsSelector2TypedDict",
+    "FieldsSelectorUnion",
+    "FieldsSelectorUnionTypedDict",
     "GetBulkUpsertDocsRequest",
     "GetBulkUpsertDocsRequestTypedDict",
     "GetBulkUpsertDocsResponse",
@@ -156,8 +180,16 @@ __all__ = [
     "IndexConfigsVectorTypedDict",
     "ListCollectionsResponse",
     "ListCollectionsResponseTypedDict",
+    "ListDocsRequest",
+    "ListDocsRequestTypedDict",
+    "ListDocsResponse",
+    "ListDocsResponseTypedDict",
     "MessageResponse",
     "MessageResponseTypedDict",
+    "PartitionConfig",
+    "PartitionConfigTypedDict",
+    "PartitionFilter",
+    "PartitionFilterTypedDict",
     "QueryCollectionDoc",
     "QueryCollectionDocTypedDict",
     "QueryCollectionRequest",
@@ -215,6 +247,12 @@ _dynamic_imports: dict[str, str] = {
     "FetchDocsRequestTypedDict": ".fetchdocsop",
     "FetchDocsResponse": ".fetchdocsop",
     "FetchDocsResponseTypedDict": ".fetchdocsop",
+    "FieldsSelector1": ".fieldsselector_union",
+    "FieldsSelector1TypedDict": ".fieldsselector_union",
+    "FieldsSelector2": ".fieldsselector_union",
+    "FieldsSelector2TypedDict": ".fieldsselector_union",
+    "FieldsSelectorUnion": ".fieldsselector_union",
+    "FieldsSelectorUnionTypedDict": ".fieldsselector_union",
     "GetBulkUpsertDocsRequest": ".getbulkupsertdocsop",
     "GetBulkUpsertDocsRequestTypedDict": ".getbulkupsertdocsop",
     "GetBulkUpsertDocsResponse": ".getbulkupsertdocsop",
@@ -243,8 +281,17 @@ _dynamic_imports: dict[str, str] = {
     "TypeVector": ".indexconfigs_union",
     "ListCollectionsResponse": ".listcollectionsop",
     "ListCollectionsResponseTypedDict": ".listcollectionsop",
+    "ListDocsRequest": ".listdocsop",
+    "ListDocsRequestTypedDict": ".listdocsop",
+    "ListDocsResponse": ".listdocsop",
+    "ListDocsResponseTypedDict": ".listdocsop",
     "MessageResponse": ".messageresponse",
     "MessageResponseTypedDict": ".messageresponse",
+    "DataType": ".partitionconfig",
+    "PartitionConfig": ".partitionconfig",
+    "PartitionConfigTypedDict": ".partitionconfig",
+    "PartitionFilter": ".partitionfilter",
+    "PartitionFilterTypedDict": ".partitionfilter",
     "QueryCollectionDoc": ".querycollectionop",
     "QueryCollectionDocTypedDict": ".querycollectionop",
     "QueryCollectionRequest": ".querycollectionop",
@@ -273,6 +320,18 @@ _dynamic_imports: dict[str, str] = {
 }
 
 
+def dynamic_import(modname, retries=3):
+    for attempt in range(retries):
+        try:
+            return import_module(modname, __package__)
+        except KeyError:
+            # Clear any half-initialized module and retry
+            sys.modules.pop(modname, None)
+            if attempt == retries - 1:
+                break
+    raise KeyError(f"Failed to import module '{modname}' after {retries} attempts")
+
+
 def __getattr__(attr_name: str) -> object:
     module_name = _dynamic_imports.get(attr_name)
     if module_name is None:
@@ -281,7 +340,7 @@ def __getattr__(attr_name: str) -> object:
         )
 
     try:
-        module = import_module(module_name, __package__)
+        module = dynamic_import(module_name)
         result = getattr(module, attr_name)
         return result
     except ImportError as e:

@@ -4,16 +4,31 @@ from .sdkconfiguration import SDKConfiguration
 import httpx
 from lambdadb import errors, models, utils
 from lambdadb._hooks import AfterErrorContext, AfterSuccessContext, BeforeRequestContext
-from lambdadb.utils import RetryConfig, SerializedRequestBody, get_body_content
+from lambdadb.utils import (
+    RetryConfig,
+    SerializedRequestBody,
+    get_body_content,
+    run_sync_in_thread,
+)
 from typing import Callable, List, Mapping, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
 
 class BaseSDK:
     sdk_configuration: SDKConfiguration
+    parent_ref: Optional[object] = None
+    """
+    Reference to the root SDK instance, if any. This will prevent it from
+    being garbage collected while there are active streams.
+    """
 
-    def __init__(self, sdk_config: SDKConfiguration) -> None:
+    def __init__(
+        self,
+        sdk_config: SDKConfiguration,
+        parent_ref: Optional[object] = None,
+    ) -> None:
         self.sdk_configuration = sdk_config
+        self.parent_ref = parent_ref
 
     def _get_url(self, base_url, url_variables):
         sdk_url, sdk_variables = self.sdk_configuration.get_server_details()
@@ -46,6 +61,7 @@ class BaseSDK:
         ] = None,
         url_override: Optional[str] = None,
         http_headers: Optional[Mapping[str, str]] = None,
+        allow_empty_value: Optional[List[str]] = None,
     ) -> httpx.Request:
         client = self.sdk_configuration.async_client
         return self._build_request_with_client(
@@ -66,6 +82,7 @@ class BaseSDK:
             get_serialized_body,
             url_override,
             http_headers,
+            allow_empty_value,
         )
 
     def _build_request(
@@ -88,6 +105,7 @@ class BaseSDK:
         ] = None,
         url_override: Optional[str] = None,
         http_headers: Optional[Mapping[str, str]] = None,
+        allow_empty_value: Optional[List[str]] = None,
     ) -> httpx.Request:
         client = self.sdk_configuration.client
         return self._build_request_with_client(
@@ -108,6 +126,7 @@ class BaseSDK:
             get_serialized_body,
             url_override,
             http_headers,
+            allow_empty_value,
         )
 
     def _build_request_with_client(
@@ -131,6 +150,7 @@ class BaseSDK:
         ] = None,
         url_override: Optional[str] = None,
         http_headers: Optional[Mapping[str, str]] = None,
+        allow_empty_value: Optional[List[str]] = None,
     ) -> httpx.Request:
         query_params = {}
 
@@ -146,6 +166,7 @@ class BaseSDK:
             query_params = utils.get_query_params(
                 request if request_has_query_params else None,
                 _globals if request_has_query_params else None,
+                allow_empty_value,
             )
         else:
             # Pick up the query parameter from the override so they can be
@@ -291,7 +312,10 @@ class BaseSDK:
         async def do():
             http_res = None
             try:
-                req = hooks.before_request(BeforeRequestContext(hook_ctx), request)
+                req = await run_sync_in_thread(
+                    hooks.before_request, BeforeRequestContext(hook_ctx), request
+                )
+
                 logger.debug(
                     "Request:\nMethod: %s\nURL: %s\nHeaders: %s\nBody: %s",
                     req.method,
@@ -305,7 +329,10 @@ class BaseSDK:
 
                 http_res = await client.send(req, stream=stream)
             except Exception as e:
-                _, e = hooks.after_error(AfterErrorContext(hook_ctx), None, e)
+                _, e = await run_sync_in_thread(
+                    hooks.after_error, AfterErrorContext(hook_ctx), None, e
+                )
+
                 if e is not None:
                     logger.debug("Request Exception", exc_info=True)
                     raise e
@@ -323,9 +350,10 @@ class BaseSDK:
             )
 
             if utils.match_status_codes(error_status_codes, http_res.status_code):
-                result, err = hooks.after_error(
-                    AfterErrorContext(hook_ctx), http_res, None
+                result, err = await run_sync_in_thread(
+                    hooks.after_error, AfterErrorContext(hook_ctx), http_res, None
                 )
+
                 if err is not None:
                     logger.debug("Request Exception", exc_info=True)
                     raise err
@@ -345,6 +373,8 @@ class BaseSDK:
             http_res = await do()
 
         if not utils.match_status_codes(error_status_codes, http_res.status_code):
-            http_res = hooks.after_success(AfterSuccessContext(hook_ctx), http_res)
+            http_res = await run_sync_in_thread(
+                hooks.after_success, AfterSuccessContext(hook_ctx), http_res
+            )
 
         return http_res

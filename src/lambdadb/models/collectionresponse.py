@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 from .indexconfigs_union import IndexConfigsUnion, IndexConfigsUnionTypedDict
+from .partitionconfig import PartitionConfig, PartitionConfigTypedDict
 from .status import Status
-from lambdadb.types import BaseModel
+from lambdadb.types import BaseModel, UNSET_SENTINEL
 import pydantic
+from pydantic import model_serializer
 from typing import Dict, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
@@ -15,10 +17,13 @@ class CollectionResponseTypedDict(TypedDict):
     collection_name: str
     r"""Collection name."""
     index_configs: Dict[str, IndexConfigsUnionTypedDict]
+    num_partitions: int
+    r"""Total number of partitions including the default partition."""
     num_docs: int
     r"""Total number of documents."""
     collection_status: Status
     r"""Status"""
+    partition_config: NotRequired[PartitionConfigTypedDict]
     source_project_name: NotRequired[str]
     r"""Source project name."""
     source_collection_name: NotRequired[str]
@@ -38,11 +43,18 @@ class CollectionResponse(BaseModel):
         Dict[str, IndexConfigsUnion], pydantic.Field(alias="indexConfigs")
     ]
 
+    num_partitions: Annotated[int, pydantic.Field(alias="numPartitions")]
+    r"""Total number of partitions including the default partition."""
+
     num_docs: Annotated[int, pydantic.Field(alias="numDocs")]
     r"""Total number of documents."""
 
     collection_status: Annotated[Status, pydantic.Field(alias="collectionStatus")]
     r"""Status"""
+
+    partition_config: Annotated[
+        Optional[PartitionConfig], pydantic.Field(alias="partitionConfig")
+    ] = None
 
     source_project_name: Annotated[
         Optional[str], pydantic.Field(alias="sourceProjectName")
@@ -58,3 +70,26 @@ class CollectionResponse(BaseModel):
         Optional[str], pydantic.Field(alias="sourceCollectionVersionId")
     ] = None
     r"""Source collection version."""
+
+    @model_serializer(mode="wrap")
+    def serialize_model(self, handler):
+        optional_fields = set(
+            [
+                "partitionConfig",
+                "sourceProjectName",
+                "sourceCollectionName",
+                "sourceCollectionVersionId",
+            ]
+        )
+        serialized = handler(self)
+        m = {}
+
+        for n, f in type(self).model_fields.items():
+            k = f.alias or n
+            val = serialized.get(k)
+
+            if val != UNSET_SENTINEL:
+                if val is not None or k not in optional_fields:
+                    m[k] = val
+
+        return m

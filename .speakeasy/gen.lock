@@ -1,20 +1,24 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: b832036b9c7d122a7e7090da3cb2974a
+  docChecksum: 66f871932349eb80981a45da5efe3be9
   docVersion: 1.1.1
-  speakeasyVersion: 1.603.2
-  generationVersion: 2.681.8
-  releaseVersion: 0.5.11
-  configChecksum: b27b41f50e3d001291de61ba3b201500
+  speakeasyVersion: 1.691.0
+  generationVersion: 2.797.1
+  releaseVersion: 0.6.0
+  configChecksum: e508926bd769045337b45cedbe2566e8
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
+persistentEdits:
+  generation_id: d2f71bab-7560-4365-ab6c-39d559cd3c2c
+  pristine_commit_hash: 7975c81366bdafe11da221b7a9d761449e019f30
+  pristine_tree_hash: 5542af709b4c0518c7559bd674cb843220b2be13
 features:
   python:
     additionalDependencies: 1.0.0
     constsAndDefaults: 1.0.5
-    core: 5.19.8
+    core: 5.23.18
     defaultEnabledRetries: 0.2.0
     devContainers: 3.0.0
     enumUnions: 0.1.0
@@ -22,143 +26,565 @@ features:
     examples: 3.0.2
     flatRequests: 1.0.1
     flattening: 3.1.1
-    globalSecurity: 3.0.3
+    globalSecurity: 3.0.4
     globalSecurityCallbacks: 1.0.0
     globalSecurityFlattening: 1.0.0
-    globalServerURLs: 3.1.1
+    globalServerURLs: 3.2.0
     methodArguments: 1.0.2
     nameOverrides: 3.0.1
     responseFormat: 1.0.1
-    retries: 3.0.2
-    sdkHooks: 1.1.0
-    unions: 3.0.4
-generatedFiles:
-  - .devcontainer/README.md
-  - .devcontainer/devcontainer.json
-  - .devcontainer/setup.sh
-  - .gitattributes
-  - .vscode/settings.json
-  - USAGE.md
-  - docs/errors/badrequesterror.md
-  - docs/errors/internalservererror.md
-  - docs/errors/resourcealreadyexistserror.md
-  - docs/errors/resourcenotfounderror.md
-  - docs/errors/toomanyrequestserror.md
-  - docs/errors/unauthenticatederror.md
-  - docs/models/analyzer.md
-  - docs/models/bulkupsertdocsrequest.md
-  - docs/models/bulkupsertdocsrequestbody.md
-  - docs/models/collectionresponse.md
-  - docs/models/createcollectionrequest.md
-  - docs/models/createcollectionresponse.md
-  - docs/models/deletecollectionrequest.md
-  - docs/models/deletedocsrequest.md
-  - docs/models/deletedocsrequestbody.md
-  - docs/models/fetchdocsdoc.md
-  - docs/models/fetchdocsrequest.md
-  - docs/models/fetchdocsrequestbody.md
-  - docs/models/fetchdocsresponse.md
-  - docs/models/getbulkupsertdocsrequest.md
-  - docs/models/getbulkupsertdocsresponse.md
-  - docs/models/getbulkupsertdocstype.md
-  - docs/models/getcollectionrequest.md
-  - docs/models/getcollectionresponse.md
-  - docs/models/httpmethod.md
-  - docs/models/indexconfigs.md
-  - docs/models/indexconfigsobject.md
-  - docs/models/indexconfigstext.md
-  - docs/models/indexconfigsunion.md
-  - docs/models/indexconfigsvector.md
-  - docs/models/listcollectionsresponse.md
-  - docs/models/messageresponse.md
-  - docs/models/querycollectiondoc.md
-  - docs/models/querycollectionrequest.md
-  - docs/models/querycollectionrequestbody.md
-  - docs/models/querycollectionresponse.md
-  - docs/models/security.md
-  - docs/models/similarity.md
-  - docs/models/status.md
-  - docs/models/type.md
-  - docs/models/typeobject.md
-  - docs/models/typetext.md
-  - docs/models/typevector.md
-  - docs/models/updatecollectionrequest.md
-  - docs/models/updatecollectionrequestbody.md
-  - docs/models/updatecollectionresponse.md
-  - docs/models/updatedocsrequest.md
-  - docs/models/updatedocsrequestbody.md
-  - docs/models/upsertdocsrequest.md
-  - docs/models/upsertdocsrequestbody.md
-  - docs/models/utils/retryconfig.md
-  - docs/sdks/collections/README.md
-  - docs/sdks/docs/README.md
-  - docs/sdks/lambdadb/README.md
-  - poetry.toml
-  - py.typed
-  - pylintrc
-  - pyproject.toml
-  - scripts/prepare_readme.py
-  - scripts/publish.sh
-  - src/lambdadb/__init__.py
-  - src/lambdadb/_hooks/__init__.py
-  - src/lambdadb/_hooks/sdkhooks.py
-  - src/lambdadb/_hooks/types.py
-  - src/lambdadb/_version.py
-  - src/lambdadb/basesdk.py
-  - src/lambdadb/collections.py
-  - src/lambdadb/docs.py
-  - src/lambdadb/errors/__init__.py
-  - src/lambdadb/errors/apierror.py
-  - src/lambdadb/errors/badrequest_error.py
-  - src/lambdadb/errors/internalservererror.py
-  - src/lambdadb/errors/lambdadberror.py
-  - src/lambdadb/errors/no_response_error.py
-  - src/lambdadb/errors/resourcealreadyexists_error.py
-  - src/lambdadb/errors/resourcenotfound_error.py
-  - src/lambdadb/errors/responsevalidationerror.py
-  - src/lambdadb/errors/toomanyrequests_error.py
-  - src/lambdadb/errors/unauthenticated_error.py
-  - src/lambdadb/httpclient.py
-  - src/lambdadb/models/__init__.py
-  - src/lambdadb/models/bulkupsertdocsop.py
-  - src/lambdadb/models/collectionresponse.py
-  - src/lambdadb/models/createcollectionop.py
-  - src/lambdadb/models/deletecollectionop.py
-  - src/lambdadb/models/deletedocsop.py
-  - src/lambdadb/models/fetchdocsop.py
-  - src/lambdadb/models/getbulkupsertdocsop.py
-  - src/lambdadb/models/getcollectionop.py
-  - src/lambdadb/models/indexconfigs_union.py
-  - src/lambdadb/models/listcollectionsop.py
-  - src/lambdadb/models/messageresponse.py
-  - src/lambdadb/models/querycollectionop.py
-  - src/lambdadb/models/security.py
-  - src/lambdadb/models/status.py
-  - src/lambdadb/models/updatecollectionop.py
-  - src/lambdadb/models/updatedocsop.py
-  - src/lambdadb/models/upsertdocsop.py
-  - src/lambdadb/py.typed
-  - src/lambdadb/sdk.py
-  - src/lambdadb/sdkconfiguration.py
-  - src/lambdadb/types/__init__.py
-  - src/lambdadb/types/basemodel.py
-  - src/lambdadb/utils/__init__.py
-  - src/lambdadb/utils/annotations.py
-  - src/lambdadb/utils/datetimes.py
-  - src/lambdadb/utils/enums.py
-  - src/lambdadb/utils/eventstreaming.py
-  - src/lambdadb/utils/forms.py
-  - src/lambdadb/utils/headers.py
-  - src/lambdadb/utils/logger.py
-  - src/lambdadb/utils/metadata.py
-  - src/lambdadb/utils/queryparams.py
-  - src/lambdadb/utils/requestbodies.py
-  - src/lambdadb/utils/retries.py
-  - src/lambdadb/utils/security.py
-  - src/lambdadb/utils/serializers.py
-  - src/lambdadb/utils/unmarshal_json_response.py
-  - src/lambdadb/utils/url.py
-  - src/lambdadb/utils/values.py
+    retries: 3.0.3
+    sdkHooks: 1.2.1
+    unions: 3.1.2
+trackedFiles:
+  .devcontainer/README.md:
+    id: b170c0f184ac
+    last_write_checksum: sha1:6119fdfe4071961f1fdb0916fb55f20d79f61dc4
+    pristine_git_object: af761800981b667a3d218c89f538d02403d6481e
+  .devcontainer/devcontainer.json:
+    id: b34062a34eb1
+    last_write_checksum: sha1:fbbce5654b8990b172a9ffe841d7635cd51c495b
+    pristine_git_object: 7e67af9f5b5aeed56bab8dd84f75d3729df3ada1
+  .devcontainer/setup.sh:
+    id: 5f1dfbfeb8eb
+    last_write_checksum: sha1:7eb135ad3655822fe31d62822ea0f915ee2a9c32
+    pristine_git_object: c19cfe6d25277fa0f53e15860af65cc0b1eae6e1
+  .gitattributes:
+    id: 24139dae6567
+    last_write_checksum: sha1:53134de3ada576f37c22276901e1b5b6d85cd2da
+    pristine_git_object: 4d75d59008e4d8609876d263419a9dc56c8d6f3a
+  .vscode/settings.json:
+    id: 89aa447020cd
+    last_write_checksum: sha1:f84632c81029fcdda8c3b0c768d02b836fc80526
+    pristine_git_object: 8d79f0abb72526f1fb34a4c03e5bba612c6ba2ae
+  USAGE.md:
+    id: 3aed33ce6e6f
+    last_write_checksum: sha1:a3c5dc74a7f4161b57109daf782829a10430debd
+    pristine_git_object: 6db93eaa921a3fb6ec0e7c2eece8f9373c6b4af1
+  docs/errors/badrequesterror.md:
+    id: 75b54f860141
+    last_write_checksum: sha1:7c2228c0ac8ca26be053c558b4a024b9313506c4
+    pristine_git_object: a4d9c137ca0ef743dd22e66c8bf7777ca0c9bdc7
+  docs/errors/internalservererror.md:
+    id: eab04592354c
+    last_write_checksum: sha1:43374e5a2f3d36a427092a06ea784e5a9d1138ff
+    pristine_git_object: 386cc1f7a7f5c1b1e3d1eed42d4944efca701df4
+  docs/errors/resourcealreadyexistserror.md:
+    id: 2cef24251852
+    last_write_checksum: sha1:78d68063b34d68d6c55ab4d9bf3f835616cea171
+    pristine_git_object: 1658d47683eec4d8dde5358ce15ed1613682dc19
+  docs/errors/resourcenotfounderror.md:
+    id: 550d0095ba29
+    last_write_checksum: sha1:fafb2a59d8f9e10e0abfb4d3202598bee4cb39f1
+    pristine_git_object: aa6dd75bf7e8f388c977eb9a5b96f3387951a74a
+  docs/errors/toomanyrequestserror.md:
+    id: 997224c033fa
+    last_write_checksum: sha1:e0151b5eb2959a2345412dfcd49dc4e7bf62501f
+    pristine_git_object: 32c599d429963c30152718bf0108fb9dcc75efda
+  docs/errors/unauthenticatederror.md:
+    id: 0493ca9caa04
+    last_write_checksum: sha1:3fd8a86350fc12a226d96d1ce3a447ad6bb3a756
+    pristine_git_object: 2e4e06e9dcccfa5d72c38074024a09868967cd44
+  docs/models/analyzer.md:
+    id: 078003f53c83
+    last_write_checksum: sha1:88cce9906e279c1cea83ae30f8b69ca7457a36b9
+    pristine_git_object: aaff1d71bcccee096f194a12da3f83c770802bff
+  docs/models/bulkupsertdocsrequest.md:
+    id: 2791fc684193
+    last_write_checksum: sha1:e971a60f1746e307898281c9f01e56f345a6bb30
+    pristine_git_object: 69eadcc0275ba9c2db948d54a04a7340699e05fe
+  docs/models/bulkupsertdocsrequestbody.md:
+    id: c69358d99bf2
+    last_write_checksum: sha1:b051d2fc78c7617c444ff31a6a417bfa9babdbe7
+    pristine_git_object: ad8b13b30fdd91662a515d1741e260f9616502ad
+  docs/models/collectionresponse.md:
+    id: cdae14177636
+    last_write_checksum: sha1:5c2f9ba336fcfa95a04c299b30dccd09b3871ac8
+    pristine_git_object: e5f1f54ff45a1c4e060a9e6b041639a76d641515
+  docs/models/createcollectionrequest.md:
+    id: 4fb742a4bf50
+    last_write_checksum: sha1:fef329725e79516093666a5bb67b58cc29ed1af3
+    pristine_git_object: 1163fa11cf947dd2e95db24edc134e4593209d0a
+  docs/models/createcollectionresponse.md:
+    id: 1c420e97a6da
+    last_write_checksum: sha1:cf942bbd5396489ec30f4439af7f44cb3919728d
+    pristine_git_object: fa15f8a10b41a9b72e6c230deefbccf06464b71f
+  docs/models/datatype.md:
+    id: abf42346352f
+    last_write_checksum: sha1:c15eaad3dfd744da07f7dfecc51d03225c6027af
+    pristine_git_object: 4279b07b76a8eaf1a07e034e6ab81875d3a78591
+  docs/models/deletecollectionrequest.md:
+    id: 6a319d49e4f8
+    last_write_checksum: sha1:534274beee3e17ee5fdffcd5b394d5d7e3ab217a
+    pristine_git_object: c0a7f0e1c5cc00d5e806cae2ce08367425937c8a
+  docs/models/deletedocsrequest.md:
+    id: e9adc6854979
+    last_write_checksum: sha1:5e2c3b8b2521468891f17bfac1e5a8c4e1161522
+    pristine_git_object: 14b51552ee2c1c1025ed51a5c3e034886c030b74
+  docs/models/deletedocsrequestbody.md:
+    id: 11552a77098c
+    last_write_checksum: sha1:525c02bf1b0753f1221b117d1335c83df9c7abae
+    pristine_git_object: 18914f2860840ed0c44cf9498ada0ee65987c515
+  docs/models/fetchdocsdoc.md:
+    id: ab49e2a0bb6e
+    last_write_checksum: sha1:bca9889dc0388811315b3c81f171daaa7c03b5af
+    pristine_git_object: 9a20a3f72e0da0dc59f59839daec762cd270646a
+  docs/models/fetchdocsrequest.md:
+    id: ad8c1e22f6d8
+    last_write_checksum: sha1:b89ada685e25d78fdf84cfc2e523f60aa21c5fa5
+    pristine_git_object: 37a3304f4acdc57ae0e17bea7ddb9bb06c21db51
+  docs/models/fetchdocsrequestbody.md:
+    id: f39bbf1bcd13
+    last_write_checksum: sha1:55d9256c601f684dbda5131891683e094889ec03
+    pristine_git_object: 74fab1798bf063f72f37078ff7db6e47b7a95269
+  docs/models/fetchdocsresponse.md:
+    id: 28458066cfa1
+    last_write_checksum: sha1:9c961db0a0e9483a2b833d77a911f665bef8e777
+    pristine_git_object: b15cf2817eeda96075611a6f92f0185854f2394c
+  docs/models/fieldsselector1.md:
+    id: 4b2754e51ecc
+    last_write_checksum: sha1:e24faf7f79ccf664428394e3cddd95cb9f41ed16
+    pristine_git_object: 825ff976ade64ba41b13b6306eafcaf8b106259c
+  docs/models/fieldsselector2.md:
+    id: 2907e1951df8
+    last_write_checksum: sha1:2ecc634583a3ce1ff8e8302c939c9d628b83a1e5
+    pristine_git_object: ab8c3ecfab03f8211670498290dc649af3d53edf
+  docs/models/fieldsselectorunion.md:
+    id: a8295402748a
+    last_write_checksum: sha1:7c462bccb847b3709eace25f72e6dc5aefef10d1
+    pristine_git_object: 12f8da8a7cc43f30c5c8d6ac32928bc1b51a54cf
+  docs/models/getbulkupsertdocsrequest.md:
+    id: 2eac2e43998e
+    last_write_checksum: sha1:eedcfbf827d5c1f5be769e27e98963f52c1fbc89
+    pristine_git_object: d27054fec068fcc2da3aa6e317bd7eb05e4f8329
+  docs/models/getbulkupsertdocsresponse.md:
+    id: ce9f62473f99
+    last_write_checksum: sha1:bad6eab79f79d1dcc39a4805fa15912c2e1a2bdc
+    pristine_git_object: 33e22b9e36747cfb9951874d51753ed6eb1e418d
+  docs/models/getbulkupsertdocstype.md:
+    id: c6b4fa4838f9
+    last_write_checksum: sha1:2591e583e27b0b498725c53a7e3a00b7025b76c6
+    pristine_git_object: 54eda4a50069ac1b82a9072bb0083e5f5e3d5ae4
+  docs/models/getcollectionrequest.md:
+    id: c728f2a301f7
+    last_write_checksum: sha1:1980c7710b04a8982a3f9740bd8fe87db534f279
+    pristine_git_object: 5b5b4768f193351d48cf3dc4eaad7766daa0b574
+  docs/models/getcollectionresponse.md:
+    id: a41700e5b076
+    last_write_checksum: sha1:85fdf14b350efc9e5aaf1d88b4926273b1f3a71c
+    pristine_git_object: f23d27fca7a2dc49eb305bb1b761ca249639234b
+  docs/models/httpmethod.md:
+    id: eb0a50f2d3e3
+    last_write_checksum: sha1:c2917240f5c69736836817690c386357cf30ab74
+    pristine_git_object: 1bf7c96954138374a8fb1bea59f45b1dfa44ddf6
+  docs/models/indexconfigs.md:
+    id: bdc5969633a4
+    last_write_checksum: sha1:c1abc50494012d761d74d0162f77733f03fb22d2
+    pristine_git_object: d21e1a6a916def181bd3e2b5b3685203a3e6aaff
+  docs/models/indexconfigsobject.md:
+    id: 15987552c683
+    last_write_checksum: sha1:d5c16b7025695a8e3cda88631ead9a4b731c09fe
+    pristine_git_object: 10479d87b089ec5d8a6c7c78a6a7db7d7441aad2
+  docs/models/indexconfigstext.md:
+    id: 0a19d6247397
+    last_write_checksum: sha1:e4bd5c6a4ed6cec1b869340db3a7b52a71d43d86
+    pristine_git_object: eed1267748e365fd597e665d6c5a435ece9e0ddb
+  docs/models/indexconfigsunion.md:
+    id: 9ba9aafd16fd
+    last_write_checksum: sha1:da84707383923c51c81f1d575688dab86d958ca5
+    pristine_git_object: 933a3c523ae017092d7f6abc0f1ab2a9d926f618
+  docs/models/indexconfigsvector.md:
+    id: 3a0582288c62
+    last_write_checksum: sha1:ae71716f233b3bb5a69b400c4a675ae6b88775dd
+    pristine_git_object: 78a8c9171dd501d6fa6be3685c05653941bb594b
+  docs/models/listcollectionsresponse.md:
+    id: d4e9fc9b0229
+    last_write_checksum: sha1:19a825c57f4b871cfc6f661de7a10a2ad14e9f83
+    pristine_git_object: a6d7a4f8a7775e881c8cb6022d3357851b0d9899
+  docs/models/listdocsrequest.md:
+    id: f1d9c876a728
+    last_write_checksum: sha1:95ddd6d52aee98c006ba81178fb56297b73f2107
+    pristine_git_object: 8d2905e6d965f956722ae6c8a544d8e8db9d1422
+  docs/models/listdocsresponse.md:
+    id: 81f9407189f2
+    last_write_checksum: sha1:9903a024e2ccf5e76278f3b360c196da6346e15b
+    pristine_git_object: e4492ab03480007341de700dca40479e92d99e1c
+  docs/models/messageresponse.md:
+    id: 3dd409ff05ba
+    last_write_checksum: sha1:f7dd5b03360f01417c32a33fd8131e6899ec6430
+    pristine_git_object: 504aa9de165ea21ffd7178dd092b7532fc3f9e6a
+  docs/models/partitionconfig.md:
+    id: c05b2be5f472
+    last_write_checksum: sha1:71e66cea3682aa257caad1aded9d76f64bd21df9
+    pristine_git_object: cbd365e0ba7c9505ee09c0ff56f4faff00a16e07
+  docs/models/partitionfilter.md:
+    id: be351801b096
+    last_write_checksum: sha1:b275431e3b8f9923ee4af198d5ea85931c05c8e8
+    pristine_git_object: 6c93d0827fa5de23431df47eda9eae01de2761c1
+  docs/models/querycollectiondoc.md:
+    id: 2829a41170e2
+    last_write_checksum: sha1:87d1df2ec1fa4034951144240f49d0604d7e3aba
+    pristine_git_object: c4874ab255c73f5bee5b951bcf7be8e1c674599c
+  docs/models/querycollectionrequest.md:
+    id: 4c903b3feb3c
+    last_write_checksum: sha1:94e118a8ba18abf89cce6b6dc9ff58a42199d8a1
+    pristine_git_object: 67e7502307ba59f5b682c6c81dc09dee22cf79bc
+  docs/models/querycollectionrequestbody.md:
+    id: 10cd2fca0280
+    last_write_checksum: sha1:c0f0724ebdd7b806f1f7ca80b9fb5ce3a9126ab1
+    pristine_git_object: a18142c8d45d1f7fb0f175787cd0339627ff18e5
+  docs/models/querycollectionresponse.md:
+    id: 5a291bc63eef
+    last_write_checksum: sha1:29fe23b34be578b52ec0b9e3d4fcf9193e53b69b
+    pristine_git_object: 2dfbd555c343fbd05f6c1af7a5cc47dedc8bda26
+  docs/models/security.md:
+    id: 452e4d4eb67a
+    last_write_checksum: sha1:aca655265517704591bf87fb28f49a5dcc8a1ab9
+    pristine_git_object: 1ab888d8092523426fcce2f54752f7e35cf67a00
+  docs/models/similarity.md:
+    id: 0305ea1ead2c
+    last_write_checksum: sha1:f2a386e4b6c316427aa2d53b0295adf44904c7ba
+    pristine_git_object: be0e6ec055afc30a8ad145ab0d6e2a1ea026c65f
+  docs/models/status.md:
+    id: 959cd204aadf
+    last_write_checksum: sha1:45465a388465cae62c1aa3673db39fdb5ef107fd
+    pristine_git_object: b59c3a0da557e48c688266f230ee829891f96332
+  docs/models/type.md:
+    id: 98c32f09b2c8
+    last_write_checksum: sha1:989c992217c8497f89c6f30f5d16e8f1de29dbe4
+    pristine_git_object: 3abd92fc3ca43eb084f1f0579bb4705eba429058
+  docs/models/typeobject.md:
+    id: 70e0b4d8632d
+    last_write_checksum: sha1:98cd4bb1a345497f144c11df63a5f0081f818adc
+    pristine_git_object: df76d2da69169f7deda6710e412bdbd8daba9a18
+  docs/models/typetext.md:
+    id: 436ca0d14986
+    last_write_checksum: sha1:5abedb25856f0e45ef9b80e42cf6fe4aaeca0741
+    pristine_git_object: fb9c2cfc86821cc2713c143ada5094af0e775f08
+  docs/models/typevector.md:
+    id: 17fed0b9bddb
+    last_write_checksum: sha1:11c1e8f80b79dbe681587f43327fd9d8fdfbbf83
+    pristine_git_object: 0c012c9c7514a148bb1b7f39647900332fe62684
+  docs/models/updatecollectionrequest.md:
+    id: 842c459d23d3
+    last_write_checksum: sha1:854a2597ac79878c2f9e1aa10bcd774b3440b2f5
+    pristine_git_object: e4238d66b9c1bd0002e618eede1ae47f5a5c2a2a
+  docs/models/updatecollectionrequestbody.md:
+    id: 5affc5b25dea
+    last_write_checksum: sha1:a8eb2e7a15055987a50b118a9176082885c442dd
+    pristine_git_object: 8cc180072abbae487d6307bcd391abd28afa98e5
+  docs/models/updatecollectionresponse.md:
+    id: 4b3e1fb0edd4
+    last_write_checksum: sha1:8d9e864850230522d891f8bb91562bbeff5f7f5a
+    pristine_git_object: c129a055a01afaf9b66a4af054a9f1d3c53f130e
+  docs/models/updatedocsrequest.md:
+    id: 27709fa7abbd
+    last_write_checksum: sha1:273b7464c53c13cd5c3c65b5b36ee3312e7bd409
+    pristine_git_object: 137b146c77f6838c9a50a227457332021cad65b6
+  docs/models/updatedocsrequestbody.md:
+    id: dfb20642d36d
+    last_write_checksum: sha1:b2d9398c2433524a19312ea7b9dcff59cead8fe7
+    pristine_git_object: bc43b7865d374f2d3099cc10c3e27f9cfe25f7ca
+  docs/models/upsertdocsrequest.md:
+    id: af204c2cc64a
+    last_write_checksum: sha1:b50d8943e44512156b7bac52abb860c9cfd7654f
+    pristine_git_object: acb8d426d59fafff64d64f21c05a9b5df899bb7e
+  docs/models/upsertdocsrequestbody.md:
+    id: f6e2ac189836
+    last_write_checksum: sha1:1e21e26718523b28fb9451dd6434d9a11a0b795f
+    pristine_git_object: 6d0f58534af44c553b92620f9562fc0839c0f248
+  docs/models/utils/retryconfig.md:
+    id: 4343ac43161c
+    last_write_checksum: sha1:562c0f21e308ad10c27f85f75704c15592c6929d
+    pristine_git_object: 69dd549ec7f5f885101d08dd502e25748183aebf
+  docs/sdks/collections/README.md:
+    id: 7985e64efccf
+    last_write_checksum: sha1:12400cecdc90060e9dfb653937c7e2ac21413c9c
+    pristine_git_object: cc325d615b9624dbd33c0c086c514cf926d8e917
+  docs/sdks/docs/README.md:
+    id: 38e21ef377d8
+    last_write_checksum: sha1:dd33d66e0b0684f34f3555a7bf823231a39e7622
+    pristine_git_object: 9c3db7d1b9ebdd2477f089fde7f0ba12a55441f8
+  poetry.toml:
+    id: a81ade82122a
+    last_write_checksum: sha1:2242305e29dc6921bdf5b200aea5d4bf67830230
+    pristine_git_object: cd3492ac9dc870fdcf23dbd94fd1d40cc753cc8e
+  py.typed:
+    id: 258c3ed47ae4
+    last_write_checksum: sha1:8efc425ffe830805ffcc0f3055871bdcdc542c60
+    pristine_git_object: 3e38f1a929f7d6b1d6de74604aa87e3d8f010544
+  pylintrc:
+    id: 7ce8b9f946e6
+    last_write_checksum: sha1:d99516d03b4492a038ef908be7aa202d914d1dcf
+    pristine_git_object: 7f1dd32e8a5a3c2c02519af121a88dd2988dd308
+  pyproject.toml:
+    id: 5d07e7d72637
+    last_write_checksum: sha1:f47a328d7fb4ea32e58dde47042717eab2261136
+    pristine_git_object: c5e324915ee7477d4905e29bd6537c480505ecd9
+  scripts/prepare_readme.py:
+    id: e0c5957a6035
+    last_write_checksum: sha1:4b984c94abe837f23ac8b84f3cf5e359643d61b7
+    pristine_git_object: 75131f851d196cb2816f3e66ccf3ca6fa4bb7626
+  scripts/publish.sh:
+    id: fe273b08f514
+    last_write_checksum: sha1:b31bafc19c15ab5ea925fdf8d5d4adce2b115a63
+    pristine_git_object: 2a3ead70ccc6228cbae1c5c8a319b1399f3804ea
+  src/lambdadb/__init__.py:
+    id: 7638393da4a3
+    last_write_checksum: sha1:da077c0bdfcef64a4a5aea91a17292f72fa2b088
+    pristine_git_object: 833c68cd526fe34aab2b7e7c45f974f7f4b9e120
+  src/lambdadb/_hooks/__init__.py:
+    id: 8f01f192458f
+    last_write_checksum: sha1:45a380490e968d8d95994dd97554ac60eeb6ae60
+    pristine_git_object: e763be4b171bbcf9c16caeaf381f8c92ce8d8e6e
+  src/lambdadb/_hooks/sdkhooks.py:
+    id: a8f69b3dcce2
+    last_write_checksum: sha1:53087e36f5e5c633a9e9fa1b4a2b165700ab0216
+    pristine_git_object: fae28cd4072df4995241468dc94a0b8d67cb1aa3
+  src/lambdadb/_hooks/types.py:
+    id: 9fe1d417c039
+    last_write_checksum: sha1:b33c916c08defa2a072b2415c5103fd830c1546b
+    pristine_git_object: 2768f18d7f08e9a874e777a453afbf85fb166281
+  src/lambdadb/_version.py:
+    id: 6ce787a3c8c4
+    last_write_checksum: sha1:e293dae00d14186feedc211456a0d06fec322617
+    pristine_git_object: b99181f48b4db4dc5bff5e2b329feef22d36a879
+  src/lambdadb/basesdk.py:
+    id: c7565f37bd02
+    last_write_checksum: sha1:3d92e3bd76d8987ae1f7d84f4a707a6a522bcd29
+    pristine_git_object: 6f3060a2b54365d5dfd53a01e36a9581513123b1
+  src/lambdadb/collections.py:
+    id: a0b17056446b
+    last_write_checksum: sha1:45921264e75b1da8cdf6c7d4ff214bdbaeeb744c
+    pristine_git_object: 8cc9b94cceb4a60db7ff5c55836edf74903ccfa5
+  src/lambdadb/docs.py:
+    id: 028b70d3ffcf
+    last_write_checksum: sha1:7605224a34eff6fa0d86b5de2b9c011b409a9a6d
+    pristine_git_object: 39f43c16e5cad8f9d71fbe3711e64b58ced56e3b
+  src/lambdadb/errors/__init__.py:
+    id: fbb1baf2c47f
+    last_write_checksum: sha1:ba30b42b2fe0ab3d0dbcf79b5e7e34e4ea79cdc2
+    pristine_git_object: 7f09b8149a958493fa7fdd64ae11dc8933b5ddc4
+  src/lambdadb/errors/apierror.py:
+    id: 776ed5640128
+    last_write_checksum: sha1:d546c3984f10bad762ed48f35c9b8a0a1595f64c
+    pristine_git_object: d2298bca34d23838ba968be31cf10f85131d2f17
+  src/lambdadb/errors/badrequest_error.py:
+    id: ec1aa534db92
+    last_write_checksum: sha1:92c5fc4027a03b0906161315bc50fb6edce077a1
+    pristine_git_object: 76aca3afd7aa14e0bddef02481bbeb059eb402d3
+  src/lambdadb/errors/internalservererror.py:
+    id: 1dfb29fa4fe4
+    last_write_checksum: sha1:add98630669d6f7b95b642d29444a52e09de88f6
+    pristine_git_object: b86e8dac2f5f149b814caa6cd6f4f733b35412bd
+  src/lambdadb/errors/lambdadberror.py:
+    id: 57c0f95be03f
+    last_write_checksum: sha1:9f5e7f73f5fcf554e379a89f87cc5ea81bf1247a
+    pristine_git_object: 37e81e051a0165dbec2ca0c4f9bd395da4a8525b
+  src/lambdadb/errors/no_response_error.py:
+    id: aad3906edee5
+    last_write_checksum: sha1:7f326424a7d5ae1bcd5c89a0d6b3dbda9138942f
+    pristine_git_object: 1deab64bc43e1e65bf3c412d326a4032ce342366
+  src/lambdadb/errors/resourcealreadyexists_error.py:
+    id: fdcad9e49d0b
+    last_write_checksum: sha1:8c5cb70762de9fb6a9099ec189ca2ce5f41dc101
+    pristine_git_object: 1aa60f7e3587dcf322af3b33a1314cf2621d6197
+  src/lambdadb/errors/resourcenotfound_error.py:
+    id: b1a235a6593d
+    last_write_checksum: sha1:7c045c22895515090b5936f1fc9a274ed0cc415a
+    pristine_git_object: 6909abfd25c286667b38daeadd80918d3e930796
+  src/lambdadb/errors/responsevalidationerror.py:
+    id: 4764d23e9a51
+    last_write_checksum: sha1:7b043a8ccdf85d0f0104240825b6f2149f31f8c4
+    pristine_git_object: 78096382bb1b1455601d567a64b669236bbf3eeb
+  src/lambdadb/errors/toomanyrequests_error.py:
+    id: 0163102e6e3f
+    last_write_checksum: sha1:b39e789677417dde14106402ac16ba405d72c169
+    pristine_git_object: b98ffce7e6bad35d3e0084e7e78dbc9cc8318bfd
+  src/lambdadb/errors/unauthenticated_error.py:
+    id: 06e91eeb4851
+    last_write_checksum: sha1:e87123a2fd4a8be07cd6f460a22a7955ec2d9678
+    pristine_git_object: 3231a79817ffe466f4702e7f70c60e294935e193
+  src/lambdadb/httpclient.py:
+    id: 814d1270026b
+    last_write_checksum: sha1:5e55338d6ee9f01ab648cad4380201a8a3da7dd7
+    pristine_git_object: 89560b566073785535643e694c112bedbd3db13d
+  src/lambdadb/models/__init__.py:
+    id: 99247384301f
+    last_write_checksum: sha1:fcb1ff96019c7f591a4c12ed4b4b29f03f712b27
+    pristine_git_object: 2b069009e48e1ce3a6d4852a72b4eabafe9e1e5b
+  src/lambdadb/models/bulkupsertdocsop.py:
+    id: f5986a40cf02
+    last_write_checksum: sha1:046eb5ee23e9521ee0d14472ea059bbbd8cd6ea4
+    pristine_git_object: 4a83ad3b61a6fdd017ec85576dc0dc2f4b9038b2
+  src/lambdadb/models/collectionresponse.py:
+    id: 57fe879fa156
+    last_write_checksum: sha1:141addcce431225c8f98d3c53be2e9d7de3fb1ad
+    pristine_git_object: 3d5944beed8655984247a556b8f5da33923f2d8a
+  src/lambdadb/models/createcollectionop.py:
+    id: 15eeafde6259
+    last_write_checksum: sha1:f8f785f03cd601cbbfa0fd0892938851e67e9fa1
+    pristine_git_object: 3a0311c690b66c1c8bf44b9f12cf285e12d4b43a
+  src/lambdadb/models/deletecollectionop.py:
+    id: 6175d10094b7
+    last_write_checksum: sha1:63dce9f86151adffa3cbe735d2968a76a81b80eb
+    pristine_git_object: 4d72eaf7d551200eedf6961a8f5d77dea26199ab
+  src/lambdadb/models/deletedocsop.py:
+    id: 0a972139f1f4
+    last_write_checksum: sha1:3154e444a07db9e16cd63348add9729eefe65200
+    pristine_git_object: ed1239ce9f832f2a6b2b495d26719f0c0ed5ab5e
+  src/lambdadb/models/fetchdocsop.py:
+    id: ff8c49c33017
+    last_write_checksum: sha1:ca63d7cf05e322764c8594043cb6fb967730dbb4
+    pristine_git_object: 4c911a612740b91be6f8d71248132a88dba28162
+  src/lambdadb/models/fieldsselector_union.py:
+    id: 850658c82392
+    last_write_checksum: sha1:f60548089300756e442f2ac103c8acc493c88c26
+    pristine_git_object: 3b84acc2cd0c1725dd8bdffa0203c60ae493d289
+  src/lambdadb/models/getbulkupsertdocsop.py:
+    id: e2c4c9bb2c2f
+    last_write_checksum: sha1:d2bf55663130bb8f94ddcdac8fea3d55ee4e3551
+    pristine_git_object: 3e640ba254f0a139e0a1ddd0a16e3169299b8573
+  src/lambdadb/models/getcollectionop.py:
+    id: 741bdf22ef9a
+    last_write_checksum: sha1:60999d8bedde06dec1f98fdf03fcda5f1cd823a9
+    pristine_git_object: 18b181149f8340ea2675e7a602cd574ee5b501f1
+  src/lambdadb/models/indexconfigs_union.py:
+    id: 9945e1e74735
+    last_write_checksum: sha1:047ea03a8753e86a8b820c71a8e2ed2375d4cf37
+    pristine_git_object: f222f4cabd80859007bd0d6bf22163592c4f7be4
+  src/lambdadb/models/listcollectionsop.py:
+    id: 75c28843ce7f
+    last_write_checksum: sha1:e180a3695a824fdc3120713cd90d904adb530c57
+    pristine_git_object: c505f89631cbfbc0ea433a921d89ef103689605a
+  src/lambdadb/models/listdocsop.py:
+    id: 097c822b30b7
+    last_write_checksum: sha1:1db1d9c33c8cafdeb3d4351ea36422f1b59c6505
+    pristine_git_object: 4dcb5a95f18880c0231e82e62b9fdcb1c5560445
+  src/lambdadb/models/messageresponse.py:
+    id: fe6d426d74c1
+    last_write_checksum: sha1:6c0d9112699b3ea79beb1eb1ed787b38ff2c6085
+    pristine_git_object: 98d6dc5c99f5b6e946d8489275276fc65d26f9a8
+  src/lambdadb/models/partitionconfig.py:
+    id: 91e3cef853c1
+    last_write_checksum: sha1:b86da363eb926e87b887a7233b484754ae30d606
+    pristine_git_object: d9004c83d7d505c6334badc2ff4da0558cded65f
+  src/lambdadb/models/partitionfilter.py:
+    id: b554d907dc40
+    last_write_checksum: sha1:5e0c54f61ddd34219156d4de43f248ede44df0a0
+    pristine_git_object: 160d1ec2790a77fedd2de89a518928e675981ffc
+  src/lambdadb/models/querycollectionop.py:
+    id: 097d254124d8
+    last_write_checksum: sha1:4f8bf1d723503bac4999547bf5affc354eb79264
+    pristine_git_object: cb6b6a0dd3e08665267ab0652b698280f8a34ceb
+  src/lambdadb/models/security.py:
+    id: 6ebd63eb9d10
+    last_write_checksum: sha1:fb2c6892fd4cb5f0e71a71ddc44791dd43b41dc0
+    pristine_git_object: 00712f95d344c562fa3ea51057aebdfa5e4e3748
+  src/lambdadb/models/status.py:
+    id: a933e9b73609
+    last_write_checksum: sha1:552874f1d8ce004e2de40abb5faddf7e69d1e59f
+    pristine_git_object: f11694c40eafd159c1b76289b433589d1d08e856
+  src/lambdadb/models/updatecollectionop.py:
+    id: bb214ce5bafa
+    last_write_checksum: sha1:42a5c4ade587f92bf2d803a7fee1b4ac39c97578
+    pristine_git_object: 7da9ea16177461f354bb7f2dab05b6e475ba9409
+  src/lambdadb/models/updatedocsop.py:
+    id: edd6f93b60e3
+    last_write_checksum: sha1:b3528db92f9f582db02aca247134cf3084a88bc0
+    pristine_git_object: e9fa1335066d5f2ed63c2ae5fc56e86a82c5ae83
+  src/lambdadb/models/upsertdocsop.py:
+    id: 7ee880ba68db
+    last_write_checksum: sha1:761b1ce6bea20f669e86981b1c30aa9cba49b52e
+    pristine_git_object: 2e23e75f35663a4c193a933ab7e72e2d725d656b
+  src/lambdadb/py.typed:
+    id: 134b6fdbf9c2
+    last_write_checksum: sha1:8efc425ffe830805ffcc0f3055871bdcdc542c60
+    pristine_git_object: 3e38f1a929f7d6b1d6de74604aa87e3d8f010544
+  src/lambdadb/sdk.py:
+    id: 7074f4e1c0dc
+    last_write_checksum: sha1:c96304c1e1c2518d1e054b081d111ce7637ca39a
+    pristine_git_object: 080d3a3df5b7648812163f9a0b657bbe8ea465a9
+  src/lambdadb/sdkconfiguration.py:
+    id: 311d0f8ed297
+    last_write_checksum: sha1:d783f9e4206dff018a44a863af14a1634575e046
+    pristine_git_object: 2119096df71f8a956bb1b4a820909bf81686892f
+  src/lambdadb/types/__init__.py:
+    id: c09a22b1b66c
+    last_write_checksum: sha1:140ebdd01a46f92ffc710c52c958c4eba3cf68ed
+    pristine_git_object: fc76fe0c5505e29859b5d2bb707d48fd27661b8c
+  src/lambdadb/types/basemodel.py:
+    id: d2fa0a5608d9
+    last_write_checksum: sha1:10d84aedeb9d35edfdadf2c3020caa1d24d8b584
+    pristine_git_object: a9a640a1a7048736383f96c67c6290c86bf536ee
+  src/lambdadb/utils/__init__.py:
+    id: 14cd5b198c8d
+    last_write_checksum: sha1:ffaf69e6877a274b08066215f5a31a1b344f5402
+    pristine_git_object: f4525b2057c3d54fb3b9eff6248fd172478ce94c
+  src/lambdadb/utils/annotations.py:
+    id: 6f5dc0b675de
+    last_write_checksum: sha1:a4824ad65f730303e4e1e3ec1febf87b4eb46dbc
+    pristine_git_object: 12e0aa4f1151bb52474cc02e88397329b90703f6
+  src/lambdadb/utils/datetimes.py:
+    id: ee4828d6f653
+    last_write_checksum: sha1:c721e4123000e7dc61ec52b28a739439d9e17341
+    pristine_git_object: a6c52cd61bbe2d459046c940ce5e8c469f2f0664
+  src/lambdadb/utils/enums.py:
+    id: 2da8e276a325
+    last_write_checksum: sha1:bc8c3c1285ae09ba8a094ee5c3d9c7f41fa1284d
+    pristine_git_object: 3324e1bc2668c54c4d5f5a1a845675319757a828
+  src/lambdadb/utils/eventstreaming.py:
+    id: 8c83aff20892
+    last_write_checksum: sha1:bababae5d54b7efc360db701daa49e18a92c2f3b
+    pristine_git_object: 0969899bfc491e5e408d05643525f347ea95e4fc
+  src/lambdadb/utils/forms.py:
+    id: ee916671a58a
+    last_write_checksum: sha1:15fa7e9ab1611e062a9984cf06cb20969713d295
+    pristine_git_object: f961e76beaf0a8b1fe0dda44754a74eebd3608e7
+  src/lambdadb/utils/headers.py:
+    id: 7f531b9e0e6c
+    last_write_checksum: sha1:7c6df233ee006332b566a8afa9ce9a245941d935
+    pristine_git_object: 37864cbbbc40d1a47112bbfdd3ba79568fc8818a
+  src/lambdadb/utils/logger.py:
+    id: e20d10554075
+    last_write_checksum: sha1:b5c5f8f2a371bf5ddacf6f52d4e4445e97634f74
+    pristine_git_object: 461953a261f3149ff5ac41821b7d7cb02f550a72
+  src/lambdadb/utils/metadata.py:
+    id: 2b2958044d06
+    last_write_checksum: sha1:c6a560bd0c63ab158582f34dadb69433ea73b3d4
+    pristine_git_object: 173b3e5ce658675c2f504222a56b3daaaa68107d
+  src/lambdadb/utils/queryparams.py:
+    id: 119e666270c1
+    last_write_checksum: sha1:b94c3f314fd3da0d1d215afc2731f48748e2aa59
+    pristine_git_object: c04e0db82b68eca041f2cb2614d748fbac80fd41
+  src/lambdadb/utils/requestbodies.py:
+    id: 09f3fb2580a8
+    last_write_checksum: sha1:41e2d2d2d3ecc394c8122ca4d4b85e1c3e03f054
+    pristine_git_object: 1de32b6d26f46590232f398fdba6ce0072f1659c
+  src/lambdadb/utils/retries.py:
+    id: e240dbb7580a
+    last_write_checksum: sha1:5b97ac4f59357d70c2529975d50364c88bcad607
+    pristine_git_object: 88a91b10cd2076b4a2c6cff2ac6bfaa5e3c5ad13
+  src/lambdadb/utils/security.py:
+    id: 7f7b9ea5822c
+    last_write_checksum: sha1:4fd9c8bea682b433da8b30bf5854a60a7963999d
+    pristine_git_object: aa66e27e44e5fe85884a50b8f9629eaa13f6539c
+  src/lambdadb/utils/serializers.py:
+    id: ee1fb83a2308
+    last_write_checksum: sha1:ce1d8d7f500a9ccba0aeca5057cee9c271f4dfd7
+    pristine_git_object: 14321eb479de81d0d9580ec8291e0ff91bf29e57
+  src/lambdadb/utils/unmarshal_json_response.py:
+    id: c8b31e980189
+    last_write_checksum: sha1:ff4fc34785dc2a5da9212823fc1159651ab10eb8
+    pristine_git_object: 6091dd45a311ffb86d79c6fca6acf5d201d33562
+  src/lambdadb/utils/url.py:
+    id: 79d5b9dcbd37
+    last_write_checksum: sha1:6479961baa90432ca25626f8e40a7bbc32e73b41
+    pristine_git_object: c78ccbae426ce6d385709d97ce0b1c2813ea2418
+  src/lambdadb/utils/values.py:
+    id: afe849cd1ce0
+    last_write_checksum: sha1:acaa178a7c41ddd000f58cc691e4632d925b2553
+    pristine_git_object: dae01a44384ac3bc13ae07453a053bf6c898ebe3
 examples:
   listProjects:
     example:
@@ -277,7 +703,7 @@ examples:
         application/json: {"collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["english"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}}
       responses:
         "202":
-          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numDocs": 595485, "collectionStatus": "ACTIVE"}}
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numPartitions": 112848, "numDocs": 595485, "collectionStatus": "ACTIVE"}}
         "400":
           application/json: {}
         "401":
@@ -315,7 +741,7 @@ examples:
         application/json: {"collectionName": "<value>"}
       responses:
         "202":
-          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numDocs": 595485, "collectionStatus": "ACTIVE"}}
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numPartitions": 112848, "numDocs": 595485, "collectionStatus": "ACTIVE"}}
         "400":
           application/json: {"message": "Invalid request"}
         "401":
@@ -326,6 +752,22 @@ examples:
           application/json: {"message": "Too many requests"}
         "500":
           application/json: {"message": "Internal server error"}
+    forkedCollection:
+      requestBody:
+        application/json: {"collectionName": "example-collection-name", "sourceProjectName": "example-source-project-name", "sourceCollectionName": "example-source-collection-name", "sourceDatetime": "2023-10-01T12:00:00Z", "sourceProjectApiKey": "example-source-project-api-key"}
+      responses:
+        "202":
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numPartitions": 112848, "numDocs": 595485, "collectionStatus": "ACTIVE"}}
+        "400":
+          application/json: {}
+        "401":
+          application/json: {}
+        "409":
+          application/json: {}
+        "429":
+          application/json: {}
+        "500":
+          application/json: {}
   deleteCollection:
     example:
       parameters:
@@ -351,7 +793,7 @@ examples:
           collectionName: "<value>"
       responses:
         "200":
-          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numDocs": 592208, "collectionStatus": "ACTIVE"}}
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {}, "numPartitions": 489617, "numDocs": 592208, "collectionStatus": "ACTIVE"}}
     example:
       parameters:
         path:
@@ -394,7 +836,7 @@ examples:
         application/json: {"indexConfigs": {"key": {"type": "keyword"}, "key1": {"type": "keyword"}, "key2": {"type": "vector", "dimensions": 884939, "similarity": "cosine"}}}
       responses:
         "200":
-          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {"key": {"type": "keyword"}}, "numDocs": 952497, "collectionStatus": "ACTIVE"}}
+          application/json: {"collection": {"projectName": "<value>", "collectionName": "<value>", "indexConfigs": {"key": {"type": "keyword"}}, "numPartitions": 832336, "numDocs": 952497, "collectionStatus": "ACTIVE"}}
   queryCollection:
     example:
       parameters:
@@ -564,7 +1006,7 @@ examples:
           projectName: "<value>"
       responses:
         "200":
-          application/json: {"collections": [{"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["standard"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numDocs": 10000, "collectionStatus": "ACTIVE"}]}
+          application/json: {"collections": [{"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["standard"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numPartitions": 468555, "numDocs": 10000, "collectionStatus": "ACTIVE"}]}
     clonedCollection:
       parameters:
         path:
@@ -585,6 +1027,10 @@ examples:
           application/json: {"message": "Too many requests"}
         "500":
           application/json: {"message": "Internal server error"}
+    forkedCollection:
+      responses:
+        "200":
+          application/json: {"collections": [{"projectName": "example-project-name", "collectionName": "example-collection-name", "indexConfigs": {"example-field1": {"type": "text", "analyzers": ["standard"]}, "example-field2": {"type": "vector", "dimensions": 128, "similarity": "cosine"}}, "numPartitions": 306696, "numDocs": 10000, "sourceProjectName": "example-source-project-name", "sourceCollectionName": "example-source-collection-name", "sourceCollectionVersionId": "example-source-collection-version-id", "collectionStatus": "ACTIVE"}]}
   updateDocs:
     example:
       parameters:
@@ -606,5 +1052,150 @@ examples:
           application/json: {"message": "Too many requests"}
         "500":
           application/json: {"message": "Internal server error"}
+  listDocs:
+    example:
+      parameters:
+        path:
+          collectionName: "<value>"
+      responses:
+        "200":
+          application/json: {"total": 2, "docs": [{"collection": "example-collection-name", "doc": {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"collection": "example-collection-name", "doc": {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}], "nextPageToken": "eyJpZCI6ICJhYmMiLCAiY3JlYXRlZF9hdCI6ICIyMDI0LTExLTA1VDE0OjI3OjU2KzAwOjAwIn0="}
+        "400":
+          application/json: {"message": "Invalid request"}
+        "401":
+          application/json: {"message": "Authentication failed"}
+        "404":
+          application/json: {"message": "Resource not found"}
+        "429":
+          application/json: {"message": "Too many requests"}
+        "500":
+          application/json: {"message": "Internal server error"}
 examplesVersion: 1.0.2
 generatedTests: {}
+generatedFiles:
+  - .devcontainer/README.md
+  - .devcontainer/devcontainer.json
+  - .devcontainer/setup.sh
+  - .gitattributes
+  - .vscode/settings.json
+  - USAGE.md
+  - docs/errors/badrequesterror.md
+  - docs/errors/internalservererror.md
+  - docs/errors/resourcealreadyexistserror.md
+  - docs/errors/resourcenotfounderror.md
+  - docs/errors/toomanyrequestserror.md
+  - docs/errors/unauthenticatederror.md
+  - docs/models/analyzer.md
+  - docs/models/bulkupsertdocsrequest.md
+  - docs/models/bulkupsertdocsrequestbody.md
+  - docs/models/collectionresponse.md
+  - docs/models/createcollectionrequest.md
+  - docs/models/createcollectionresponse.md
+  - docs/models/deletecollectionrequest.md
+  - docs/models/deletedocsrequest.md
+  - docs/models/deletedocsrequestbody.md
+  - docs/models/fetchdocsdoc.md
+  - docs/models/fetchdocsrequest.md
+  - docs/models/fetchdocsrequestbody.md
+  - docs/models/fetchdocsresponse.md
+  - docs/models/getbulkupsertdocsrequest.md
+  - docs/models/getbulkupsertdocsresponse.md
+  - docs/models/getbulkupsertdocstype.md
+  - docs/models/getcollectionrequest.md
+  - docs/models/getcollectionresponse.md
+  - docs/models/httpmethod.md
+  - docs/models/indexconfigs.md
+  - docs/models/indexconfigsobject.md
+  - docs/models/indexconfigstext.md
+  - docs/models/indexconfigsunion.md
+  - docs/models/indexconfigsvector.md
+  - docs/models/listcollectionsresponse.md
+  - docs/models/messageresponse.md
+  - docs/models/querycollectiondoc.md
+  - docs/models/querycollectionrequest.md
+  - docs/models/querycollectionrequestbody.md
+  - docs/models/querycollectionresponse.md
+  - docs/models/security.md
+  - docs/models/similarity.md
+  - docs/models/status.md
+  - docs/models/type.md
+  - docs/models/typeobject.md
+  - docs/models/typetext.md
+  - docs/models/typevector.md
+  - docs/models/updatecollectionrequest.md
+  - docs/models/updatecollectionrequestbody.md
+  - docs/models/updatecollectionresponse.md
+  - docs/models/updatedocsrequest.md
+  - docs/models/updatedocsrequestbody.md
+  - docs/models/upsertdocsrequest.md
+  - docs/models/upsertdocsrequestbody.md
+  - docs/models/utils/retryconfig.md
+  - docs/sdks/collections/README.md
+  - docs/sdks/docs/README.md
+  - docs/sdks/lambdadb/README.md
+  - poetry.toml
+  - py.typed
+  - pylintrc
+  - pyproject.toml
+  - scripts/prepare_readme.py
+  - scripts/publish.sh
+  - src/lambdadb/__init__.py
+  - src/lambdadb/_hooks/__init__.py
+  - src/lambdadb/_hooks/sdkhooks.py
+  - src/lambdadb/_hooks/types.py
+  - src/lambdadb/_version.py
+  - src/lambdadb/basesdk.py
+  - src/lambdadb/collections.py
+  - src/lambdadb/docs.py
+  - src/lambdadb/errors/__init__.py
+  - src/lambdadb/errors/apierror.py
+  - src/lambdadb/errors/badrequest_error.py
+  - src/lambdadb/errors/internalservererror.py
+  - src/lambdadb/errors/lambdadberror.py
+  - src/lambdadb/errors/no_response_error.py
+  - src/lambdadb/errors/resourcealreadyexists_error.py
+  - src/lambdadb/errors/resourcenotfound_error.py
+  - src/lambdadb/errors/responsevalidationerror.py
+  - src/lambdadb/errors/toomanyrequests_error.py
+  - src/lambdadb/errors/unauthenticated_error.py
+  - src/lambdadb/httpclient.py
+  - src/lambdadb/models/__init__.py
+  - src/lambdadb/models/bulkupsertdocsop.py
+  - src/lambdadb/models/collectionresponse.py
+  - src/lambdadb/models/createcollectionop.py
+  - src/lambdadb/models/deletecollectionop.py
+  - src/lambdadb/models/deletedocsop.py
+  - src/lambdadb/models/fetchdocsop.py
+  - src/lambdadb/models/getbulkupsertdocsop.py
+  - src/lambdadb/models/getcollectionop.py
+  - src/lambdadb/models/indexconfigs_union.py
+  - src/lambdadb/models/listcollectionsop.py
+  - src/lambdadb/models/messageresponse.py
+  - src/lambdadb/models/querycollectionop.py
+  - src/lambdadb/models/security.py
+  - src/lambdadb/models/status.py
+  - src/lambdadb/models/updatecollectionop.py
+  - src/lambdadb/models/updatedocsop.py
+  - src/lambdadb/models/upsertdocsop.py
+  - src/lambdadb/py.typed
+  - src/lambdadb/sdk.py
+  - src/lambdadb/sdkconfiguration.py
+  - src/lambdadb/types/__init__.py
+  - src/lambdadb/types/basemodel.py
+  - src/lambdadb/utils/__init__.py
+  - src/lambdadb/utils/annotations.py
+  - src/lambdadb/utils/datetimes.py
+  - src/lambdadb/utils/enums.py
+  - src/lambdadb/utils/eventstreaming.py
+  - src/lambdadb/utils/forms.py
+  - src/lambdadb/utils/headers.py
+  - src/lambdadb/utils/logger.py
+  - src/lambdadb/utils/metadata.py
+  - src/lambdadb/utils/queryparams.py
+  - src/lambdadb/utils/requestbodies.py
+  - src/lambdadb/utils/retries.py
+  - src/lambdadb/utils/security.py
+  - src/lambdadb/utils/serializers.py
+  - src/lambdadb/utils/unmarshal_json_response.py
+  - src/lambdadb/utils/url.py
+  - src/lambdadb/utils/values.py

@@ -1,16 +1,62 @@
-# Docs
-(*collections.docs*)
+# Collections.Docs
 
 ## Overview
 
 ### Available Operations
 
+* [list_docs](#list_docs) - List documents in a collection.
 * [upsert](#upsert) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 * [get_bulk_upsert](#get_bulk_upsert) - Request required info to upload documents.
 * [bulk_upsert](#bulk_upsert) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 * [update](#update) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
 * [delete](#delete) - Delete documents by document IDs or query filter from a collection.
 * [fetch](#fetch) - Lookup and return documents by document IDs from a collection.
+
+## list_docs
+
+List documents in a collection.
+
+### Example Usage
+
+<!-- UsageSnippet language="python" operationID="listDocs" method="get" path="/collections/{collectionName}/docs" -->
+```python
+from lambdadb import LambdaDB
+
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.docs.list_docs(collection_name="<value>")
+
+    # Handle response
+    print(res)
+
+```
+
+### Parameters
+
+| Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
+| `size`                                                              | *Optional[int]*                                                     | :heavy_minus_sign:                                                  | Max number of documents to return at once.                          |
+| `page_token`                                                        | *Optional[str]*                                                     | :heavy_minus_sign:                                                  | Next page token.                                                    |
+| `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
+
+### Response
+
+**[models.ListDocsResponse](../../models/listdocsresponse.md)**
+
+### Errors
+
+| Error Type                   | Status Code                  | Content Type                 |
+| ---------------------------- | ---------------------------- | ---------------------------- |
+| errors.BadRequestError       | 400                          | application/json             |
+| errors.UnauthenticatedError  | 401                          | application/json             |
+| errors.ResourceNotFoundError | 404                          | application/json             |
+| errors.TooManyRequestsError  | 429                          | application/json             |
+| errors.InternalServerError   | 500                          | application/json             |
+| errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
 ## upsert
 
@@ -258,6 +304,7 @@ with LambdaDB(
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
 | `ids`                                                               | List[*str*]                                                         | :heavy_minus_sign:                                                  | A list of document IDs.                                             |
 | `filter_`                                                           | Dict[str, *Any*]                                                    | :heavy_minus_sign:                                                  | Query filter.                                                       |
+| `partition_filter`                                                  | [Optional[models.PartitionFilter]](../../models/partitionfilter.md) | :heavy_minus_sign:                                                  | N/A                                                                 |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
 ### Response
@@ -308,6 +355,8 @@ with LambdaDB(
 | `ids`                                                                                                                                                                                                                       | List[*str*]                                                                                                                                                                                                                 | :heavy_check_mark:                                                                                                                                                                                                          | A list of document IDs to fetch. Note that the maximum number of document IDs is 100.                                                                                                                                       |
 | `consistent_read`                                                                                                                                                                                                           | *Optional[bool]*                                                                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value. |
 | `include_vectors`                                                                                                                                                                                                           | *Optional[bool]*                                                                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | If your application need to include vector values in the response, set includeVectors to true.                                                                                                                              |
+| `fields`                                                                                                                                                                                                                    | [Optional[models.FieldsSelectorUnion]](../../models/fieldsselectorunion.md)                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                                                                          | An object to specify a list of field names to include and/or exclude in the result.                                                                                                                                         |
+| `partition_filter`                                                                                                                                                                                                          | [Optional[models.PartitionFilter]](../../models/partitionfilter.md)                                                                                                                                                         | :heavy_minus_sign:                                                                                                                                                                                                          | N/A                                                                                                                                                                                                                         |
 | `retries`                                                                                                                                                                                                                   | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | Configuration to override the default retry behavior of the client.                                                                                                                                                         |
 
 ### Response

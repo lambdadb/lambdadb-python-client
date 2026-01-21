@@ -2,12 +2,14 @@
 
 import httpx
 from typing import Optional
+from dataclasses import dataclass
 
 from lambdadb.errors import LambdaDBError
 
 MAX_MESSAGE_LEN = 10_000
 
 
+@dataclass(unsafe_hash=True)
 class APIError(LambdaDBError):
     """The fallback error class if no more specific error class is matched."""
 

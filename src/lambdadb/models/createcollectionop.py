@@ -3,8 +3,10 @@
 from __future__ import annotations
 from .collectionresponse import CollectionResponse, CollectionResponseTypedDict
 from .indexconfigs_union import IndexConfigsUnion, IndexConfigsUnionTypedDict
-from lambdadb.types import BaseModel
+from .partitionconfig import PartitionConfig, PartitionConfigTypedDict
+from lambdadb.types import BaseModel, UNSET_SENTINEL
 import pydantic
+from pydantic import model_serializer
 from typing import Dict, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
@@ -13,6 +15,7 @@ class CreateCollectionRequestTypedDict(TypedDict):
     collection_name: str
     r"""Collection name must be unique within a project and the supported maximum length is 52."""
     index_configs: NotRequired[Dict[str, IndexConfigsUnionTypedDict]]
+    partition_config: NotRequired[PartitionConfigTypedDict]
     source_project_name: NotRequired[str]
     source_collection_name: NotRequired[str]
     source_datetime: NotRequired[str]
@@ -25,6 +28,10 @@ class CreateCollectionRequest(BaseModel):
 
     index_configs: Annotated[
         Optional[Dict[str, IndexConfigsUnion]], pydantic.Field(alias="indexConfigs")
+    ] = None
+
+    partition_config: Annotated[
+        Optional[PartitionConfig], pydantic.Field(alias="partitionConfig")
     ] = None
 
     source_project_name: Annotated[
@@ -42,6 +49,31 @@ class CreateCollectionRequest(BaseModel):
     source_project_api_key: Annotated[
         Optional[str], pydantic.Field(alias="sourceProjectApiKey")
     ] = None
+
+    @model_serializer(mode="wrap")
+    def serialize_model(self, handler):
+        optional_fields = set(
+            [
+                "indexConfigs",
+                "partitionConfig",
+                "sourceProjectName",
+                "sourceCollectionName",
+                "sourceDatetime",
+                "sourceProjectApiKey",
+            ]
+        )
+        serialized = handler(self)
+        m = {}
+
+        for n, f in type(self).model_fields.items():
+            k = f.alias or n
+            val = serialized.get(k)
+
+            if val != UNSET_SENTINEL:
+                if val is not None or k not in optional_fields:
+                    m[k] = val
+
+        return m
 
 
 class CreateCollectionResponseTypedDict(TypedDict):

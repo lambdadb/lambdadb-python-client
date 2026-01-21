@@ -21,6 +21,36 @@ value: models.IndexConfigsVector = /* values here */
 value: models.IndexConfigs = /* values here */
 ```
 
+### `models.IndexConfigs`
+
+```python
+value: models.IndexConfigs = /* values here */
+```
+
+### `models.IndexConfigs`
+
+```python
+value: models.IndexConfigs = /* values here */
+```
+
+### `models.IndexConfigs`
+
+```python
+value: models.IndexConfigs = /* values here */
+```
+
+### `models.IndexConfigs`
+
+```python
+value: models.IndexConfigs = /* values here */
+```
+
+### `models.IndexConfigs`
+
+```python
+value: models.IndexConfigs = /* values here */
+```
+
 ### `models.IndexConfigsObject`
 
 ```python

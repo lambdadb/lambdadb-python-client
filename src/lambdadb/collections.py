@@ -14,13 +14,15 @@ from typing import Any, Dict, List, Mapping, Optional, Union
 class Collections(BaseSDK):
     docs: Docs
 
-    def __init__(self, sdk_config: SDKConfiguration) -> None:
-        BaseSDK.__init__(self, sdk_config)
+    def __init__(
+        self, sdk_config: SDKConfiguration, parent_ref: Optional[object] = None
+    ) -> None:
+        BaseSDK.__init__(self, sdk_config, parent_ref=parent_ref)
         self.sdk_configuration = sdk_config
         self._init_sdks()
 
     def _init_sdks(self):
-        self.docs = Docs(self.sdk_configuration)
+        self.docs = Docs(self.sdk_configuration, parent_ref=self.parent_ref)
 
     def list(
         self,
@@ -59,6 +61,7 @@ class Collections(BaseSDK):
             accept_header_value="application/json",
             http_headers=http_headers,
             security=self.sdk_configuration.security,
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -79,7 +82,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="listCollections",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -158,6 +161,7 @@ class Collections(BaseSDK):
             accept_header_value="application/json",
             http_headers=http_headers,
             security=self.sdk_configuration.security,
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -178,7 +182,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="listCollections",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -230,6 +234,9 @@ class Collections(BaseSDK):
                 Dict[str, models.IndexConfigsUnionTypedDict],
             ]
         ] = None,
+        partition_config: Optional[
+            Union[models.PartitionConfig, models.PartitionConfigTypedDict]
+        ] = None,
         source_project_name: Optional[str] = None,
         source_collection_name: Optional[str] = None,
         source_datetime: Optional[str] = None,
@@ -243,6 +250,7 @@ class Collections(BaseSDK):
 
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
         :param index_configs:
+        :param partition_config:
         :param source_project_name:
         :param source_collection_name:
         :param source_datetime:
@@ -267,6 +275,9 @@ class Collections(BaseSDK):
             index_configs=utils.get_pydantic_model(
                 index_configs, Optional[Dict[str, models.IndexConfigsUnion]]
             ),
+            partition_config=utils.get_pydantic_model(
+                partition_config, Optional[models.PartitionConfig]
+            ),
             source_project_name=source_project_name,
             source_collection_name=source_collection_name,
             source_datetime=source_datetime,
@@ -289,6 +300,7 @@ class Collections(BaseSDK):
             get_serialized_body=lambda: utils.serialize_request_body(
                 request, False, False, "json", models.CreateCollectionRequest
             ),
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -309,7 +321,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="createCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -366,6 +378,9 @@ class Collections(BaseSDK):
                 Dict[str, models.IndexConfigsUnionTypedDict],
             ]
         ] = None,
+        partition_config: Optional[
+            Union[models.PartitionConfig, models.PartitionConfigTypedDict]
+        ] = None,
         source_project_name: Optional[str] = None,
         source_collection_name: Optional[str] = None,
         source_datetime: Optional[str] = None,
@@ -379,6 +394,7 @@ class Collections(BaseSDK):
 
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
         :param index_configs:
+        :param partition_config:
         :param source_project_name:
         :param source_collection_name:
         :param source_datetime:
@@ -403,6 +419,9 @@ class Collections(BaseSDK):
             index_configs=utils.get_pydantic_model(
                 index_configs, Optional[Dict[str, models.IndexConfigsUnion]]
             ),
+            partition_config=utils.get_pydantic_model(
+                partition_config, Optional[models.PartitionConfig]
+            ),
             source_project_name=source_project_name,
             source_collection_name=source_collection_name,
             source_datetime=source_datetime,
@@ -425,6 +444,7 @@ class Collections(BaseSDK):
             get_serialized_body=lambda: utils.serialize_request_body(
                 request, False, False, "json", models.CreateCollectionRequest
             ),
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -445,7 +465,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="createCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -536,6 +556,7 @@ class Collections(BaseSDK):
             accept_header_value="application/json",
             http_headers=http_headers,
             security=self.sdk_configuration.security,
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -556,7 +577,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="deleteCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -642,6 +663,7 @@ class Collections(BaseSDK):
             accept_header_value="application/json",
             http_headers=http_headers,
             security=self.sdk_configuration.security,
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -662,7 +684,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="deleteCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -748,6 +770,7 @@ class Collections(BaseSDK):
             accept_header_value="application/json",
             http_headers=http_headers,
             security=self.sdk_configuration.security,
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -768,7 +791,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="getCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -854,6 +877,7 @@ class Collections(BaseSDK):
             accept_header_value="application/json",
             http_headers=http_headers,
             security=self.sdk_configuration.security,
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -874,7 +898,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="getCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -977,6 +1001,7 @@ class Collections(BaseSDK):
                 "json",
                 models.UpdateCollectionRequestBody,
             ),
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -997,7 +1022,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="updateCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -1105,6 +1130,7 @@ class Collections(BaseSDK):
                 "json",
                 models.UpdateCollectionRequestBody,
             ),
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -1125,7 +1151,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="updateCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -1181,7 +1207,12 @@ class Collections(BaseSDK):
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
         sort: Optional[List[Dict[str, Any]]] = None,
-        fields: Optional[List[str]] = None,
+        fields: Optional[
+            Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
+        ] = None,
+        partition_filter: Optional[
+            Union[models.PartitionFilter, models.PartitionFilterTypedDict]
+        ] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1195,7 +1226,8 @@ class Collections(BaseSDK):
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
-        :param fields: List of field name to include in results
+        :param fields: An object to specify a list of field names to include and/or exclude in the result.
+        :param partition_filter:
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1219,7 +1251,12 @@ class Collections(BaseSDK):
                 consistent_read=consistent_read,
                 include_vectors=include_vectors,
                 sort=sort,
-                fields=fields,
+                fields=utils.get_pydantic_model(
+                    fields, Optional[models.FieldsSelectorUnion]
+                ),
+                partition_filter=utils.get_pydantic_model(
+                    partition_filter, Optional[models.PartitionFilter]
+                ),
             ),
         )
 
@@ -1243,6 +1280,7 @@ class Collections(BaseSDK):
                 "json",
                 models.QueryCollectionRequestBody,
             ),
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -1263,7 +1301,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="queryCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),
@@ -1319,7 +1357,12 @@ class Collections(BaseSDK):
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
         sort: Optional[List[Dict[str, Any]]] = None,
-        fields: Optional[List[str]] = None,
+        fields: Optional[
+            Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
+        ] = None,
+        partition_filter: Optional[
+            Union[models.PartitionFilter, models.PartitionFilterTypedDict]
+        ] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1333,7 +1376,8 @@ class Collections(BaseSDK):
         :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
-        :param fields: List of field name to include in results
+        :param fields: An object to specify a list of field names to include and/or exclude in the result.
+        :param partition_filter:
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1357,7 +1401,12 @@ class Collections(BaseSDK):
                 consistent_read=consistent_read,
                 include_vectors=include_vectors,
                 sort=sort,
-                fields=fields,
+                fields=utils.get_pydantic_model(
+                    fields, Optional[models.FieldsSelectorUnion]
+                ),
+                partition_filter=utils.get_pydantic_model(
+                    partition_filter, Optional[models.PartitionFilter]
+                ),
             ),
         )
 
@@ -1381,6 +1430,7 @@ class Collections(BaseSDK):
                 "json",
                 models.QueryCollectionRequestBody,
             ),
+            allow_empty_value=None,
             timeout_ms=timeout_ms,
         )
 
@@ -1401,7 +1451,7 @@ class Collections(BaseSDK):
                 config=self.sdk_configuration,
                 base_url=base_url or "",
                 operation_id="queryCollection",
-                oauth2_scopes=[],
+                oauth2_scopes=None,
                 security_source=get_security_from_env(
                     self.sdk_configuration.security, models.Security
                 ),

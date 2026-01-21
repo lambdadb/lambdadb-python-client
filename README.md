@@ -135,6 +135,7 @@ with LambdaDB(
 </br>
 
 The same SDK client can also be used to make asynchronous requests by importing asyncio.
+
 ```python
 # Asynchronous Example
 import asyncio
@@ -189,7 +190,7 @@ with LambdaDB(
 <details open>
 <summary>Available methods</summary>
 
-### [collections](docs/sdks/collections/README.md)
+### [Collections](docs/sdks/collections/README.md)
 
 * [list](docs/sdks/collections/README.md#list) - List all collections in an existing project.
 * [create](docs/sdks/collections/README.md#create) - Create a collection.
@@ -198,15 +199,15 @@ with LambdaDB(
 * [update](docs/sdks/collections/README.md#update) - Configure a collection.
 * [query](docs/sdks/collections/README.md#query) - Search a collection with a query and return the most similar documents.
 
-#### [collections.docs](docs/sdks/docs/README.md)
+#### [Collections.Docs](docs/sdks/docs/README.md)
 
+* [list_docs](docs/sdks/docs/README.md#list_docs) - List documents in a collection.
 * [upsert](docs/sdks/docs/README.md#upsert) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 * [get_bulk_upsert](docs/sdks/docs/README.md#get_bulk_upsert) - Request required info to upload documents.
 * [bulk_upsert](docs/sdks/docs/README.md#bulk_upsert) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
 * [update](docs/sdks/docs/README.md#update) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
 * [delete](docs/sdks/docs/README.md#delete) - Delete documents by document IDs or query filter from a collection.
 * [fetch](docs/sdks/docs/README.md#fetch) - Lookup and return documents by document IDs from a collection.
-
 
 </details>
 <!-- End Available Resources and Operations [operations] -->
@@ -316,8 +317,8 @@ with LambdaDB(
 
 
 **Inherit from [`LambdaDBError`](./src/lambdadb/errors/lambdadberror.py)**:
-* [`BadRequestError`](./src/lambdadb/errors/badrequesterror.py): Bad request. Status code `400`. Applicable to 8 of 12 methods.*
-* [`ResourceAlreadyExistsError`](./src/lambdadb/errors/resourcealreadyexistserror.py): Resource already exists. Status code `409`. Applicable to 1 of 12 methods.*
+* [`BadRequestError`](./src/lambdadb/errors/badrequesterror.py): Bad request. Status code `400`. Applicable to 9 of 13 methods.*
+* [`ResourceAlreadyExistsError`](./src/lambdadb/errors/resourcealreadyexistserror.py): Resource already exists. Status code `409`. Applicable to 1 of 13 methods.*
 * [`ResponseValidationError`](./src/lambdadb/errors/responsevalidationerror.py): Type mismatch between the response data and the expected Pydantic model. Provides access to the Pydantic validation error via the `cause` attribute.
 
 </details>
@@ -343,7 +344,8 @@ from lambdadb import LambdaDB
 
 
 with LambdaDB(
-    project_host="<value>"
+    server_idx=0,
+    project_host="api.lambdadb.com/projects/default",
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
 

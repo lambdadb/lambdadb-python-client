@@ -1,7 +1,7 @@
 
 [project]
 name = "lambdadb"
-version = "0.5.11"
+version = "0.6.0"
 description = "The Official LambdaDB Python SDK."
 authors = [{ name = "Functional Systems, Inc." },]
 readme = "README-PYPI.md"
@@ -30,6 +30,7 @@ in-project = true
 [tool.poetry.group.dev.dependencies]
 mypy = "==1.15.0"
 pylint = "==3.2.3"
+pyright = "==1.1.398"
 
 [build-system]
 requires = ["poetry-core"]
