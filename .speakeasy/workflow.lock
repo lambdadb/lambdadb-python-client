@@ -1,9 +1,9 @@
-speakeasyVersion: 1.691.0
+speakeasyVersion: 1.693.0
 sources:
     lambdadb-OAS:
         sourceNamespace: lambdadb-oas
-        sourceRevisionDigest: sha256:92c1de9d9b39f07629cc76e774604866bc3d27ed3c88f7a97ee6bd30feb2e561
-        sourceBlobDigest: sha256:54d31a12f25ea2ffa90bfe0636cd20e588bb478ef374a4bffc9baea86ce8b75a
+        sourceRevisionDigest: sha256:5e9276387fbe61362efcdd847bcc17cdf262038b1a8e1f5e80b72a21cb22fa9f
+        sourceBlobDigest: sha256:9aa3a2e7b765ff6071489138b5a5db429a8bdfdd0a045a23e73e1d2773905eb7
         tags:
             - latest
             - 1.1.1
@@ -11,10 +11,10 @@ targets:
     lambdadb:
         source: lambdadb-OAS
         sourceNamespace: lambdadb-oas
-        sourceRevisionDigest: sha256:92c1de9d9b39f07629cc76e774604866bc3d27ed3c88f7a97ee6bd30feb2e561
-        sourceBlobDigest: sha256:54d31a12f25ea2ffa90bfe0636cd20e588bb478ef374a4bffc9baea86ce8b75a
+        sourceRevisionDigest: sha256:5e9276387fbe61362efcdd847bcc17cdf262038b1a8e1f5e80b72a21cb22fa9f
+        sourceBlobDigest: sha256:9aa3a2e7b765ff6071489138b5a5db429a8bdfdd0a045a23e73e1d2773905eb7
         codeSamplesNamespace: lambdadb-oas-code-samples
-        codeSamplesRevisionDigest: sha256:791d0bc03f8a201aa6693dcfe89657d57c353fc5d794785f84fe53c3f99d8fbb
+        codeSamplesRevisionDigest: sha256:8d49338a6c37811ccb9945d5d2f013812b0401b702484e03ca3cf23bf62d252b
 workflow:
     workflowVersion: 1.0.0
     speakeasyVersion: latest

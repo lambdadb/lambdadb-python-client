@@ -102,6 +102,10 @@ class FetchDocsResponseTypedDict(TypedDict):
     took: int
     r"""Elapsed time in milliseconds."""
     docs: List[FetchDocsDocTypedDict]
+    is_docs_inline: bool
+    r"""Whether the list of documents is included."""
+    docs_url: NotRequired[str]
+    r"""Download URL for the list of documents."""
 
 
 class FetchDocsResponse(BaseModel):
@@ -114,3 +118,25 @@ class FetchDocsResponse(BaseModel):
     r"""Elapsed time in milliseconds."""
 
     docs: List[FetchDocsDoc]
+
+    is_docs_inline: Annotated[bool, pydantic.Field(alias="isDocsInline")]
+    r"""Whether the list of documents is included."""
+
+    docs_url: Annotated[Optional[str], pydantic.Field(alias="docsUrl")] = None
+    r"""Download URL for the list of documents."""
+
+    @model_serializer(mode="wrap")
+    def serialize_model(self, handler):
+        optional_fields = set(["docsUrl"])
+        serialized = handler(self)
+        m = {}
+
+        for n, f in type(self).model_fields.items():
+            k = f.alias or n
+            val = serialized.get(k)
+
+            if val != UNSET_SENTINEL:
+                if val is not None or k not in optional_fields:
+                    m[k] = val
+
+        return m

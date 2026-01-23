@@ -1,19 +1,19 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: 66f871932349eb80981a45da5efe3be9
+  docChecksum: 02af71f10371100962200777fa17fefe
   docVersion: 1.1.1
-  speakeasyVersion: 1.691.0
-  generationVersion: 2.797.1
-  releaseVersion: 0.6.0
-  configChecksum: e508926bd769045337b45cedbe2566e8
+  speakeasyVersion: 1.693.0
+  generationVersion: 2.798.0
+  releaseVersion: 0.6.1
+  configChecksum: ccf343abca415cf670a8a8d6930a8da5
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
 persistentEdits:
-  generation_id: d2f71bab-7560-4365-ab6c-39d559cd3c2c
-  pristine_commit_hash: 7975c81366bdafe11da221b7a9d761449e019f30
-  pristine_tree_hash: 5542af709b4c0518c7559bd674cb843220b2be13
+  generation_id: ef6f110a-411a-4d5b-9b19-fac21e9d289f
+  pristine_commit_hash: 4c27b8dcc046ac1b1b49cae26aff0ebf520cec66
+  pristine_tree_hash: 72e446e82062cb7e615121273c394821b5015c17
 features:
   python:
     additionalDependencies: 1.0.0
@@ -139,8 +139,8 @@ trackedFiles:
     pristine_git_object: 74fab1798bf063f72f37078ff7db6e47b7a95269
   docs/models/fetchdocsresponse.md:
     id: 28458066cfa1
-    last_write_checksum: sha1:9c961db0a0e9483a2b833d77a911f665bef8e777
-    pristine_git_object: b15cf2817eeda96075611a6f92f0185854f2394c
+    last_write_checksum: sha1:edc59d91ec351976cc096aa3fa821894f74c7b5a
+    pristine_git_object: d113b3fa0d0cde29a44586c5195fe96c59484992
   docs/models/fieldsselector1.md:
     id: 4b2754e51ecc
     last_write_checksum: sha1:e24faf7f79ccf664428394e3cddd95cb9f41ed16
@@ -235,8 +235,8 @@ trackedFiles:
     pristine_git_object: a18142c8d45d1f7fb0f175787cd0339627ff18e5
   docs/models/querycollectionresponse.md:
     id: 5a291bc63eef
-    last_write_checksum: sha1:29fe23b34be578b52ec0b9e3d4fcf9193e53b69b
-    pristine_git_object: 2dfbd555c343fbd05f6c1af7a5cc47dedc8bda26
+    last_write_checksum: sha1:1cf8c0e36fabefe7b22d2d77e75af500fe35cfd5
+    pristine_git_object: ad0a28ae1751827ae470c98b792726e73c10734a
   docs/models/security.md:
     id: 452e4d4eb67a
     last_write_checksum: sha1:aca655265517704591bf87fb28f49a5dcc8a1ab9
@@ -319,8 +319,8 @@ trackedFiles:
     pristine_git_object: 7f1dd32e8a5a3c2c02519af121a88dd2988dd308
   pyproject.toml:
     id: 5d07e7d72637
-    last_write_checksum: sha1:f47a328d7fb4ea32e58dde47042717eab2261136
-    pristine_git_object: c5e324915ee7477d4905e29bd6537c480505ecd9
+    last_write_checksum: sha1:5fcd3f323e89a14c22d46061a9d229edbf699a3b
+    pristine_git_object: 3beda600c0de9536449c429dcf20316d1289e24a
   scripts/prepare_readme.py:
     id: e0c5957a6035
     last_write_checksum: sha1:4b984c94abe837f23ac8b84f3cf5e359643d61b7
@@ -347,8 +347,8 @@ trackedFiles:
     pristine_git_object: 2768f18d7f08e9a874e777a453afbf85fb166281
   src/lambdadb/_version.py:
     id: 6ce787a3c8c4
-    last_write_checksum: sha1:e293dae00d14186feedc211456a0d06fec322617
-    pristine_git_object: b99181f48b4db4dc5bff5e2b329feef22d36a879
+    last_write_checksum: sha1:2d25e3a493023b0ac17ece4e5783090760701df0
+    pristine_git_object: ed6a012839735b7e1b1d5edf38f50e61cdf8f1bc
   src/lambdadb/basesdk.py:
     id: c7565f37bd02
     last_write_checksum: sha1:3d92e3bd76d8987ae1f7d84f4a707a6a522bcd29
@@ -435,8 +435,8 @@ trackedFiles:
     pristine_git_object: ed1239ce9f832f2a6b2b495d26719f0c0ed5ab5e
   src/lambdadb/models/fetchdocsop.py:
     id: ff8c49c33017
-    last_write_checksum: sha1:ca63d7cf05e322764c8594043cb6fb967730dbb4
-    pristine_git_object: 4c911a612740b91be6f8d71248132a88dba28162
+    last_write_checksum: sha1:b7ec68e17f9b832a73d3be7584407fff6b5d167c
+    pristine_git_object: e1c5e7229f3dcbd9c3c667a9fada2be4c24dcff8
   src/lambdadb/models/fieldsselector_union.py:
     id: 850658c82392
     last_write_checksum: sha1:f60548089300756e442f2ac103c8acc493c88c26
@@ -475,8 +475,8 @@ trackedFiles:
     pristine_git_object: 160d1ec2790a77fedd2de89a518928e675981ffc
   src/lambdadb/models/querycollectionop.py:
     id: 097d254124d8
-    last_write_checksum: sha1:4f8bf1d723503bac4999547bf5affc354eb79264
-    pristine_git_object: cb6b6a0dd3e08665267ab0652b698280f8a34ceb
+    last_write_checksum: sha1:607dcc9b290037b2c68abea49b3589e11da35843
+    pristine_git_object: a5caf038b904526621502f84b7763a5dd1c6aaf8
   src/lambdadb/models/security.py:
     id: 6ebd63eb9d10
     last_write_checksum: sha1:fb2c6892fd4cb5f0e71a71ddc44791dd43b41dc0
@@ -847,7 +847,7 @@ examples:
         application/json: {"size": 2, "query": {"queryString": {"query": "example-field1:example-value"}}, "consistentRead": false, "includeVectors": false}
       responses:
         "200":
-          application/json: {"took": 10, "maxScore": 1, "total": 2, "docs": [{"collection": "example-collection-name", "score": 1, "doc": {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"collection": "example-collection-name", "score": 0.9, "doc": {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}]}
+          application/json: {"took": 10, "maxScore": 1, "total": 2, "docs": [{"collection": "example-collection-name", "score": 1, "doc": {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"collection": "example-collection-name", "score": 0.9, "doc": {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}], "isDocsInline": true}
         "400":
           application/json: {"message": "Invalid request"}
         "401":
@@ -988,7 +988,7 @@ examples:
         application/json: {"ids": ["example-doc-id-1", "example-doc-id-2"], "consistentRead": false, "includeVectors": false}
       responses:
         "200":
-          application/json: {"total": 2, "took": 10, "docs": [{"collection": "example-collection-name", "doc": {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"collection": "example-collection-name", "doc": {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}]}
+          application/json: {"total": 2, "took": 10, "docs": [{"collection": "example-collection-name", "doc": {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]}}, {"collection": "example-collection-name", "doc": {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]}}], "isDocsInline": true}
         "400":
           application/json: {"message": "Invalid request"}
         "401":

@@ -143,8 +143,12 @@ class QueryCollectionResponseTypedDict(TypedDict):
     r"""Total number of documents returned."""
     docs: List[QueryCollectionDocTypedDict]
     r"""List of documents."""
+    is_docs_inline: bool
+    r"""Whether the list of documents is included."""
     max_score: NotRequired[float]
     r"""Maximum score."""
+    docs_url: NotRequired[str]
+    r"""Optional download URL for the list of documents."""
 
 
 class QueryCollectionResponse(BaseModel):
@@ -159,12 +163,18 @@ class QueryCollectionResponse(BaseModel):
     docs: List[QueryCollectionDoc]
     r"""List of documents."""
 
+    is_docs_inline: Annotated[bool, pydantic.Field(alias="isDocsInline")]
+    r"""Whether the list of documents is included."""
+
     max_score: Annotated[Optional[float], pydantic.Field(alias="maxScore")] = None
     r"""Maximum score."""
 
+    docs_url: Annotated[Optional[str], pydantic.Field(alias="docsUrl")] = None
+    r"""Optional download URL for the list of documents."""
+
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["maxScore"])
+        optional_fields = set(["maxScore", "docsUrl"])
         serialized = handler(self)
         m = {}
 
