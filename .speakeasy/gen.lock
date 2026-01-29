@@ -3,17 +3,17 @@ id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
   docChecksum: 02af71f10371100962200777fa17fefe
   docVersion: 1.1.1
-  speakeasyVersion: 1.693.0
-  generationVersion: 2.798.0
-  releaseVersion: 0.6.1
-  configChecksum: ccf343abca415cf670a8a8d6930a8da5
+  speakeasyVersion: 1.700.2
+  generationVersion: 2.801.2
+  releaseVersion: 0.6.2
+  configChecksum: 68c4e9bf1fcf03fe38bafb84c26debcc
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
 persistentEdits:
-  generation_id: ef6f110a-411a-4d5b-9b19-fac21e9d289f
-  pristine_commit_hash: 4c27b8dcc046ac1b1b49cae26aff0ebf520cec66
-  pristine_tree_hash: 72e446e82062cb7e615121273c394821b5015c17
+  generation_id: f41071b3-a6d0-4f50-bf21-777d7641c1d9
+  pristine_commit_hash: b20c5eb8f2c6b209dcf92b0456ff53c1a9639d84
+  pristine_tree_hash: 2130fb92ecdc020a7280227d18af4893cd250b85
 features:
   python:
     additionalDependencies: 1.0.0
@@ -319,8 +319,8 @@ trackedFiles:
     pristine_git_object: 7f1dd32e8a5a3c2c02519af121a88dd2988dd308
   pyproject.toml:
     id: 5d07e7d72637
-    last_write_checksum: sha1:5fcd3f323e89a14c22d46061a9d229edbf699a3b
-    pristine_git_object: 3beda600c0de9536449c429dcf20316d1289e24a
+    last_write_checksum: sha1:beea276514353e895cb635bde48f9c28ab3d8046
+    pristine_git_object: 011af66eb40b4ecba83fddae1bc38307c3836bcb
   scripts/prepare_readme.py:
     id: e0c5957a6035
     last_write_checksum: sha1:4b984c94abe837f23ac8b84f3cf5e359643d61b7
@@ -347,8 +347,8 @@ trackedFiles:
     pristine_git_object: 2768f18d7f08e9a874e777a453afbf85fb166281
   src/lambdadb/_version.py:
     id: 6ce787a3c8c4
-    last_write_checksum: sha1:2d25e3a493023b0ac17ece4e5783090760701df0
-    pristine_git_object: ed6a012839735b7e1b1d5edf38f50e61cdf8f1bc
+    last_write_checksum: sha1:bf11cc127f7cf68e2f605052f41373237f43de00
+    pristine_git_object: e961c5410e082486f6b937757024f429b86aa433
   src/lambdadb/basesdk.py:
     id: c7565f37bd02
     last_write_checksum: sha1:3d92e3bd76d8987ae1f7d84f4a707a6a522bcd29
