@@ -18,7 +18,7 @@ List documents in a collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="listDocs" method="get" path="/collections/{collectionName}/docs" -->
+<!-- UsageSnippet language="python" operationID="listDocs" method="get" path="/collections/{collectionName}/docs" example="example" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -64,7 +64,7 @@ Upsert documents into a collection. Note that the maximum supported payload size
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="upsertDocs" method="post" path="/collections/{collectionName}/docs/upsert" -->
+<!-- UsageSnippet language="python" operationID="upsertDocs" method="post" path="/collections/{collectionName}/docs/upsert" example="example" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -126,7 +126,7 @@ Request required info to upload documents.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="getBulkUpsertDocs" method="get" path="/collections/{collectionName}/docs/bulk-upsert" -->
+<!-- UsageSnippet language="python" operationID="getBulkUpsertDocs" method="get" path="/collections/{collectionName}/docs/bulk-upsert" example="example" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -169,7 +169,7 @@ Bulk upsert documents into a collection. Note that the maximum supported object 
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="bulkUpsertDocs" method="post" path="/collections/{collectionName}/docs/bulk-upsert" -->
+<!-- UsageSnippet language="python" operationID="bulkUpsertDocs" method="post" path="/collections/{collectionName}/docs/bulk-upsert" example="example" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -214,7 +214,7 @@ Update documents in a collection. Note that the maximum supported payload size i
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="updateDocs" method="post" path="/collections/{collectionName}/docs/update" -->
+<!-- UsageSnippet language="python" operationID="updateDocs" method="post" path="/collections/{collectionName}/docs/update" example="example" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -276,9 +276,9 @@ with LambdaDB(
 
 Delete documents by document IDs or query filter from a collection.
 
-### Example Usage
+### Example Usage: deleteByIds
 
-<!-- UsageSnippet language="python" operationID="deleteDocs" method="post" path="/collections/{collectionName}/docs/delete" -->
+<!-- UsageSnippet language="python" operationID="deleteDocs" method="post" path="/collections/{collectionName}/docs/delete" example="deleteByIds" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -291,6 +291,44 @@ with LambdaDB(
         "example-doc-id-1",
         "example-doc-id-2",
     ])
+
+    # Handle response
+    print(res)
+
+```
+### Example Usage: deleteByQuery
+
+<!-- UsageSnippet language="python" operationID="deleteDocs" method="post" path="/collections/{collectionName}/docs/delete" example="deleteByQuery" -->
+```python
+from lambdadb import LambdaDB
+
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.docs.delete(collection_name="<value>", filter_={
+        "queryString": {
+            "query": "example-field1:example-value",
+        },
+    })
+
+    # Handle response
+    print(res)
+
+```
+### Example Usage: example
+
+<!-- UsageSnippet language="python" operationID="deleteDocs" method="post" path="/collections/{collectionName}/docs/delete" example="example" -->
+```python
+from lambdadb import LambdaDB
+
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.docs.delete(collection_name="<value>")
 
     # Handle response
     print(res)
@@ -328,7 +366,7 @@ Lookup and return documents by document IDs from a collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="fetchDocs" method="post" path="/collections/{collectionName}/docs/fetch" -->
+<!-- UsageSnippet language="python" operationID="fetchDocs" method="post" path="/collections/{collectionName}/docs/fetch" example="example" -->
 ```python
 from lambdadb import LambdaDB
 
