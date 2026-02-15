@@ -51,3 +51,9 @@ class PartitionConfig(BaseModel):
                     m[k] = val
 
         return m
+
+
+try:
+    PartitionConfig.model_rebuild()
+except NameError:
+    pass

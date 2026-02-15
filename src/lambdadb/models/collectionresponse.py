@@ -93,3 +93,9 @@ class CollectionResponse(BaseModel):
                     m[k] = val
 
         return m
+
+
+try:
+    CollectionResponse.model_rebuild()
+except NameError:
+    pass
