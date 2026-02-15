@@ -35,3 +35,9 @@ class BulkUpsertDocsRequest(BaseModel):
         BulkUpsertDocsRequestBody,
         FieldMetadata(request=RequestMetadata(media_type="application/json")),
     ]
+
+
+try:
+    BulkUpsertDocsRequestBody.model_rebuild()
+except NameError:
+    pass
