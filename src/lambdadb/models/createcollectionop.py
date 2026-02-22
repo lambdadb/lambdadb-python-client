@@ -86,3 +86,9 @@ class CreateCollectionResponse(BaseModel):
     r"""Created collection"""
 
     collection: CollectionResponse
+
+
+try:
+    CreateCollectionRequest.model_rebuild()
+except NameError:
+    pass
