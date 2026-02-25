@@ -91,8 +91,10 @@ It's also possible to write a standalone Python script without needing to set up
 
 from lambdadb import LambdaDB
 
-sdk = LambdaDB(
-  # SDK arguments
+client = LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
 )
 
 # Rest of script here...
@@ -115,41 +117,52 @@ Generally, the SDK will work well with most IDEs out of the box. However, when u
 <!-- Start SDK Example Usage [usage] -->
 ## SDK Example Usage
 
-### Example
+### Recommended: collection-scoped API
+
+Use `base_url` and `project_name` (defaults: `https://api.lambdadb.ai`, `playground`) and the collection-scoped API for the best experience:
 
 ```python
-# Synchronous Example
 from lambdadb import LambdaDB
-
 
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
+    base_url="https://api.lambdadb.ai",  # optional, this is the default
+    project_name="playground",            # optional, this is the default
+) as client:
+    # Collection-scoped: no need to pass collection_name to every call
+    coll = client.collection("my_collection")
+    docs = coll.docs.list()
+    results = coll.query(query={"queryString": {"query": "some text"}})
+    coll.docs.upsert(docs=[{"id": "1", "text": "hello"}])
+```
 
-    res = lambda_db.collections.list()
+### List all collections (sync / async)
 
-    # Handle response
+```python
+# Synchronous
+from lambdadb import LambdaDB
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    res = client.collections.list()
     print(res)
 ```
 
-</br>
-
-The same SDK client can also be used to make asynchronous requests by importing asyncio.
-
 ```python
-# Asynchronous Example
+# Asynchronous
 import asyncio
 from lambdadb import LambdaDB
 
 async def main():
-
     async with LambdaDB(
         project_api_key="<YOUR_PROJECT_API_KEY>",
-    ) as lambda_db:
-
-        res = await lambda_db.collections.list_async()
-
-        # Handle response
+        base_url="https://api.lambdadb.ai",
+        project_name="playground",
+    ) as client:
+        res = await client.collections.list_async()
         print(res)
 
 asyncio.run(main())
@@ -167,25 +180,24 @@ This SDK supports the following security scheme globally:
 | ----------------- | ------ | ------- | -------------------------- |
 | `project_api_key` | apiKey | API key | `LAMBDADB_PROJECT_API_KEY` |
 
-To authenticate with the API the `project_api_key` parameter must be set when initializing the SDK client instance. For example:
+To authenticate with the API the `project_api_key` parameter must be set when initializing the SDK client instance. Use `base_url` and `project_name` for the API endpoint (defaults: `https://api.lambdadb.ai`, `playground`). For example:
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.list()
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    res = client.collections.list()
     print(res)
-
 ```
 <!-- End Authentication [security] -->
 
 <!-- Start Available Resources and Operations [operations] -->
 ## Available Resources and Operations
+
+**Recommended:** Use the collection-scoped API: `client.collection("name").docs.list()`, `.docs.fetch()`, `.docs.upsert()`, etc., and `client.collection("name").query()` for search. This matches the REST API structure and avoids repeating the collection name.
 
 <details open>
 <summary>Available methods</summary>
@@ -222,17 +234,15 @@ To change the default retry strategy for a single API call, simply provide a `Re
 from lambdadb import LambdaDB
 from lambdadb.utils import BackoffStrategy, RetryConfig
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.list(,
-        RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False))
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    res = client.collections.list(
+        retries=RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False)
+    )
     print(res)
-
 ```
 
 If you'd like to override the default retry strategy for all operations that support retries, you can use the `retry_config` optional parameter when initializing the SDK:
@@ -240,17 +250,14 @@ If you'd like to override the default retry strategy for all operations that sup
 from lambdadb import LambdaDB
 from lambdadb.utils import BackoffStrategy, RetryConfig
 
-
 with LambdaDB(
-    retry_config=RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False),
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.list()
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+    retry_config=RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False),
+) as client:
+    res = client.collections.list()
     print(res)
-
 ```
 <!-- End Retries [retries] -->
 
@@ -272,19 +279,15 @@ with LambdaDB(
 ```python
 from lambdadb import LambdaDB, errors
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
     res = None
     try:
-
-        res = lambda_db.collections.list()
-
-        # Handle response
+        res = client.collections.list()
         print(res)
-
-
     except errors.LambdaDBError as e:
         # The base class for HTTP error responses
         print(e.message)
@@ -329,50 +332,51 @@ with LambdaDB(
 <!-- Start Server Selection [server] -->
 ## Server Selection
 
-### Server Variables
+### Recommended: base_url and project_name
 
-The default server `https://{projectHost}` contains variables and is set to `https://api.lambdadb.com/projects/default` by default. To override default values, the following parameters are available when initializing the SDK client instance:
+Use `base_url` and `project_name` so the client uses the REST path `{base_url}/projects/{project_name}` (e.g. `https://api.lambdadb.ai/projects/playground`).
 
-| Variable      | Parameter           | Default                               | Description                |
-| ------------- | ------------------- | ------------------------------------- | -------------------------- |
-| `projectHost` | `project_host: str` | `"api.lambdadb.com/projects/default"` | The project URL of the API |
-
-#### Example
+| Parameter         | Default                     | Description                    |
+| ----------------- | --------------------------- | ------------------------------ |
+| `base_url: str`   | `"https://api.lambdadb.ai"` | API base URL.                  |
+| `project_name: str` | `"playground"`             | Project name (path segment).   |
 
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
-    server_idx=0,
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    res = client.collections.list()
+    print(res)
+```
+
+### Legacy (deprecated)
+
+`server_url` and `project_host` are deprecated and will be removed in the next major version. Prefer `base_url` and `project_name` above.
+
+| Variable      | Parameter           | Default (legacy)                    | Description                |
+| ------------- | ------------------- | ----------------------------------- | -------------------------- |
+| `projectHost` | `project_host: str` | `"api.lambdadb.com/projects/default"` | The project URL of the API |
+
+```python
+# Deprecated: use base_url + project_name instead
+with LambdaDB(
     project_host="api.lambdadb.com/projects/default",
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
-
     res = lambda_db.collections.list()
-
-    # Handle response
-    print(res)
-
 ```
 
-### Override Server URL Per-Client
-
-The default server can be overridden globally by passing a URL to the `server_url: str` optional parameter when initializing the SDK client instance. For example:
 ```python
-from lambdadb import LambdaDB
-
-
+# Deprecated: use base_url + project_name instead
 with LambdaDB(
     server_url="https://api.lambdadb.com/projects/default",
     project_api_key="<YOUR_PROJECT_API_KEY>",
 ) as lambda_db:
-
     res = lambda_db.collections.list()
-
-    # Handle response
-    print(res)
-
 ```
 <!-- End Server Selection [server] -->
 
@@ -389,7 +393,12 @@ from lambdadb import LambdaDB
 import httpx
 
 http_client = httpx.Client(headers={"x-custom-header": "someValue"})
-s = LambdaDB(client=http_client)
+client = LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+    client=http_client,
+)
 ```
 
 or you could wrap the client with your own custom logic:
@@ -453,7 +462,12 @@ class CustomClient(AsyncHttpClient):
             extensions=extensions,
         )
 
-s = LambdaDB(async_client=CustomClient(httpx.AsyncClient()))
+client = LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+    async_client=CustomClient(httpx.AsyncClient()),
+)
 ```
 <!-- End Custom HTTP Client [http-client] -->
 
@@ -466,20 +480,24 @@ The `LambdaDB` class implements the context manager protocol and registers a fin
 
 ```python
 from lambdadb import LambdaDB
-def main():
 
+def main():
     with LambdaDB(
         project_api_key="<YOUR_PROJECT_API_KEY>",
-    ) as lambda_db:
+        base_url="https://api.lambdadb.ai",
+        project_name="playground",
+    ) as client:
         # Rest of application here...
-
+        coll = client.collection("my_collection")
+        coll.docs.list()
 
 # Or when using async:
 async def amain():
-
     async with LambdaDB(
         project_api_key="<YOUR_PROJECT_API_KEY>",
-    ) as lambda_db:
+        base_url="https://api.lambdadb.ai",
+        project_name="playground",
+    ) as client:
         # Rest of application here...
 ```
 <!-- End Resource Management [resource-management] -->
@@ -495,7 +513,12 @@ from lambdadb import LambdaDB
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-s = LambdaDB(debug_logger=logging.getLogger("lambdadb"))
+client = LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+    debug_logger=logging.getLogger("lambdadb"),
+)
 ```
 
 You can also enable a default debug logger by setting an environment variable `LAMBDADB_DEBUG` to true.

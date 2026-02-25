@@ -17,20 +17,16 @@ List all collections in an existing project.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="listCollections" method="get" path="/collections" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.list()
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    res = client.collections.list()
     print(res)
-
 ```
 
 ### Parameters
@@ -59,32 +55,22 @@ Create a collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="createCollection" method="post" path="/collections" -->
 ```python
 from lambdadb import LambdaDB, models
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.create(collection_name="example-collection-name", index_configs={
-        "example-field1": {
-            "type": models.TypeText.TEXT,
-            "analyzers": [
-                models.Analyzer.ENGLISH,
-            ],
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    res = client.collections.create(
+        collection_name="example-collection-name",
+        index_configs={
+            "example-field1": {"type": models.TypeText.TEXT, "analyzers": [models.Analyzer.ENGLISH]},
+            "example-field2": {"type": models.TypeVector.VECTOR, "dimensions": 128, "similarity": models.Similarity.COSINE},
         },
-        "example-field2": {
-            "type": models.TypeVector.VECTOR,
-            "dimensions": 128,
-            "similarity": models.Similarity.COSINE,
-        },
-    })
-
-    # Handle response
+    )
     print(res)
-
 ```
 
 ### Parameters
@@ -121,20 +107,16 @@ Delete an existing collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="deleteCollection" method="delete" path="/collections/{collectionName}" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.delete(collection_name="<value>")
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    res = client.collections.delete(collection_name="my_collection")
     print(res)
-
 ```
 
 ### Parameters
@@ -164,20 +146,16 @@ Get metadata of an existing collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="getCollection" method="get" path="/collections/{collectionName}" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.get(collection_name="<value>")
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    res = client.collections.get(collection_name="my_collection")
     print(res)
-
 ```
 
 ### Parameters
@@ -207,35 +185,23 @@ Configure a collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="updateCollection" method="patch" path="/collections/{collectionName}" -->
 ```python
 from lambdadb import LambdaDB, models
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.update(collection_name="<value>", index_configs={
-        "example-field1": {
-            "type": models.TypeText.TEXT,
-            "analyzers": [
-                models.Analyzer.ENGLISH,
-            ],
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    res = client.collections.update(
+        collection_name="my_collection",
+        index_configs={
+            "example-field1": {"type": models.TypeText.TEXT, "analyzers": [models.Analyzer.ENGLISH]},
+            "example-field2": {"type": models.TypeVector.VECTOR, "dimensions": 128, "similarity": models.Similarity.COSINE},
+            "example-field3": {"type": models.Type.KEYWORD},
         },
-        "example-field2": {
-            "type": models.TypeVector.VECTOR,
-            "dimensions": 128,
-            "similarity": models.Similarity.COSINE,
-        },
-        "example-field3": {
-            "type": models.Type.KEYWORD,
-        },
-    })
-
-    # Handle response
+    )
     print(res)
-
 ```
 
 ### Parameters
@@ -267,24 +233,17 @@ Search a collection with a query and return the most similar documents.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="queryCollection" method="post" path="/collections/{collectionName}/query" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.query(collection_name="<value>", query={
-        "queryString": {
-            "query": "example-field1:example-value",
-        },
-    }, size=2, consistent_read=False, include_vectors=False)
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    res = coll.query(query={"queryString": {"query": "example-field1:example-value"}}, size=2)
     print(res)
-
 ```
 
 ### Parameters

@@ -2,6 +2,23 @@
 
 ## Overview
 
+Use the collection-scoped API with `base_url` and `project_name`:
+
+```python
+from lambdadb import LambdaDB
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    coll.docs.list()           # list documents
+    coll.docs.fetch(ids=[...]) # fetch by IDs
+    coll.docs.upsert(docs=[...])
+    coll.query(query={...})    # search (collection-level)
+```
+
 ### Available Operations
 
 * [list_docs](#list_docs) - List documents in a collection.
@@ -18,27 +35,26 @@ List documents in a collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="listDocs" method="get" path="/collections/{collectionName}/docs" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.docs.list_docs(collection_name="<value>")
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    res = coll.docs.list()
     print(res)
-
 ```
+
+When using the recommended API (`coll.docs.list()`), the collection is already bound; only the parameters below apply (e.g. `collection_name` is not used).
 
 ### Parameters
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
+| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name (legacy API only; not used with `coll.docs.list()`). |
 | `size`                                                              | *Optional[int]*                                                     | :heavy_minus_sign:                                                  | Max number of documents to return at once.                          |
 | `page_token`                                                        | *Optional[str]*                                                     | :heavy_minus_sign:                                                  | Next page token.                                                    |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
@@ -64,44 +80,29 @@ Upsert documents into a collection. Note that the maximum supported payload size
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="upsertDocs" method="post" path="/collections/{collectionName}/docs/upsert" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.docs.upsert(collection_name="<value>", docs=[
-        {
-            "example-field1": "example-value1",
-            "example-field2": [
-                0.1,
-                0.2,
-                0.3,
-            ],
-        },
-        {
-            "example-field1": "example-value2",
-            "example-field2": [
-                0.4,
-                0.5,
-                0.6,
-            ],
-        },
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    res = coll.docs.upsert(docs=[
+        {"example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]},
+        {"example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]},
     ])
-
-    # Handle response
     print(res)
-
 ```
+
+When using the recommended API (`coll.docs.upsert()`), the collection is already bound; only the parameters below apply (e.g. `collection_name` is not used).
 
 ### Parameters
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
+| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name (legacy API only; not used with `coll.docs.upsert()`). |
 | `docs`                                                              | List[Dict[str, *Any*]]                                              | :heavy_check_mark:                                                  | A list of documents to upsert.                                      |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
@@ -126,27 +127,26 @@ Request required info to upload documents.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="getBulkUpsertDocs" method="get" path="/collections/{collectionName}/docs/bulk-upsert" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.docs.get_bulk_upsert(collection_name="<value>")
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    res = coll.docs.get_bulk_upsert()
     print(res)
-
 ```
+
+When using the recommended API (`coll.docs.get_bulk_upsert()`), the collection is already bound; only the parameters below apply (e.g. `collection_name` is not used).
 
 ### Parameters
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
+| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name (legacy API only; not used with `coll.docs.get_bulk_upsert()`). |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
 ### Response
@@ -169,27 +169,26 @@ Bulk upsert documents into a collection. Note that the maximum supported object 
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="bulkUpsertDocs" method="post" path="/collections/{collectionName}/docs/bulk-upsert" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.docs.bulk_upsert(collection_name="<value>", object_key="example-object-key")
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    res = coll.docs.bulk_upsert(object_key="example-object-key")
     print(res)
-
 ```
+
+When using the recommended API (`coll.docs.bulk_upsert()`), the collection is already bound; only the parameters below apply (e.g. `collection_name` is not used).
 
 ### Parameters
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
+| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name (legacy API only; not used with `coll.docs.bulk_upsert()`). |
 | `object_key`                                                        | *str*                                                               | :heavy_check_mark:                                                  | Object key uploaded based on bulk upsert info.                      |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
@@ -214,46 +213,29 @@ Update documents in a collection. Note that the maximum supported payload size i
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="updateDocs" method="post" path="/collections/{collectionName}/docs/update" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.docs.update(collection_name="<value>", docs=[
-        {
-            "id": "example-id1",
-            "example-field1": "example-value1",
-            "example-field2": [
-                0.1,
-                0.2,
-                0.3,
-            ],
-        },
-        {
-            "id": "example-id2",
-            "example-field1": "example-value2",
-            "example-field2": [
-                0.4,
-                0.5,
-                0.6,
-            ],
-        },
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    res = coll.docs.update(docs=[
+        {"id": "example-id1", "example-field1": "example-value1", "example-field2": [0.1, 0.2, 0.3]},
+        {"id": "example-id2", "example-field1": "example-value2", "example-field2": [0.4, 0.5, 0.6]},
     ])
-
-    # Handle response
     print(res)
-
 ```
+
+When using the recommended API (`coll.docs.update()`), the collection is already bound; only the parameters below apply (e.g. `collection_name` is not used).
 
 ### Parameters
 
 | Parameter                                                                           | Type                                                                                | Required                                                                            | Description                                                                         |
 | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `collection_name`                                                                   | *str*                                                                               | :heavy_check_mark:                                                                  | Collection name.                                                                    |
+| `collection_name`                                                                   | *str*                                                                               | :heavy_check_mark:                                                                  | Collection name (legacy API only; not used with `coll.docs.update()`).              |
 | `docs`                                                                              | List[Dict[str, *Any*]]                                                              | :heavy_check_mark:                                                                  | A list of documents to update. Each document must contain 'id' field to be updated. |
 | `retries`                                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                    | :heavy_minus_sign:                                                                  | Configuration to override the default retry behavior of the client.                 |
 
@@ -278,30 +260,26 @@ Delete documents by document IDs or query filter from a collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="deleteDocs" method="post" path="/collections/{collectionName}/docs/delete" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.docs.delete(collection_name="<value>", ids=[
-        "example-doc-id-1",
-        "example-doc-id-2",
-    ])
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    res = coll.docs.delete(ids=["example-doc-id-1", "example-doc-id-2"])
     print(res)
-
 ```
+
+When using the recommended API (`coll.docs.delete()`), the collection is already bound; only the parameters below apply (e.g. `collection_name` is not used).
 
 ### Parameters
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name.                                                    |
+| `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name (legacy API only; not used with `coll.docs.delete()`). |
 | `ids`                                                               | List[*str*]                                                         | :heavy_minus_sign:                                                  | A list of document IDs.                                             |
 | `filter_`                                                           | Dict[str, *Any*]                                                    | :heavy_minus_sign:                                                  | Query filter.                                                       |
 | `partition_filter`                                                  | [Optional[models.PartitionFilter]](../../models/partitionfilter.md) | :heavy_minus_sign:                                                  | N/A                                                                 |
@@ -328,30 +306,26 @@ Lookup and return documents by document IDs from a collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="fetchDocs" method="post" path="/collections/{collectionName}/docs/fetch" -->
 ```python
 from lambdadb import LambdaDB
 
-
 with LambdaDB(
     project_api_key="<YOUR_PROJECT_API_KEY>",
-) as lambda_db:
-
-    res = lambda_db.collections.docs.fetch(collection_name="<value>", ids=[
-        "example-doc-id-1",
-        "example-doc-id-2",
-    ], consistent_read=False, include_vectors=False)
-
-    # Handle response
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    res = coll.docs.fetch(ids=["example-doc-id-1", "example-doc-id-2"])
     print(res)
-
 ```
+
+When using the recommended API (`coll.docs.fetch()`), the collection is already bound; only the parameters below apply (e.g. `collection_name` is not used).
 
 ### Parameters
 
 | Parameter                                                                                                                                                                                                                   | Type                                                                                                                                                                                                                        | Required                                                                                                                                                                                                                    | Description                                                                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `collection_name`                                                                                                                                                                                                           | *str*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Collection name.                                                                                                                                                                                                            |
+| `collection_name`                                                                                                                                                                                                           | *str*                                                                                                                                                                                                                       | :heavy_check_mark:                                                                                                                                                                                                          | Collection name (legacy API only; not used with `coll.docs.fetch()`).                                                                                                                                                       |
 | `ids`                                                                                                                                                                                                                       | List[*str*]                                                                                                                                                                                                                 | :heavy_check_mark:                                                                                                                                                                                                          | A list of document IDs to fetch. Note that the maximum number of document IDs is 100.                                                                                                                                       |
 | `consistent_read`                                                                                                                                                                                                           | *Optional[bool]*                                                                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value. |
 | `include_vectors`                                                                                                                                                                                                           | *Optional[bool]*                                                                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | If your application need to include vector values in the response, set includeVectors to true.                                                                                                                              |

@@ -1,10 +1,10 @@
 
 [project]
 name = "lambdadb"
-version = "0.6.1"
+version = "0.7.0.dev0"
 description = "The Official LambdaDB Python SDK."
 authors = [{ name = "Functional Systems, Inc." },]
-readme = "README-PYPI.md"
+readme = "README.md"
 requires-python = ">=3.9.2"
 dependencies = [
     "httpcore >=1.0.9",
