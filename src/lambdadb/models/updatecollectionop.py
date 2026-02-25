@@ -50,3 +50,9 @@ class UpdateCollectionResponse(BaseModel):
     r"""Updated collection"""
 
     collection: CollectionResponse
+
+
+try:
+    UpdateCollectionRequestBody.model_rebuild()
+except NameError:
+    pass

@@ -15,9 +15,43 @@
 
 List all collections in an existing project.
 
-### Example Usage
+### Example Usage: clonedCollection
 
-<!-- UsageSnippet language="python" operationID="listCollections" method="get" path="/collections" -->
+<!-- UsageSnippet language="python" operationID="listCollections" method="get" path="/collections" example="clonedCollection" -->
+```python
+from lambdadb import LambdaDB
+
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.list()
+
+    # Handle response
+    print(res)
+
+```
+### Example Usage: forkedCollection
+
+<!-- UsageSnippet language="python" operationID="listCollections" method="get" path="/collections" example="forkedCollection" -->
+```python
+from lambdadb import LambdaDB
+
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.list()
+
+    # Handle response
+    print(res)
+
+```
+### Example Usage: normalCollection
+
+<!-- UsageSnippet language="python" operationID="listCollections" method="get" path="/collections" example="normalCollection" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -57,9 +91,60 @@ with LambdaDB(
 
 Create a collection.
 
-### Example Usage
+### Example Usage: cloneCollection
 
-<!-- UsageSnippet language="python" operationID="createCollection" method="post" path="/collections" -->
+<!-- UsageSnippet language="python" operationID="createCollection" method="post" path="/collections" example="cloneCollection" -->
+```python
+from lambdadb import LambdaDB
+
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.create(collection_name="example-collection-name", source_project_name="example-source-project-name", source_collection_name="example-source-collection-name", source_datetime="2023-10-01T12:00:00Z", source_project_api_key="example-source-project-api-key")
+
+    # Handle response
+    print(res)
+
+```
+### Example Usage: example
+
+<!-- UsageSnippet language="python" operationID="createCollection" method="post" path="/collections" example="example" -->
+```python
+from lambdadb import LambdaDB
+
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.create(collection_name="<value>")
+
+    # Handle response
+    print(res)
+
+```
+### Example Usage: forkedCollection
+
+<!-- UsageSnippet language="python" operationID="createCollection" method="post" path="/collections" example="forkedCollection" -->
+```python
+from lambdadb import LambdaDB
+
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.create(collection_name="example-collection-name", source_project_name="example-source-project-name", source_collection_name="example-source-collection-name", source_datetime="2023-10-01T12:00:00Z", source_project_api_key="example-source-project-api-key")
+
+    # Handle response
+    print(res)
+
+```
+### Example Usage: normalCollection
+
+<!-- UsageSnippet language="python" operationID="createCollection" method="post" path="/collections" example="normalCollection" -->
 ```python
 from lambdadb import LambdaDB, models
 
@@ -121,7 +206,7 @@ Delete an existing collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="deleteCollection" method="delete" path="/collections/{collectionName}" -->
+<!-- UsageSnippet language="python" operationID="deleteCollection" method="delete" path="/collections/{collectionName}" example="example" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -164,7 +249,7 @@ Get metadata of an existing collection.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="getCollection" method="get" path="/collections/{collectionName}" -->
+<!-- UsageSnippet language="python" operationID="getCollection" method="get" path="/collections/{collectionName}" example="normalCollection" -->
 ```python
 from lambdadb import LambdaDB
 
@@ -205,9 +290,9 @@ with LambdaDB(
 
 Configure a collection.
 
-### Example Usage
+### Example Usage: example
 
-<!-- UsageSnippet language="python" operationID="updateCollection" method="patch" path="/collections/{collectionName}" -->
+<!-- UsageSnippet language="python" operationID="updateCollection" method="patch" path="/collections/{collectionName}" example="example" -->
 ```python
 from lambdadb import LambdaDB, models
 
@@ -230,6 +315,35 @@ with LambdaDB(
         },
         "example-field3": {
             "type": models.Type.KEYWORD,
+        },
+    })
+
+    # Handle response
+    print(res)
+
+```
+### Example Usage: normalCollection
+
+<!-- UsageSnippet language="python" operationID="updateCollection" method="patch" path="/collections/{collectionName}" example="normalCollection" -->
+```python
+from lambdadb import LambdaDB, models
+
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+) as lambda_db:
+
+    res = lambda_db.collections.update(collection_name="<value>", index_configs={
+        "key": {
+            "type": models.Type.KEYWORD,
+        },
+        "key1": {
+            "type": models.Type.KEYWORD,
+        },
+        "key2": {
+            "type": models.TypeVector.VECTOR,
+            "dimensions": 884939,
+            "similarity": models.Similarity.COSINE,
         },
     })
 
@@ -267,7 +381,7 @@ Search a collection with a query and return the most similar documents.
 
 ### Example Usage
 
-<!-- UsageSnippet language="python" operationID="queryCollection" method="post" path="/collections/{collectionName}/query" -->
+<!-- UsageSnippet language="python" operationID="queryCollection" method="post" path="/collections/{collectionName}/query" example="example" -->
 ```python
 from lambdadb import LambdaDB
 

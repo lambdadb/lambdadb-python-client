@@ -140,3 +140,13 @@ class FetchDocsResponse(BaseModel):
                     m[k] = val
 
         return m
+
+
+try:
+    FetchDocsRequestBody.model_rebuild()
+except NameError:
+    pass
+try:
+    FetchDocsResponse.model_rebuild()
+except NameError:
+    pass

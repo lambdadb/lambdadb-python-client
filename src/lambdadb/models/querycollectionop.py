@@ -187,3 +187,13 @@ class QueryCollectionResponse(BaseModel):
                     m[k] = val
 
         return m
+
+
+try:
+    QueryCollectionRequestBody.model_rebuild()
+except NameError:
+    pass
+try:
+    QueryCollectionResponse.model_rebuild()
+except NameError:
+    pass

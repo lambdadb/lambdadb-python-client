@@ -20,3 +20,9 @@ class PartitionFilter(BaseModel):
 
     in_: Annotated[List[str], pydantic.Field(alias="in")]
     r"""Partition values to filter."""
+
+
+try:
+    PartitionFilter.model_rebuild()
+except NameError:
+    pass

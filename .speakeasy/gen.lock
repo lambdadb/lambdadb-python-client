@@ -1,24 +1,24 @@
 lockVersion: 2.0.0
 id: c85b82f0-3d3c-4545-8562-7e5b5a78f53e
 management:
-  docChecksum: 02af71f10371100962200777fa17fefe
+  docChecksum: 33809ce2df5cf0fc53f3e96679d66900
   docVersion: 1.1.1
-  speakeasyVersion: 1.693.0
-  generationVersion: 2.798.0
-  releaseVersion: 0.6.1
-  configChecksum: ccf343abca415cf670a8a8d6930a8da5
+  speakeasyVersion: 1.728.0
+  generationVersion: 2.839.0
+  releaseVersion: 0.7.0
+  configChecksum: 1abcd6eb1e477a7d2238102a5786b368
   repoURL: https://github.com/lambdadb/lambdadb-python-client.git
   installationURL: https://github.com/lambdadb/lambdadb-python-client.git
   published: true
 persistentEdits:
-  generation_id: ef6f110a-411a-4d5b-9b19-fac21e9d289f
-  pristine_commit_hash: 4c27b8dcc046ac1b1b49cae26aff0ebf520cec66
-  pristine_tree_hash: 72e446e82062cb7e615121273c394821b5015c17
+  generation_id: 9e2e617b-1a12-4f53-9fb3-8dd849190323
+  pristine_commit_hash: 92e254ddd074343cd883e73f784e2ea7a25fcb5d
+  pristine_tree_hash: 0e026e183dade98d51b95fe3cdec0d344f275f5f
 features:
   python:
     additionalDependencies: 1.0.0
-    constsAndDefaults: 1.0.5
-    core: 5.23.18
+    constsAndDefaults: 1.0.7
+    core: 6.0.12
     defaultEnabledRetries: 0.2.0
     devContainers: 3.0.0
     enumUnions: 0.1.0
@@ -26,16 +26,16 @@ features:
     examples: 3.0.2
     flatRequests: 1.0.1
     flattening: 3.1.1
-    globalSecurity: 3.0.4
+    globalSecurity: 3.0.5
     globalSecurityCallbacks: 1.0.0
     globalSecurityFlattening: 1.0.0
     globalServerURLs: 3.2.0
     methodArguments: 1.0.2
-    nameOverrides: 3.0.1
-    responseFormat: 1.0.1
-    retries: 3.0.3
+    nameOverrides: 3.0.3
+    responseFormat: 1.1.0
+    retries: 3.0.4
     sdkHooks: 1.2.1
-    unions: 3.1.2
+    unions: 3.1.4
 trackedFiles:
   .devcontainer/README.md:
     id: b170c0f184ac
@@ -299,12 +299,12 @@ trackedFiles:
     pristine_git_object: 69dd549ec7f5f885101d08dd502e25748183aebf
   docs/sdks/collections/README.md:
     id: 7985e64efccf
-    last_write_checksum: sha1:12400cecdc90060e9dfb653937c7e2ac21413c9c
-    pristine_git_object: cc325d615b9624dbd33c0c086c514cf926d8e917
+    last_write_checksum: sha1:bf9f7542fcb246a19594fd744721f1e921a52932
+    pristine_git_object: a6b155ec31417b4492121ff8f203128bbd0e4f4a
   docs/sdks/docs/README.md:
     id: 38e21ef377d8
-    last_write_checksum: sha1:dd33d66e0b0684f34f3555a7bf823231a39e7622
-    pristine_git_object: 9c3db7d1b9ebdd2477f089fde7f0ba12a55441f8
+    last_write_checksum: sha1:ce1e26af13bb55a81c2adb7669495e38ca06268d
+    pristine_git_object: 559371c3ba6c009f894384818ba8f8de6b5169dd
   poetry.toml:
     id: a81ade82122a
     last_write_checksum: sha1:2242305e29dc6921bdf5b200aea5d4bf67830230
@@ -315,12 +315,12 @@ trackedFiles:
     pristine_git_object: 3e38f1a929f7d6b1d6de74604aa87e3d8f010544
   pylintrc:
     id: 7ce8b9f946e6
-    last_write_checksum: sha1:d99516d03b4492a038ef908be7aa202d914d1dcf
-    pristine_git_object: 7f1dd32e8a5a3c2c02519af121a88dd2988dd308
+    last_write_checksum: sha1:fc254fc871c3accee75f03e3f71307f7a894235b
+    pristine_git_object: fde5e0418e98324b2b3b2a8e02559e575b2f6cfa
   pyproject.toml:
     id: 5d07e7d72637
-    last_write_checksum: sha1:5fcd3f323e89a14c22d46061a9d229edbf699a3b
-    pristine_git_object: 3beda600c0de9536449c429dcf20316d1289e24a
+    last_write_checksum: sha1:e32f38294f5dcd1cfa9857189dac6e8eccadef73
+    pristine_git_object: 54fb1b4fd859679d3d91f146027d8ce7734d5f4a
   scripts/prepare_readme.py:
     id: e0c5957a6035
     last_write_checksum: sha1:4b984c94abe837f23ac8b84f3cf5e359643d61b7
@@ -347,8 +347,8 @@ trackedFiles:
     pristine_git_object: 2768f18d7f08e9a874e777a453afbf85fb166281
   src/lambdadb/_version.py:
     id: 6ce787a3c8c4
-    last_write_checksum: sha1:2d25e3a493023b0ac17ece4e5783090760701df0
-    pristine_git_object: ed6a012839735b7e1b1d5edf38f50e61cdf8f1bc
+    last_write_checksum: sha1:a2fe4db9a2cf8c457302b2170dccca9e343808b6
+    pristine_git_object: dadb631c03c3fae133b754187f4c81e3bbb9e170
   src/lambdadb/basesdk.py:
     id: c7565f37bd02
     last_write_checksum: sha1:3d92e3bd76d8987ae1f7d84f4a707a6a522bcd29
@@ -363,8 +363,8 @@ trackedFiles:
     pristine_git_object: 39f43c16e5cad8f9d71fbe3711e64b58ced56e3b
   src/lambdadb/errors/__init__.py:
     id: fbb1baf2c47f
-    last_write_checksum: sha1:ba30b42b2fe0ab3d0dbcf79b5e7e34e4ea79cdc2
-    pristine_git_object: 7f09b8149a958493fa7fdd64ae11dc8933b5ddc4
+    last_write_checksum: sha1:152393971bc6dab45b9e113f67349664dc4e12da
+    pristine_git_object: 7c6da52ad732f52b6026aeef69c543c00bf3b019
   src/lambdadb/errors/apierror.py:
     id: 776ed5640128
     last_write_checksum: sha1:d546c3984f10bad762ed48f35c9b8a0a1595f64c
@@ -411,72 +411,72 @@ trackedFiles:
     pristine_git_object: 89560b566073785535643e694c112bedbd3db13d
   src/lambdadb/models/__init__.py:
     id: 99247384301f
-    last_write_checksum: sha1:fcb1ff96019c7f591a4c12ed4b4b29f03f712b27
-    pristine_git_object: 2b069009e48e1ce3a6d4852a72b4eabafe9e1e5b
+    last_write_checksum: sha1:8380fd6b8dc20578993632388687d5d88abf64a3
+    pristine_git_object: 31b98bbfbaa14ac41e2d7297031be38b6fbb1e33
   src/lambdadb/models/bulkupsertdocsop.py:
     id: f5986a40cf02
-    last_write_checksum: sha1:046eb5ee23e9521ee0d14472ea059bbbd8cd6ea4
-    pristine_git_object: 4a83ad3b61a6fdd017ec85576dc0dc2f4b9038b2
+    last_write_checksum: sha1:fdda910e896941f8e8b852aadd35ae17372035ab
+    pristine_git_object: b4998d5e58b3ce5736b5954e7ca366112f159269
   src/lambdadb/models/collectionresponse.py:
     id: 57fe879fa156
-    last_write_checksum: sha1:141addcce431225c8f98d3c53be2e9d7de3fb1ad
-    pristine_git_object: 3d5944beed8655984247a556b8f5da33923f2d8a
+    last_write_checksum: sha1:b9b4b763d8e672fe4efd83974144352393aec06b
+    pristine_git_object: f5890a8fef4061ae2cf35827fe0b8eceac523301
   src/lambdadb/models/createcollectionop.py:
     id: 15eeafde6259
-    last_write_checksum: sha1:f8f785f03cd601cbbfa0fd0892938851e67e9fa1
-    pristine_git_object: 3a0311c690b66c1c8bf44b9f12cf285e12d4b43a
+    last_write_checksum: sha1:47dc30c35ac66c1d33993a4d6b7ac6a56b945821
+    pristine_git_object: 516bca3f53ac64dc4888eb81aad88669f4612bf0
   src/lambdadb/models/deletecollectionop.py:
     id: 6175d10094b7
     last_write_checksum: sha1:63dce9f86151adffa3cbe735d2968a76a81b80eb
     pristine_git_object: 4d72eaf7d551200eedf6961a8f5d77dea26199ab
   src/lambdadb/models/deletedocsop.py:
     id: 0a972139f1f4
-    last_write_checksum: sha1:3154e444a07db9e16cd63348add9729eefe65200
-    pristine_git_object: ed1239ce9f832f2a6b2b495d26719f0c0ed5ab5e
+    last_write_checksum: sha1:7bc96d30f6fb3b0d4d531359437135c010a6e01c
+    pristine_git_object: 86ae5325db5e3058ccdbffa6c0c159308a8b6676
   src/lambdadb/models/fetchdocsop.py:
     id: ff8c49c33017
-    last_write_checksum: sha1:b7ec68e17f9b832a73d3be7584407fff6b5d167c
-    pristine_git_object: e1c5e7229f3dcbd9c3c667a9fada2be4c24dcff8
+    last_write_checksum: sha1:b1e7b4cffb80c353963f8e4f81be7e6ac318e8cd
+    pristine_git_object: 5da541b7bcb60186969a3bbff511b86ff1a33ecf
   src/lambdadb/models/fieldsselector_union.py:
     id: 850658c82392
     last_write_checksum: sha1:f60548089300756e442f2ac103c8acc493c88c26
     pristine_git_object: 3b84acc2cd0c1725dd8bdffa0203c60ae493d289
   src/lambdadb/models/getbulkupsertdocsop.py:
     id: e2c4c9bb2c2f
-    last_write_checksum: sha1:d2bf55663130bb8f94ddcdac8fea3d55ee4e3551
-    pristine_git_object: 3e640ba254f0a139e0a1ddd0a16e3169299b8573
+    last_write_checksum: sha1:648e070551ba69db5a879af31767ec3ab47cdba2
+    pristine_git_object: cf0af11bce765c9cce472ce8c381609a3cf7e5b9
   src/lambdadb/models/getcollectionop.py:
     id: 741bdf22ef9a
     last_write_checksum: sha1:60999d8bedde06dec1f98fdf03fcda5f1cd823a9
     pristine_git_object: 18b181149f8340ea2675e7a602cd574ee5b501f1
   src/lambdadb/models/indexconfigs_union.py:
     id: 9945e1e74735
-    last_write_checksum: sha1:047ea03a8753e86a8b820c71a8e2ed2375d4cf37
-    pristine_git_object: f222f4cabd80859007bd0d6bf22163592c4f7be4
+    last_write_checksum: sha1:daae8ac73e71cfd2b6070512dda8585e80fff7df
+    pristine_git_object: 399e3f30075826cf5c2d1a260368c8334c9c950b
   src/lambdadb/models/listcollectionsop.py:
     id: 75c28843ce7f
     last_write_checksum: sha1:e180a3695a824fdc3120713cd90d904adb530c57
     pristine_git_object: c505f89631cbfbc0ea433a921d89ef103689605a
   src/lambdadb/models/listdocsop.py:
     id: 097c822b30b7
-    last_write_checksum: sha1:1db1d9c33c8cafdeb3d4351ea36422f1b59c6505
-    pristine_git_object: 4dcb5a95f18880c0231e82e62b9fdcb1c5560445
+    last_write_checksum: sha1:f27262cea281a798309d65f50c533c664b622083
+    pristine_git_object: aaa69a31f66f6162b5127a37e0194c960dd3c595
   src/lambdadb/models/messageresponse.py:
     id: fe6d426d74c1
     last_write_checksum: sha1:6c0d9112699b3ea79beb1eb1ed787b38ff2c6085
     pristine_git_object: 98d6dc5c99f5b6e946d8489275276fc65d26f9a8
   src/lambdadb/models/partitionconfig.py:
     id: 91e3cef853c1
-    last_write_checksum: sha1:b86da363eb926e87b887a7233b484754ae30d606
-    pristine_git_object: d9004c83d7d505c6334badc2ff4da0558cded65f
+    last_write_checksum: sha1:bcad0f746d9aff497ca367615ab23bd2cacca83c
+    pristine_git_object: 6dd9a297d79de8d5fdaa806834a26046bbc57be7
   src/lambdadb/models/partitionfilter.py:
     id: b554d907dc40
-    last_write_checksum: sha1:5e0c54f61ddd34219156d4de43f248ede44df0a0
-    pristine_git_object: 160d1ec2790a77fedd2de89a518928e675981ffc
+    last_write_checksum: sha1:467e7195a391b2ac74d2027ea842a4b69bd54d2f
+    pristine_git_object: 47d24aec9819356d19b6afce035200e2f1b4cd0d
   src/lambdadb/models/querycollectionop.py:
     id: 097d254124d8
-    last_write_checksum: sha1:607dcc9b290037b2c68abea49b3589e11da35843
-    pristine_git_object: a5caf038b904526621502f84b7763a5dd1c6aaf8
+    last_write_checksum: sha1:864dfd213e7d25308ad4ebed0049151f1d3d276a
+    pristine_git_object: 770c3fb0c9324bc32dbc36f8017ecc58208c321d
   src/lambdadb/models/security.py:
     id: 6ebd63eb9d10
     last_write_checksum: sha1:fb2c6892fd4cb5f0e71a71ddc44791dd43b41dc0
@@ -487,8 +487,8 @@ trackedFiles:
     pristine_git_object: f11694c40eafd159c1b76289b433589d1d08e856
   src/lambdadb/models/updatecollectionop.py:
     id: bb214ce5bafa
-    last_write_checksum: sha1:42a5c4ade587f92bf2d803a7fee1b4ac39c97578
-    pristine_git_object: 7da9ea16177461f354bb7f2dab05b6e475ba9409
+    last_write_checksum: sha1:6d91821ff8540ee9fb76a59a456bd50530cf3b9e
+    pristine_git_object: 22843c5e29cda2b7e6671e513b33654b3992323f
   src/lambdadb/models/updatedocsop.py:
     id: edd6f93b60e3
     last_write_checksum: sha1:b3528db92f9f582db02aca247134cf3084a88bc0
@@ -519,8 +519,8 @@ trackedFiles:
     pristine_git_object: a9a640a1a7048736383f96c67c6290c86bf536ee
   src/lambdadb/utils/__init__.py:
     id: 14cd5b198c8d
-    last_write_checksum: sha1:ffaf69e6877a274b08066215f5a31a1b344f5402
-    pristine_git_object: f4525b2057c3d54fb3b9eff6248fd172478ce94c
+    last_write_checksum: sha1:0f93d821f9cb3e061ea125d881bb6f61166738dd
+    pristine_git_object: aded7597c2bbc4e3fa7f555755d894671ac57741
   src/lambdadb/utils/annotations.py:
     id: 6f5dc0b675de
     last_write_checksum: sha1:a4824ad65f730303e4e1e3ec1febf87b4eb46dbc
@@ -529,14 +529,18 @@ trackedFiles:
     id: ee4828d6f653
     last_write_checksum: sha1:c721e4123000e7dc61ec52b28a739439d9e17341
     pristine_git_object: a6c52cd61bbe2d459046c940ce5e8c469f2f0664
+  src/lambdadb/utils/dynamic_imports.py:
+    id: 37563fedcfde
+    last_write_checksum: sha1:a1940c63feb8eddfd8026de53384baf5056d5dcc
+    pristine_git_object: 673edf82a97d0fea7295625d3e092ea369a36b79
   src/lambdadb/utils/enums.py:
     id: 2da8e276a325
     last_write_checksum: sha1:bc8c3c1285ae09ba8a094ee5c3d9c7f41fa1284d
     pristine_git_object: 3324e1bc2668c54c4d5f5a1a845675319757a828
   src/lambdadb/utils/eventstreaming.py:
     id: 8c83aff20892
-    last_write_checksum: sha1:bababae5d54b7efc360db701daa49e18a92c2f3b
-    pristine_git_object: 0969899bfc491e5e408d05643525f347ea95e4fc
+    last_write_checksum: sha1:ffa870a25a7e4e2015bfd7a467ccd3aa1de97f0e
+    pristine_git_object: f2052fc22d9fd6c663ba3dce019fe234ca37108b
   src/lambdadb/utils/forms.py:
     id: ee916671a58a
     last_write_checksum: sha1:15fa7e9ab1611e062a9984cf06cb20969713d295
@@ -563,12 +567,12 @@ trackedFiles:
     pristine_git_object: 1de32b6d26f46590232f398fdba6ce0072f1659c
   src/lambdadb/utils/retries.py:
     id: e240dbb7580a
-    last_write_checksum: sha1:5b97ac4f59357d70c2529975d50364c88bcad607
-    pristine_git_object: 88a91b10cd2076b4a2c6cff2ac6bfaa5e3c5ad13
+    last_write_checksum: sha1:471372f5c5d1dd5583239c9cf3c75f1b636e5d87
+    pristine_git_object: af07d4e941007af4213c5ec9047ef8a2fca04e5e
   src/lambdadb/utils/security.py:
     id: 7f7b9ea5822c
-    last_write_checksum: sha1:4fd9c8bea682b433da8b30bf5854a60a7963999d
-    pristine_git_object: aa66e27e44e5fe85884a50b8f9629eaa13f6539c
+    last_write_checksum: sha1:606a69a589e02fbfbaa32344a38314668fac0303
+    pristine_git_object: b3fff9bcddbb36a053a121fed7f4bbc6613b1cee
   src/lambdadb/utils/serializers.py:
     id: ee1fb83a2308
     last_write_checksum: sha1:ce1d8d7f500a9ccba0aeca5057cee9c271f4dfd7

@@ -160,3 +160,9 @@ IndexConfigsUnion = Annotated[
     ],
     Discriminator(lambda m: get_discriminator(m, "type", "type")),
 ]
+
+
+try:
+    IndexConfigsObject.model_rebuild()
+except NameError:
+    pass

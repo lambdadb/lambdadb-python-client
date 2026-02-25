@@ -88,3 +88,9 @@ class GetBulkUpsertDocsResponse(BaseModel):
                     m[k] = val
 
         return m
+
+
+try:
+    GetBulkUpsertDocsResponse.model_rebuild()
+except NameError:
+    pass

@@ -64,3 +64,9 @@ class DeleteDocsRequest(BaseModel):
         DeleteDocsRequestBody,
         FieldMetadata(request=RequestMetadata(media_type="application/json")),
     ]
+
+
+try:
+    DeleteDocsRequestBody.model_rebuild()
+except NameError:
+    pass
