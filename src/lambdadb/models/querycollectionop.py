@@ -7,6 +7,7 @@ from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
 from pydantic import model_serializer
+import warnings
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
@@ -141,8 +142,8 @@ class QueryCollectionResponseTypedDict(TypedDict):
     r"""Elapsed time in milliseconds."""
     total: int
     r"""Total number of documents returned."""
-    docs: List[QueryCollectionDocTypedDict]
-    r"""List of documents."""
+    results: List[QueryCollectionDocTypedDict]
+    r"""List of result items (each has .doc, .score, etc.). Use .documents for document bodies only."""
     is_docs_inline: bool
     r"""Whether the list of documents is included."""
     max_score: NotRequired[float]
@@ -160,8 +161,11 @@ class QueryCollectionResponse(BaseModel):
     total: int
     r"""Total number of documents returned."""
 
-    docs: List[QueryCollectionDoc]
-    r"""List of documents."""
+    results: Annotated[
+        List[QueryCollectionDoc],
+        pydantic.Field(alias="docs"),
+    ]
+    r"""List of result items (each has .doc, .score, etc.). Use .documents for document bodies only."""
 
     is_docs_inline: Annotated[bool, pydantic.Field(alias="isDocsInline")]
     r"""Whether the list of documents is included."""
@@ -171,6 +175,21 @@ class QueryCollectionResponse(BaseModel):
 
     docs_url: Annotated[Optional[str], pydantic.Field(alias="docsUrl")] = None
     r"""Optional download URL for the list of documents."""
+
+    @property
+    def documents(self) -> List[Dict[str, Any]]:
+        """Convenience: list of document bodies only. Use .results when you need .score or .collection."""
+        return [d.doc for d in self.results]
+
+    @property
+    def docs(self) -> List[QueryCollectionDoc]:
+        """Deprecated: use .results instead. List of result items (each has .doc, .score, etc.)."""
+        warnings.warn(
+            "QueryCollectionResponse.docs is deprecated; use .results instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.results
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):

@@ -13,9 +13,11 @@ with LambdaDB(
 
     # Collection-scoped (recommended for document operations)
     coll = client.collection("my_collection")
-    docs = coll.docs.list()
+    list_res = coll.docs.list()
+    items = list_res.results          # or list_res.documents for doc bodies only
     coll.docs.upsert(docs=[{"id": "1", "text": "hello"}])
-    results = coll.query(query={"queryString": {"query": "hello"}})
+    res = coll.query(query={"queryString": {"query": "hello"}})
+    docs_only = res.documents         # use res.results for score/metadata
 ```
 
 ```python
@@ -33,7 +35,8 @@ async def main():
         print(res)
 
         coll = client.collection("my_collection")
-        docs = await coll.docs.list_async()
+        list_res = await coll.docs.list_async()
+        items = list_res.results
 
 asyncio.run(main())
 ```

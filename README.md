@@ -131,8 +131,10 @@ with LambdaDB(
 ) as client:
     # Collection-scoped: no need to pass collection_name to every call
     coll = client.collection("my_collection")
-    docs = coll.docs.list()
-    results = coll.query(query={"queryString": {"query": "some text"}})
+    list_res = coll.docs.list()
+    items = list_res.results          # or list_res.documents for doc bodies only
+    res = coll.query(query={"queryString": {"query": "some text"}})
+    docs_only = res.documents         # document bodies; use res.results for score/metadata
     coll.docs.upsert(docs=[{"id": "1", "text": "hello"}])
 ```
 
@@ -199,6 +201,10 @@ with LambdaDB(
 
 **Recommended:** Use the collection-scoped API: `client.collection("name").docs.list()`, `.docs.fetch()`, `.docs.upsert()`, etc., and `client.collection("name").query()` for search. This matches the REST API structure and avoids repeating the collection name.
 
+* **Response access:** List, query, and fetch responses expose `.results` (full result items, with score/metadata when applicable) and `.documents` (document bodies only). Prefer `.results` when you need score or per-item metadata.
+* **Pagination:** Use `coll.docs.list_pages(size=10)` to iterate pages of up to `size` documents, or `coll.docs.iter_all(page_size=100)` to iterate over all documents.
+* **Advanced options:** Pass `options=RequestOptions(timeout_ms=..., http_headers=...)` to any docs or query call; import with `from lambdadb import RequestOptions`. For delete by filter, prefer `query_filter=...` over `filter_=...`. Response types such as `ListDocsResponse`, `QueryCollectionResponse`, and `FetchDocsResponse` are also exported from `lambdadb` for type hints.
+
 <details open>
 <summary>Available methods</summary>
 
@@ -214,6 +220,8 @@ with LambdaDB(
 #### [Collections.Docs](docs/sdks/docs/README.md)
 
 * [list_docs](docs/sdks/docs/README.md#list_docs) - List documents in a collection.
+* [list_pages](docs/sdks/docs/README.md#list_pages) - Iterate pages of up to `size` documents each.
+* [iter_all](docs/sdks/docs/README.md#iter_all) - Iterate over all documents (handles pagination).
 * [upsert](docs/sdks/docs/README.md#upsert) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 * [get_bulk_upsert](docs/sdks/docs/README.md#get_bulk_upsert) - Request required info to upload documents.
 * [bulk_upsert](docs/sdks/docs/README.md#bulk_upsert) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.

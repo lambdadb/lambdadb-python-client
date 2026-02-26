@@ -262,7 +262,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.QueryCollectionResponse](../../models/querycollectionresponse.md)**
+**[models.QueryCollectionResponse](../../models/querycollectionresponse.md)** — Use `res.results` for full result items (with `.score`, etc.); use `res.documents` for document bodies only.
 
 ### Errors
 
