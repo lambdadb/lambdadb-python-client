@@ -15,3 +15,14 @@
 | `source_collection_name`                                              | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | Source collection name.                                               |
 | `source_collection_version_id`                                        | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | Source collection version.                                            |
 | `collection_status`                                                   | [models.Status](../models/status.md)                                  | :heavy_check_mark:                                                    | Status                                                                |
+| `created_at`                                                         | *int*                                                                 | :heavy_check_mark:                                                    | Creation time (Unix epoch seconds).                                   |
+| `updated_at`                                                         | *int*                                                                 | :heavy_check_mark:                                                    | Last update time (Unix epoch seconds).                                |
+| `data_updated_at`                                                    | *int*                                                                 | :heavy_check_mark:                                                    | Data last update time (Unix epoch seconds).                           |
+
+## Properties (datetime helpers)
+
+| Property            | Type       | Description                                              |
+| ------------------- | ---------- | -------------------------------------------------------- |
+| `created_at_dt`     | *datetime* | Creation time as timezone-aware UTC `datetime`.          |
+| `updated_at_dt`     | *datetime* | Last update time as timezone-aware UTC `datetime`.       |
+| `data_updated_at_dt`| *datetime* | Data last update time as timezone-aware UTC `datetime`. |

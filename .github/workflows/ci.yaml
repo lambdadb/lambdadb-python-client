@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry config virtualenvs.create true --local
+          poetry install --no-interaction
+
+      - name: Verify import
+        run: poetry run python -c "from lambdadb import LambdaDB; from lambdadb.collection import Collection, CollectionDocs; print('OK')"
+
+      - name: Run mypy
+        run: poetry run mypy src/lambdadb --ignore-missing-imports || true
+
+      - name: Run pylint
+        run: poetry run pylint src/lambdadb --exit-zero || true
+
+      - name: Run tests
+        run: poetry run pytest tests/ -v

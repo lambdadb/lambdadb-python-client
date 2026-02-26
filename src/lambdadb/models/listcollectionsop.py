@@ -2,18 +2,64 @@
 
 from __future__ import annotations
 from .collectionresponse import CollectionResponse, CollectionResponseTypedDict
-from lambdadb.types import BaseModel
-from typing import List
-from typing_extensions import TypedDict
+from lambdadb.types import BaseModel, UNSET_SENTINEL
+from lambdadb.utils import FieldMetadata, QueryParamMetadata
+import pydantic
+from pydantic import model_serializer
+from typing import List, Optional
+from typing_extensions import Annotated, NotRequired, TypedDict
+
+
+class ListCollectionsRequestTypedDict(TypedDict):
+    size: NotRequired[int]
+    r"""Max number of collections to return at once."""
+    page_token: NotRequired[str]
+    r"""Next page token."""
+
+
+class ListCollectionsRequest(BaseModel):
+    size: Annotated[
+        Optional[int],
+        pydantic.Field(ge=1, le=100),
+        FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
+    ] = None
+    r"""Max number of collections to return at once."""
+
+    page_token: Annotated[
+        Optional[str],
+        pydantic.Field(alias="pageToken"),
+        FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
+    ] = None
+    r"""Next page token."""
+
+    @model_serializer(mode="wrap")
+    def serialize_model(self, handler):
+        optional_fields = set(["size", "pageToken"])
+        serialized = handler(self)
+        m = {}
+        for n, f in type(self).model_fields.items():
+            k = f.alias or n
+            val = serialized.get(k)
+            if val != UNSET_SENTINEL:
+                if val is not None or k not in optional_fields:
+                    m[k] = val
+        return m
 
 
 class ListCollectionsResponseTypedDict(TypedDict):
     r"""A list of collections matched with a projectName."""
 
     collections: List[CollectionResponseTypedDict]
+    next_page_token: NotRequired[str]
+    r"""Next page token."""
 
 
 class ListCollectionsResponse(BaseModel):
     r"""A list of collections matched with a projectName."""
 
     collections: List[CollectionResponse]
+
+    next_page_token: Annotated[
+        Optional[str], pydantic.Field(alias="nextPageToken")
+    ] = None
+    r"""Next page token."""

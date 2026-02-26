@@ -9,6 +9,12 @@ from ._version import (
 )
 from .sdk import *
 from .sdkconfiguration import *
+from .collection import RequestOptions
+from .models import (
+    FetchDocsResponse,
+    ListDocsResponse,
+    QueryCollectionResponse,
+)
 
 
 VERSION: str = __version__

@@ -8,7 +8,7 @@ from lambdadb.docs import Docs
 from lambdadb.types import OptionalNullable, UNSET
 from lambdadb.utils import get_security_from_env
 from lambdadb.utils.unmarshal_json_response import unmarshal_json_response
-from typing import Any, Dict, List, Mapping, Optional, Union
+from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional, Union
 
 
 class Collections(BaseSDK):
@@ -27,6 +27,8 @@ class Collections(BaseSDK):
     def list(
         self,
         *,
+        size: Optional[int] = None,
+        page_token: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -34,6 +36,8 @@ class Collections(BaseSDK):
     ) -> models.ListCollectionsResponse:
         r"""List all collections in an existing project.
 
+        :param size: Max number of collections to return at once (1-100).
+        :param page_token: Next page token.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -48,12 +52,14 @@ class Collections(BaseSDK):
             base_url = server_url
         else:
             base_url = self._get_url(base_url, url_variables)
+
+        request = models.ListCollectionsRequest(size=size, page_token=page_token)
         req = self._build_request(
             method="GET",
             path="/collections",
             base_url=base_url,
             url_variables=url_variables,
-            request=None,
+            request=request,
             request_body_required=False,
             request_has_path_params=False,
             request_has_query_params=True,
@@ -124,9 +130,56 @@ class Collections(BaseSDK):
 
         raise errors.APIError("Unexpected response received", http_res)
 
+    def list_pages(
+        self,
+        *,
+        size: int = 100,
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> Iterator[List[models.CollectionResponse]]:
+        """Iterate pages of collections (each page has up to `size` collections). Handles pagination via next_page_token."""
+        page_token: Optional[str] = None
+        while True:
+            resp = self.list(
+                size=size,
+                page_token=page_token,
+                retries=retries,
+                server_url=server_url,
+                timeout_ms=timeout_ms,
+                http_headers=http_headers,
+            )
+            yield resp.collections
+            page_token = resp.next_page_token
+            if not page_token:
+                break
+
+    def iter_all(
+        self,
+        *,
+        page_size: int = 100,
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> Iterator[models.CollectionResponse]:
+        """Iterate over all collections in the project. Handles pagination internally."""
+        for page in self.list_pages(
+            size=page_size,
+            retries=retries,
+            server_url=server_url,
+            timeout_ms=timeout_ms,
+            http_headers=http_headers,
+        ):
+            for coll in page:
+                yield coll
+
     async def list_async(
         self,
         *,
+        size: Optional[int] = None,
+        page_token: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -134,6 +187,8 @@ class Collections(BaseSDK):
     ) -> models.ListCollectionsResponse:
         r"""List all collections in an existing project.
 
+        :param size: Max number of collections to return at once (1-100).
+        :param page_token: Next page token.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -148,12 +203,14 @@ class Collections(BaseSDK):
             base_url = server_url
         else:
             base_url = self._get_url(base_url, url_variables)
+
+        request = models.ListCollectionsRequest(size=size, page_token=page_token)
         req = self._build_request_async(
             method="GET",
             path="/collections",
             base_url=base_url,
             url_variables=url_variables,
-            request=None,
+            request=request,
             request_body_required=False,
             request_has_path_params=False,
             request_has_query_params=True,
@@ -223,6 +280,51 @@ class Collections(BaseSDK):
             raise errors.APIError("API error occurred", http_res, http_res_text)
 
         raise errors.APIError("Unexpected response received", http_res)
+
+    async def list_pages_async(
+        self,
+        *,
+        size: int = 100,
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> AsyncIterator[List[models.CollectionResponse]]:
+        """Iterate pages of collections (async). Each page has up to `size` collections."""
+        page_token: Optional[str] = None
+        while True:
+            resp = await self.list_async(
+                size=size,
+                page_token=page_token,
+                retries=retries,
+                server_url=server_url,
+                timeout_ms=timeout_ms,
+                http_headers=http_headers,
+            )
+            yield resp.collections
+            page_token = resp.next_page_token
+            if not page_token:
+                break
+
+    async def iter_all_async(
+        self,
+        *,
+        page_size: int = 100,
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> AsyncIterator[models.CollectionResponse]:
+        """Iterate over all collections in the project (async). Handles pagination internally."""
+        async for page in self.list_pages_async(
+            size=page_size,
+            retries=retries,
+            server_url=server_url,
+            timeout_ms=timeout_ms,
+            http_headers=http_headers,
+        ):
+            for coll in page:
+                yield coll
 
     def create(
         self,

@@ -7,6 +7,7 @@ from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
 from pydantic import model_serializer
+import warnings
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
@@ -101,7 +102,8 @@ class FetchDocsResponseTypedDict(TypedDict):
     r"""Total number of documents returned."""
     took: int
     r"""Elapsed time in milliseconds."""
-    docs: List[FetchDocsDocTypedDict]
+    results: List[FetchDocsDocTypedDict]
+    r"""List of result items (each has .doc, .collection). Use .documents for document bodies only."""
     is_docs_inline: bool
     r"""Whether the list of documents is included."""
     docs_url: NotRequired[str]
@@ -117,13 +119,32 @@ class FetchDocsResponse(BaseModel):
     took: int
     r"""Elapsed time in milliseconds."""
 
-    docs: List[FetchDocsDoc]
+    results: Annotated[
+        List[FetchDocsDoc],
+        pydantic.Field(alias="docs"),
+    ]
+    r"""List of result items (each has .doc, .collection). Use .documents for document bodies only."""
 
     is_docs_inline: Annotated[bool, pydantic.Field(alias="isDocsInline")]
     r"""Whether the list of documents is included."""
 
     docs_url: Annotated[Optional[str], pydantic.Field(alias="docsUrl")] = None
     r"""Download URL for the list of documents."""
+
+    @property
+    def documents(self) -> List[Dict[str, Any]]:
+        """Convenience: list of document bodies only. Use .results when you need .collection."""
+        return [d.doc for d in self.results]
+
+    @property
+    def docs(self) -> List[FetchDocsDoc]:
+        """Deprecated: use .results instead. List of result items (each has .doc, .collection)."""
+        warnings.warn(
+            "FetchDocsResponse.docs is deprecated; use .results instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.results
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):

@@ -80,6 +80,8 @@ if TYPE_CHECKING:
         TypeVector,
     )
     from .listcollectionsop import (
+        ListCollectionsRequest,
+        ListCollectionsRequestTypedDict,
         ListCollectionsResponse,
         ListCollectionsResponseTypedDict,
     )
@@ -178,6 +180,8 @@ __all__ = [
     "IndexConfigsUnionTypedDict",
     "IndexConfigsVector",
     "IndexConfigsVectorTypedDict",
+    "ListCollectionsRequest",
+    "ListCollectionsRequestTypedDict",
     "ListCollectionsResponse",
     "ListCollectionsResponseTypedDict",
     "ListDocsRequest",
@@ -279,6 +283,8 @@ _dynamic_imports: dict[str, str] = {
     "TypeObject": ".indexconfigs_union",
     "TypeText": ".indexconfigs_union",
     "TypeVector": ".indexconfigs_union",
+    "ListCollectionsRequest": ".listcollectionsop",
+    "ListCollectionsRequestTypedDict": ".listcollectionsop",
     "ListCollectionsResponse": ".listcollectionsop",
     "ListCollectionsResponseTypedDict": ".listcollectionsop",
     "ListDocsRequest": ".listdocsop",
