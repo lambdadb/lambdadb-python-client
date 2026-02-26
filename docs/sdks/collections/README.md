@@ -5,6 +5,8 @@
 ### Available Operations
 
 * [list](#list) - List all collections in an existing project.
+* [list_pages](#list_pages) - Iterate pages of collections (each page up to `size`).
+* [iter_all](#iter_all) - Iterate over all collections (handles pagination).
 * [create](#create) - Create a collection.
 * [delete](#delete) - Delete an existing collection.
 * [get](#get) - Get metadata of an existing collection.
@@ -48,6 +50,49 @@ with LambdaDB(
 | errors.TooManyRequestsError  | 429                          | application/json             |
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
+
+## list_pages
+
+Iterate pages of collections (each page has up to `size` collections). Uses `next_page_token` internally.
+
+### Example Usage
+
+```python
+for page in client.collections.list_pages(size=10):
+    for coll in page:
+        print(coll.collection_name, coll.created_at_dt)
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `size` | *int* | :heavy_minus_sign: | Max collections per page (default 100). |
+| `retries` | ... | :heavy_minus_sign: | Override retry behavior. |
+| `server_url` | *Optional[str]* | :heavy_minus_sign: | Override server URL. |
+| `timeout_ms` | *Optional[int]* | :heavy_minus_sign: | Request timeout (ms). |
+| `http_headers` | *Optional[Mapping]* | :heavy_minus_sign: | Additional headers. |
+
+## iter_all
+
+Iterate over all collections in the project. Handles pagination internally.
+
+### Example Usage
+
+```python
+for coll in client.collections.iter_all(page_size=50):
+    print(coll.collection_name)
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `page_size` | *int* | :heavy_minus_sign: | Collections per internal page (default 100). |
+| `retries` | ... | :heavy_minus_sign: | Override retry behavior. |
+| `server_url` | *Optional[str]* | :heavy_minus_sign: | Override server URL. |
+| `timeout_ms` | *Optional[int]* | :heavy_minus_sign: | Request timeout (ms). |
+| `http_headers` | *Optional[Mapping]* | :heavy_minus_sign: | Additional headers. |
 
 ## create
 

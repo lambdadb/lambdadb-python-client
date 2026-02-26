@@ -99,7 +99,7 @@ class LambdaDB(BaseSDK):
         resolved_base_url: Optional[str] = base_url if base_url is not None else DEFAULT_BASE_URL
         resolved_project_name: Optional[str] = project_name if project_name is not None else DEFAULT_PROJECT_NAME
         server_defaults: List[Dict[str, str]] = [
-            {"projectHost": project_host or "api.lambdadb.com/projects/default"},
+            {"projectHost": project_host or "api.lambdadb.ai/projects/playground"},
         ]
 
         if server_url is not None:
