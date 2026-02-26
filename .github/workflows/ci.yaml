@@ -32,3 +32,6 @@ jobs:
 
       - name: Run pylint
         run: poetry run pylint src/lambdadb --exit-zero || true
+
+      - name: Run tests
+        run: poetry run pytest tests/ -v

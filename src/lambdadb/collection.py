@@ -5,7 +5,7 @@ Aligns with REST: document operations under .docs, collection-level query at .qu
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
 
 from lambdadb import models, utils
@@ -151,7 +151,7 @@ def _doc_from_item(item: Any) -> Dict[str, Any]:
 class RequestOptions:
     """Advanced options for a single request. Pass as options= to any docs method."""
 
-    retries: OptionalNullable[utils.RetryConfig] = UNSET
+    retries: OptionalNullable[utils.RetryConfig] = field(default_factory=lambda: UNSET)
     server_url: Optional[str] = None
     timeout_ms: Optional[int] = None
     http_headers: Optional[Mapping[str, str]] = None

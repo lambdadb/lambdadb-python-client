@@ -1,7 +1,7 @@
 
 [project]
 name = "lambdadb"
-version = "0.7.0.dev0"
+version = "0.7.0"
 description = "The Official LambdaDB Python SDK."
 authors = [{ name = "Functional Systems, Inc." },]
 readme = "README.md"
@@ -31,13 +31,13 @@ in-project = true
 mypy = "==1.15.0"
 pylint = "==3.2.3"
 pyright = "==1.1.398"
+pytest = ">=7.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
 pythonpath = ["src"]
 
 [tool.mypy]
