@@ -262,7 +262,7 @@ with LambdaDB(
 
 ### Response
 
-**[models.QueryCollectionResponse](../../models/querycollectionresponse.md)** — Use `res.results` for full result items (with `.score`, etc.); use `res.documents` for document bodies only.
+**[models.QueryCollectionResponse](../../models/querycollectionresponse.md)** — Use `res.results` for full result items (with `.score`, etc.); use `res.documents` for document bodies only. When `is_docs_inline` is false, the SDK auto-fetches from `docs_url` so results are always populated.
 
 ### Errors
 

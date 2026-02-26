@@ -4,6 +4,7 @@ Aligns with REST: document operations under .docs, collection-level query at .qu
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
 
@@ -15,6 +16,128 @@ from lambdadb.types import OptionalNullable, UNSET
 
 # API max page size for list_docs
 _LIST_DOCS_MAX_SIZE = 100
+
+
+def _fetch_bytes_from_presigned_url(
+    url: str,
+    client: Any,
+    timeout_sec: Optional[float],
+) -> bytes:
+    """GET presigned URL and return response body. Raises RuntimeError on non-2xx."""
+    req = client.build_request("GET", url, timeout=timeout_sec)
+    res = client.send(req)
+    if res.status_code < 200 or res.status_code >= 300:
+        raise RuntimeError(
+            f"Failed to fetch documents from presigned URL: HTTP {res.status_code} - {res.text}"
+        )
+    return res.content
+
+
+async def _fetch_bytes_from_presigned_url_async(
+    url: str,
+    async_client: Any,
+    timeout_sec: Optional[float],
+) -> bytes:
+    """GET presigned URL (async) and return response body. Raises RuntimeError on non-2xx."""
+    req = async_client.build_request("GET", url, timeout=timeout_sec)
+    res = await async_client.send(req)
+    if res.status_code < 200 or res.status_code >= 300:
+        raise RuntimeError(
+            f"Failed to fetch documents from presigned URL: HTTP {res.status_code} - {res.text}"
+        )
+    return res.content
+
+
+def _resolve_query_response(
+    response: models.QueryCollectionResponse,
+    client: Any,
+    timeout_sec: Optional[float],
+) -> models.QueryCollectionResponse:
+    """If response has docs_url and not is_docs_inline, fetch from URL and return response with results populated."""
+    if response.is_docs_inline or not response.docs_url:
+        return response
+    body = _fetch_bytes_from_presigned_url(response.docs_url, client, timeout_sec)
+    data = json.loads(body)
+    if not isinstance(data, list):
+        raise RuntimeError("Expected JSON array from docs_url")
+    parsed = [models.QueryCollectionDoc.model_validate(item) for item in data]
+    return models.QueryCollectionResponse(
+        took=response.took,
+        total=response.total,
+        results=parsed,
+        is_docs_inline=response.is_docs_inline,
+        max_score=response.max_score,
+        docs_url=response.docs_url,
+    )
+
+
+def _resolve_fetch_response(
+    response: models.FetchDocsResponse,
+    client: Any,
+    timeout_sec: Optional[float],
+) -> models.FetchDocsResponse:
+    """If response has docs_url and not is_docs_inline, fetch from URL and return response with results populated."""
+    if response.is_docs_inline or not response.docs_url:
+        return response
+    body = _fetch_bytes_from_presigned_url(response.docs_url, client, timeout_sec)
+    data = json.loads(body)
+    if not isinstance(data, list):
+        raise RuntimeError("Expected JSON array from docs_url")
+    parsed = [models.FetchDocsDoc.model_validate(item) for item in data]
+    return models.FetchDocsResponse(
+        total=response.total,
+        took=response.took,
+        results=parsed,
+        is_docs_inline=response.is_docs_inline,
+        docs_url=response.docs_url,
+    )
+
+
+async def _resolve_query_response_async(
+    response: models.QueryCollectionResponse,
+    async_client: Any,
+    timeout_sec: Optional[float],
+) -> models.QueryCollectionResponse:
+    if response.is_docs_inline or not response.docs_url:
+        return response
+    body = await _fetch_bytes_from_presigned_url_async(
+        response.docs_url, async_client, timeout_sec
+    )
+    data = json.loads(body)
+    if not isinstance(data, list):
+        raise RuntimeError("Expected JSON array from docs_url")
+    parsed = [models.QueryCollectionDoc.model_validate(item) for item in data]
+    return models.QueryCollectionResponse(
+        took=response.took,
+        total=response.total,
+        results=parsed,
+        is_docs_inline=response.is_docs_inline,
+        max_score=response.max_score,
+        docs_url=response.docs_url,
+    )
+
+
+async def _resolve_fetch_response_async(
+    response: models.FetchDocsResponse,
+    async_client: Any,
+    timeout_sec: Optional[float],
+) -> models.FetchDocsResponse:
+    if response.is_docs_inline or not response.docs_url:
+        return response
+    body = await _fetch_bytes_from_presigned_url_async(
+        response.docs_url, async_client, timeout_sec
+    )
+    data = json.loads(body)
+    if not isinstance(data, list):
+        raise RuntimeError("Expected JSON array from docs_url")
+    parsed = [models.FetchDocsDoc.model_validate(item) for item in data]
+    return models.FetchDocsResponse(
+        total=response.total,
+        took=response.took,
+        results=parsed,
+        is_docs_inline=response.is_docs_inline,
+        docs_url=response.docs_url,
+    )
 
 
 def _doc_from_item(item: Any) -> Dict[str, Any]:
@@ -281,6 +404,109 @@ class CollectionDocs:
             http_headers=h,
         )
 
+    def bulk_upsert_docs(
+        self,
+        *,
+        docs: List[Dict[str, Any]],
+        options: Optional[RequestOptions] = None,
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> models.MessageResponse:
+        """One-step bulk upsert: gets presigned URL, uploads documents to S3, then triggers bulk_upsert.
+        Use this instead of calling get_bulk_upsert + manual upload + bulk_upsert. Max payload 200MB."""
+        r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
+        info = self._docs.get_bulk_upsert(
+            collection_name=self._collection_name,
+            retries=r,
+            server_url=s,
+            timeout_ms=t,
+            http_headers=h,
+        )
+        body = json.dumps(docs).encode("utf-8")
+        size_limit = info.size_limit_bytes or 209715200
+        if len(body) > size_limit:
+            raise ValueError(
+                f"Documents payload size {len(body)} bytes exceeds limit {size_limit} bytes"
+            )
+        config = self._docs.sdk_configuration
+        client = config.client
+        if client is None:
+            raise ValueError("HTTP client is required for bulk_upsert_docs")
+        timeout_sec = (t / 1000.0) if t is not None else (config.timeout_ms / 1000.0 if config.timeout_ms else None)
+        req = client.build_request(
+            "PUT",
+            info.url,
+            content=body,
+            headers={"Content-Type": "application/json"},
+            timeout=timeout_sec,
+        )
+        upload_res = client.send(req)
+        if upload_res.status_code < 200 or upload_res.status_code >= 300:
+            raise RuntimeError(
+                f"Bulk upload to S3 failed: HTTP {upload_res.status_code} - {upload_res.text}"
+            )
+        return self._docs.bulk_upsert(
+            collection_name=self._collection_name,
+            object_key=info.object_key,
+            retries=r,
+            server_url=s,
+            timeout_ms=t,
+            http_headers=h,
+        )
+
+    async def bulk_upsert_docs_async(
+        self,
+        *,
+        docs: List[Dict[str, Any]],
+        options: Optional[RequestOptions] = None,
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> models.MessageResponse:
+        """One-step bulk upsert (async): gets presigned URL, uploads documents to S3, then triggers bulk_upsert."""
+        r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
+        info = await self._docs.get_bulk_upsert_async(
+            collection_name=self._collection_name,
+            retries=r,
+            server_url=s,
+            timeout_ms=t,
+            http_headers=h,
+        )
+        body = json.dumps(docs).encode("utf-8")
+        size_limit = info.size_limit_bytes or 209715200
+        if len(body) > size_limit:
+            raise ValueError(
+                f"Documents payload size {len(body)} bytes exceeds limit {size_limit} bytes"
+            )
+        config = self._docs.sdk_configuration
+        async_client = config.async_client
+        if async_client is None:
+            raise ValueError("Async HTTP client is required for bulk_upsert_docs_async")
+        timeout_sec = (t / 1000.0) if t is not None else (config.timeout_ms / 1000.0 if config.timeout_ms else None)
+        req = async_client.build_request(
+            "PUT",
+            info.url,
+            content=body,
+            headers={"Content-Type": "application/json"},
+            timeout=timeout_sec,
+        )
+        upload_res = await async_client.send(req)
+        if upload_res.status_code < 200 or upload_res.status_code >= 300:
+            raise RuntimeError(
+                f"Bulk upload to S3 failed: HTTP {upload_res.status_code} - {upload_res.text}"
+            )
+        return await self._docs.bulk_upsert_async(
+            collection_name=self._collection_name,
+            object_key=info.object_key,
+            retries=r,
+            server_url=s,
+            timeout_ms=t,
+            http_headers=h,
+        )
+
     def update(
         self,
         *,
@@ -399,9 +625,9 @@ class CollectionDocs:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.FetchDocsResponse:
-        """Fetch documents by IDs (max 100). For advanced options use options=RequestOptions(...)."""
+        """Fetch documents by IDs (max 100). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        return self._docs.fetch(
+        response = self._docs.fetch(
             collection_name=self._collection_name,
             ids=ids,
             consistent_read=consistent_read,
@@ -413,6 +639,11 @@ class CollectionDocs:
             timeout_ms=t,
             http_headers=h,
         )
+        client = self._docs.sdk_configuration.client
+        if client is not None:
+            timeout_sec = (t / 1000.0) if t is not None else (self._docs.sdk_configuration.timeout_ms / 1000.0 if self._docs.sdk_configuration.timeout_ms else None)
+            response = _resolve_fetch_response(response, client, timeout_sec)
+        return response
 
     async def fetch_async(
         self,
@@ -432,9 +663,9 @@ class CollectionDocs:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.FetchDocsResponse:
-        """Fetch documents by IDs (async). For advanced options use options=RequestOptions(...)."""
+        """Fetch documents by IDs (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        return await self._docs.fetch_async(
+        response = await self._docs.fetch_async(
             collection_name=self._collection_name,
             ids=ids,
             consistent_read=consistent_read,
@@ -446,6 +677,11 @@ class CollectionDocs:
             timeout_ms=t,
             http_headers=h,
         )
+        async_client = self._docs.sdk_configuration.async_client
+        if async_client is not None:
+            timeout_sec = (t / 1000.0) if t is not None else (self._docs.sdk_configuration.timeout_ms / 1000.0 if self._docs.sdk_configuration.timeout_ms else None)
+            response = await _resolve_fetch_response_async(response, async_client, timeout_sec)
+        return response
 
 
 class Collection:
@@ -487,9 +723,9 @@ class Collection:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.QueryCollectionResponse:
-        """Search this collection with a query (vector/keyword/hybrid). For advanced options use options=RequestOptions(...)."""
+        """Search this collection with a query (vector/keyword/hybrid). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        return self._collections.query(
+        response = self._collections.query(
             collection_name=self._collection_name,
             query=query,
             size=size,
@@ -503,6 +739,11 @@ class Collection:
             timeout_ms=t,
             http_headers=h,
         )
+        client = self._sdk_configuration.client
+        if client is not None:
+            timeout_sec = (t / 1000.0) if t is not None else (self._sdk_configuration.timeout_ms / 1000.0 if self._sdk_configuration.timeout_ms else None)
+            response = _resolve_query_response(response, client, timeout_sec)
+        return response
 
     async def query_async(
         self,
@@ -524,9 +765,9 @@ class Collection:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.QueryCollectionResponse:
-        """Search this collection (async). For advanced options use options=RequestOptions(...)."""
+        """Search this collection (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        return await self._collections.query_async(
+        response = await self._collections.query_async(
             collection_name=self._collection_name,
             query=query,
             size=size,
@@ -540,3 +781,8 @@ class Collection:
             timeout_ms=t,
             http_headers=h,
         )
+        async_client = self._sdk_configuration.async_client
+        if async_client is not None:
+            timeout_sec = (t / 1000.0) if t is not None else (self._sdk_configuration.timeout_ms / 1000.0 if self._sdk_configuration.timeout_ms else None)
+            response = await _resolve_query_response_async(response, async_client, timeout_sec)
+        return response

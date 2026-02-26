@@ -201,7 +201,7 @@ with LambdaDB(
 
 **Recommended:** Use the collection-scoped API: `client.collection("name").docs.list()`, `.docs.fetch()`, `.docs.upsert()`, etc., and `client.collection("name").query()` for search. This matches the REST API structure and avoids repeating the collection name.
 
-* **Response access:** List, query, and fetch responses expose `.results` (full result items, with score/metadata when applicable) and `.documents` (document bodies only). Prefer `.results` when you need score or per-item metadata.
+* **Response access:** List, query, and fetch responses expose `.results` (full result items, with score/metadata when applicable) and `.documents` (document bodies only). When the API returns `is_docs_inline: false` with a presigned `docs_url`, the SDK automatically fetches from that URL so `response.results` and `response.documents` are always populated when using `coll.query()` and `coll.docs.fetch()`.
 * **Pagination:** Use `coll.docs.list_pages(size=10)` to iterate pages of up to `size` documents, or `coll.docs.iter_all(page_size=100)` to iterate over all documents.
 * **Advanced options:** Pass `options=RequestOptions(timeout_ms=..., http_headers=...)` to any docs or query call; import with `from lambdadb import RequestOptions`. For delete by filter, prefer `query_filter=...` over `filter_=...`. Response types such as `ListDocsResponse`, `QueryCollectionResponse`, and `FetchDocsResponse` are also exported from `lambdadb` for type hints.
 
@@ -225,6 +225,7 @@ with LambdaDB(
 * [upsert](docs/sdks/docs/README.md#upsert) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 * [get_bulk_upsert](docs/sdks/docs/README.md#get_bulk_upsert) - Request required info to upload documents.
 * [bulk_upsert](docs/sdks/docs/README.md#bulk_upsert) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
+* [bulk_upsert_docs](docs/sdks/docs/README.md#bulk_upsert_docs) - One-step bulk upsert: upload a list of documents without handling presigned URL or S3 yourself.
 * [update](docs/sdks/docs/README.md#update) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
 * [delete](docs/sdks/docs/README.md#delete) - Delete documents by document IDs or query filter from a collection.
 * [fetch](docs/sdks/docs/README.md#fetch) - Lookup and return documents by document IDs from a collection.

@@ -19,7 +19,7 @@ with LambdaDB(
     coll.query(query={...})    # search (collection-level)
 ```
 
-**Response access:** For list, query, and fetch responses use `response.results` for the full result items (with score/metadata when applicable); use `response.documents` for document bodies only. See [ListDocsResponse](../../models/listdocsresponse.md), [QueryCollectionResponse](../../models/querycollectionresponse.md), [FetchDocsResponse](../../models/fetchdocsresponse.md).
+**Response access:** For list, query, and fetch responses use `response.results` for the full result items (with score/metadata when applicable); use `response.documents` for document bodies only. When the API returns `is_docs_inline: false` with a presigned `docs_url`, the SDK automatically fetches from that URL so `results`/`documents` are always populated. See [ListDocsResponse](../../models/listdocsresponse.md), [QueryCollectionResponse](../../models/querycollectionresponse.md), [FetchDocsResponse](../../models/fetchdocsresponse.md).
 
 **Advanced options:** All operations accept optional `options=RequestOptions(retries=..., server_url=..., timeout_ms=..., http_headers=...)` for per-call overrides. Import with `from lambdadb import RequestOptions`. See [README](../../../README.md) for more.
 
@@ -31,6 +31,7 @@ with LambdaDB(
 * [upsert](#upsert) - Upsert documents into a collection. Note that the maximum supported payload size is 6MB.
 * [get_bulk_upsert](#get_bulk_upsert) - Request required info to upload documents.
 * [bulk_upsert](#bulk_upsert) - Bulk upsert documents into a collection. Note that the maximum supported object size is 200MB.
+* [bulk_upsert_docs](#bulk_upsert_docs) - One-step bulk upsert: pass a list of documents; the SDK gets the presigned URL, uploads to S3, and triggers bulk_upsert.
 * [update](#update) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
 * [delete](#delete) - Delete documents by document IDs or query filter from a collection.
 * [fetch](#fetch) - Lookup and return documents by document IDs from a collection.
@@ -268,6 +269,42 @@ When using the recommended API (`coll.docs.bulk_upsert()`), the collection is al
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
+## bulk_upsert_docs
+
+One-step bulk upsert: pass a list of documents; the SDK obtains a presigned URL, uploads the JSON payload to S3, then calls bulk_upsert. Use this instead of manually calling get_bulk_upsert, uploading to S3, and bulk_upsert. Maximum payload size 200MB.
+
+### Example Usage
+
+```python
+from lambdadb import LambdaDB
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    coll = client.collection("my_collection")
+    docs = [{"id": "1", "text": "one"}, {"id": "2", "text": "two"}]
+    res = coll.docs.bulk_upsert_docs(docs=docs)
+    print(res)
+```
+
+### Parameters
+
+| Parameter   | Type                                                                 | Required   | Description                                                         |
+| ----------- | -------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------- |
+| `docs`      | List[Dict[str, *Any*]]                                                | :heavy_check_mark: | List of documents to bulk upsert.                                   |
+| `options`   | [Optional[RequestOptions]](../../../README.md)                        | :heavy_minus_sign: | Advanced options (retries, server_url, timeout_ms, http_headers).   |
+| `retries`   | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign: | Override retry behavior.                                            |
+
+### Response
+
+**[models.MessageResponse](../../models/messageresponse.md)**
+
+### Errors
+
+Raises `ValueError` if the serialized payload exceeds the size limit. Raises `RuntimeError` if the S3 upload fails. Other errors are the same as [get_bulk_upsert](#get_bulk_upsert) and [bulk_upsert](#bulk_upsert).
+
 ## update
 
 Update documents in a collection. Note that the maximum supported payload size is 6MB.
@@ -398,7 +435,7 @@ When using the recommended API (`coll.docs.fetch()`), the collection is already 
 
 ### Response
 
-**[models.FetchDocsResponse](../../models/fetchdocsresponse.md)** — Use `response.results` for full items (with `.collection`); use `response.documents` for document bodies only.
+**[models.FetchDocsResponse](../../models/fetchdocsresponse.md)** — Use `response.results` for full items (with `.collection`); use `response.documents` for document bodies only. When `is_docs_inline` is false, the SDK auto-fetches from `docs_url` so results are always populated.
 
 ### Errors
 
