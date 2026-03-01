@@ -1,7 +1,7 @@
 
 [project]
 name = "lambdadb"
-version = "0.7.0"
+version = "0.7.1"
 description = "The Official LambdaDB Python SDK."
 authors = [{ name = "Functional Systems, Inc." },]
 readme = "README.md"
