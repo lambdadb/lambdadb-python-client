@@ -64,6 +64,10 @@ class ListDocsResponseTypedDict(TypedDict):
     results: List[Dict[str, Any]]
     r"""List of result items (documents or items with 'doc' key)."""
     next_page_token: NotRequired[str]
+    is_docs_inline: bool
+    r"""Whether the list of documents is included."""
+    docs_url: NotRequired[str]
+    r"""Download URL for the list of documents."""
 
 
 class ListDocsResponse(BaseModel):
@@ -81,6 +85,12 @@ class ListDocsResponse(BaseModel):
         None
     )
 
+    is_docs_inline: Annotated[bool, pydantic.Field(alias="isDocsInline")]
+    r"""Whether the list of documents is included."""
+
+    docs_url: Annotated[Optional[str], pydantic.Field(alias="docsUrl")] = None
+    r"""Download URL for the list of documents."""
+
     @property
     def docs(self) -> List[Dict[str, Any]]:
         """Deprecated: use .results instead. List of result items."""
@@ -93,7 +103,7 @@ class ListDocsResponse(BaseModel):
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["nextPageToken"])
+        optional_fields = set(["nextPageToken", "docsUrl"])
         serialized = handler(self)
         m = {}
 

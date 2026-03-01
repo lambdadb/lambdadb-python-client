@@ -140,6 +140,49 @@ async def _resolve_fetch_response_async(
     )
 
 
+def _resolve_list_docs_response(
+    response: models.ListDocsResponse,
+    client: Any,
+    timeout_sec: Optional[float],
+) -> models.ListDocsResponse:
+    """If response has docs_url and not is_docs_inline, fetch from URL and return response with results populated."""
+    if response.is_docs_inline or not response.docs_url:
+        return response
+    body = _fetch_bytes_from_presigned_url(response.docs_url, client, timeout_sec)
+    data = json.loads(body)
+    if not isinstance(data, list):
+        raise RuntimeError("Expected JSON array from docs_url")
+    return models.ListDocsResponse(
+        total=response.total,
+        results=data,
+        next_page_token=response.next_page_token,
+        is_docs_inline=response.is_docs_inline,
+        docs_url=response.docs_url,
+    )
+
+
+async def _resolve_list_docs_response_async(
+    response: models.ListDocsResponse,
+    async_client: Any,
+    timeout_sec: Optional[float],
+) -> models.ListDocsResponse:
+    if response.is_docs_inline or not response.docs_url:
+        return response
+    body = await _fetch_bytes_from_presigned_url_async(
+        response.docs_url, async_client, timeout_sec
+    )
+    data = json.loads(body)
+    if not isinstance(data, list):
+        raise RuntimeError("Expected JSON array from docs_url")
+    return models.ListDocsResponse(
+        total=response.total,
+        results=data,
+        next_page_token=response.next_page_token,
+        is_docs_inline=response.is_docs_inline,
+        docs_url=response.docs_url,
+    )
+
+
 def _doc_from_item(item: Any) -> Dict[str, Any]:
     """Normalize list_docs item: return item['doc'] if present else item."""
     if isinstance(item, dict) and "doc" in item:
@@ -194,9 +237,9 @@ class CollectionDocs:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        """List documents in this collection. For advanced options use options=RequestOptions(...)."""
+        """List documents in this collection. When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        return self._docs.list_docs(
+        response = self._docs.list_docs(
             collection_name=self._collection_name,
             size=size,
             page_token=page_token,
@@ -205,6 +248,11 @@ class CollectionDocs:
             timeout_ms=t,
             http_headers=h,
         )
+        client = self._docs.sdk_configuration.client
+        if client is not None:
+            timeout_sec = (t / 1000.0) if t is not None else (self._docs.sdk_configuration.timeout_ms / 1000.0 if self._docs.sdk_configuration.timeout_ms else None)
+            response = _resolve_list_docs_response(response, client, timeout_sec)
+        return response
 
     def list_pages(
         self,
@@ -236,6 +284,10 @@ class CollectionDocs:
                 timeout_ms=t,
                 http_headers=h,
             )
+            client = self._docs.sdk_configuration.client
+            if client is not None:
+                timeout_sec = (t / 1000.0) if t is not None else (self._docs.sdk_configuration.timeout_ms / 1000.0 if self._docs.sdk_configuration.timeout_ms else None)
+                resp = _resolve_list_docs_response(resp, client, timeout_sec)
             for item in resp.results:
                 buffer.append(_doc_from_item(item))
             page_token = resp.next_page_token
@@ -270,9 +322,9 @@ class CollectionDocs:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        """List documents in this collection (async). For advanced options use options=RequestOptions(...)."""
+        """List documents in this collection (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        return await self._docs.list_docs_async(
+        response = await self._docs.list_docs_async(
             collection_name=self._collection_name,
             size=size,
             page_token=page_token,
@@ -281,6 +333,11 @@ class CollectionDocs:
             timeout_ms=t,
             http_headers=h,
         )
+        async_client = self._docs.sdk_configuration.async_client
+        if async_client is not None:
+            timeout_sec = (t / 1000.0) if t is not None else (self._docs.sdk_configuration.timeout_ms / 1000.0 if self._docs.sdk_configuration.timeout_ms else None)
+            response = await _resolve_list_docs_response_async(response, async_client, timeout_sec)
+        return response
 
     def upsert(
         self,

@@ -133,3 +133,24 @@ def test_query_and_fetch_response_has_results_and_documents() -> None:
     assert hasattr(f, "documents")
     assert f.results == []
     assert f.documents == []
+
+
+def test_list_docs_response_has_is_docs_inline_and_docs_url() -> None:
+    """ListDocsResponse has .results, .is_docs_inline, and .docs_url (like query/fetch)."""
+    from lambdadb.models import ListDocsResponse
+
+    resp = ListDocsResponse.model_validate(
+        {"total": 0, "docs": [], "isDocsInline": True}
+    )
+    assert hasattr(resp, "results")
+    assert hasattr(resp, "is_docs_inline")
+    assert hasattr(resp, "docs_url")
+    assert resp.results == []
+    assert resp.is_docs_inline is True
+    assert resp.docs_url is None
+
+    resp_with_url = ListDocsResponse.model_validate(
+        {"total": 2, "docs": [], "isDocsInline": False, "docsUrl": "https://example.com/docs.json"}
+    )
+    assert resp_with_url.is_docs_inline is False
+    assert resp_with_url.docs_url == "https://example.com/docs.json"
