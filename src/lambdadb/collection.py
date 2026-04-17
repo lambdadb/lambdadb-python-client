@@ -464,7 +464,7 @@ class CollectionDocs:
     def bulk_upsert_docs(
         self,
         *,
-        docs: List[Dict[str, Any]],
+        docs: Union[List[Dict[str, Any]], Dict[str, List[Dict[str, Any]]]],
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -472,7 +472,8 @@ class CollectionDocs:
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.MessageResponse:
         """One-step bulk upsert: gets presigned URL, uploads documents to S3, then triggers bulk_upsert.
-        Use this instead of calling get_bulk_upsert + manual upload + bulk_upsert. Max payload 200MB."""
+        Use this instead of calling get_bulk_upsert + manual upload + bulk_upsert. Max payload 200MB.
+        Accepts either docs=[...] or docs={"docs":[...]}."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         info = self._docs.get_bulk_upsert(
             collection_name=self._collection_name,
@@ -481,7 +482,8 @@ class CollectionDocs:
             timeout_ms=t,
             http_headers=h,
         )
-        body = json.dumps(docs).encode("utf-8")
+        payload = docs if isinstance(docs, dict) else {"docs": docs}
+        body = json.dumps(payload).encode("utf-8")
         size_limit = info.size_limit_bytes or 209715200
         if len(body) > size_limit:
             raise ValueError(
@@ -516,14 +518,15 @@ class CollectionDocs:
     async def bulk_upsert_docs_async(
         self,
         *,
-        docs: List[Dict[str, Any]],
+        docs: Union[List[Dict[str, Any]], Dict[str, List[Dict[str, Any]]]],
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.MessageResponse:
-        """One-step bulk upsert (async): gets presigned URL, uploads documents to S3, then triggers bulk_upsert."""
+        """One-step bulk upsert (async): gets presigned URL, uploads documents to S3, then triggers bulk_upsert.
+        Accepts either docs=[...] or docs={"docs":[...]}."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         info = await self._docs.get_bulk_upsert_async(
             collection_name=self._collection_name,
@@ -532,7 +535,8 @@ class CollectionDocs:
             timeout_ms=t,
             http_headers=h,
         )
-        body = json.dumps(docs).encode("utf-8")
+        payload = docs if isinstance(docs, dict) else {"docs": docs}
+        body = json.dumps(payload).encode("utf-8")
         size_limit = info.size_limit_bytes or 209715200
         if len(body) > size_limit:
             raise ValueError(

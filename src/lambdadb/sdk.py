@@ -212,7 +212,15 @@ class LambdaDB(BaseSDK):
     async def __aenter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def close(self) -> None:
+        """
+        Close the underlying synchronous HTTP client (if owned by this SDK).
+
+        Notes:
+        - If you passed a custom `client=...` into the SDK, you own its lifecycle and
+          this method will not close it.
+        - After closing, this SDK instance should not be used for further requests.
+        """
         if (
             self.sdk_configuration.client is not None
             and not self.sdk_configuration.client_supplied
@@ -220,10 +228,24 @@ class LambdaDB(BaseSDK):
             self.sdk_configuration.client.close()
         self.sdk_configuration.client = None
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def aclose(self) -> None:
+        """
+        Close the underlying async HTTP client (if owned by this SDK).
+
+        Notes:
+        - If you passed a custom `async_client=...` into the SDK, you own its lifecycle and
+          this method will not close it.
+        - After closing, this SDK instance should not be used for further requests.
+        """
         if (
             self.sdk_configuration.async_client is not None
             and not self.sdk_configuration.async_client_supplied
         ):
             await self.sdk_configuration.async_client.aclose()
         self.sdk_configuration.async_client = None
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.aclose()
