@@ -4,6 +4,8 @@ Run: poetry run pytest tests/ -v
 """
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
 
@@ -71,6 +73,83 @@ def test_request_options_instantiation() -> None:
     assert opts2 is not None
 
 
+def test_sdk_close_closes_both_owned_clients() -> None:
+    """close() closes both sync and async clients created by the SDK."""
+    from lambdadb import LambdaDB
+
+    client = LambdaDB(project_api_key="test-key")
+    assert client.sdk_configuration.client is not None
+    assert client.sdk_configuration.async_client is not None
+
+    client.close()
+
+    assert client.sdk_configuration.client is None
+    assert client.sdk_configuration.async_client is None
+
+
+def test_sdk_aclose_closes_both_owned_clients() -> None:
+    """aclose() closes both sync and async clients created by the SDK."""
+    from lambdadb import LambdaDB
+
+    async def run() -> None:
+        client = LambdaDB(project_api_key="test-key")
+        assert client.sdk_configuration.client is not None
+        assert client.sdk_configuration.async_client is not None
+
+        await client.aclose()
+
+        assert client.sdk_configuration.client is None
+        assert client.sdk_configuration.async_client is None
+
+    asyncio.run(run())
+
+
+def test_sdk_use_after_close_raises_clear_error() -> None:
+    """Using the SDK after close() raises a clear client-closed error."""
+    from lambdadb import LambdaDB
+
+    client = LambdaDB(project_api_key="test-key")
+    client.close()
+
+    with pytest.raises(ValueError, match="HTTP client is not available"):
+        client.collections.list()
+
+
+def test_sdk_use_after_aclose_raises_clear_error() -> None:
+    """Using the SDK after aclose() raises a clear client-closed error."""
+    from lambdadb import LambdaDB
+
+    async def run() -> None:
+        client = LambdaDB(project_api_key="test-key")
+        await client.aclose()
+
+        with pytest.raises(ValueError, match="HTTP client is not available"):
+            await client.collections.list_async()
+
+    asyncio.run(run())
+
+
+def test_sdkconfiguration_defaults_are_valid() -> None:
+    """SDKConfiguration dataclass defaults use concrete runtime values."""
+    from lambdadb.sdkconfiguration import SDKConfiguration
+    from lambdadb.types import UNSET
+
+    class DummyLogger:
+        def debug(self, *_args, **_kwargs) -> None:
+            return None
+
+    config = SDKConfiguration(
+        client=None,
+        client_supplied=True,
+        async_client=None,
+        async_client_supplied=True,
+        debug_logger=DummyLogger(),
+    )
+
+    assert config.server_defaults == []
+    assert config.retry_config is UNSET
+
+
 def test_collection_response_has_datetime_properties() -> None:
     """CollectionResponse has created_at_dt, updated_at_dt, data_updated_at_dt."""
     from datetime import datetime, timezone
@@ -100,6 +179,33 @@ def test_collection_response_has_datetime_properties() -> None:
 
     assert resp.created_at_dt.tzinfo is timezone.utc
     assert resp.created_at_dt == datetime.fromtimestamp(1000000, tz=timezone.utc)
+
+
+def test_get_collection_response_model_dump_preserves_values() -> None:
+    """GetCollectionResponse.model_dump keeps parsed collection values."""
+    from lambdadb.models import GetCollectionResponse
+
+    resp = GetCollectionResponse.model_validate(
+        {
+            "collection": {
+                "projectName": "p",
+                "collectionName": "c",
+                "indexConfigs": {"f": {"type": "keyword"}},
+                "numPartitions": 1,
+                "numDocs": 0,
+                "collectionStatus": "ACTIVE",
+                "createdAt": 1000000,
+                "updatedAt": 2000000,
+                "dataUpdatedAt": 3000000,
+            }
+        }
+    )
+
+    assert resp.collection.project_name == "p"
+    assert resp.collection.collection_name == "c"
+    assert resp.model_dump()["collection"]["projectName"] == "p"
+    assert resp.model_dump()["collection"]["collectionName"] == "c"
+    assert resp.model_dump(by_alias=True)["collection"]["projectName"] == "p"
 
 
 def test_list_collections_response_has_next_page_token() -> None:

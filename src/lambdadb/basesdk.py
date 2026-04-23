@@ -152,6 +152,11 @@ class BaseSDK:
         http_headers: Optional[Mapping[str, str]] = None,
         allow_empty_value: Optional[List[str]] = None,
     ) -> httpx.Request:
+        if client is None:
+            raise ValueError(
+                "HTTP client is not available; this SDK instance may have been closed."
+            )
+
         query_params = {}
 
         url = url_override

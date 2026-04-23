@@ -12,6 +12,12 @@ class BaseModel(PydanticBaseModel):
         populate_by_name=True, arbitrary_types_allowed=True, protected_namespaces=()
     )
 
+    @staticmethod
+    def _get_serialized_value(serialized: dict[str, Any], name: str, alias: Optional[str]) -> Any:
+        if alias is not None and alias in serialized:
+            return serialized[alias]
+        return serialized.get(name)
+
 
 class Unset(BaseModel):
     @model_serializer(mode="plain")

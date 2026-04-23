@@ -29,7 +29,7 @@ class FieldsSelector2(BaseModel):
 
         for n, f in type(self).model_fields.items():
             k = f.alias or n
-            val = serialized.get(k)
+            val = self._get_serialized_value(serialized, n, f.alias)
 
             if val != UNSET_SENTINEL:
                 if val is not None or k not in optional_fields:
@@ -60,7 +60,7 @@ class FieldsSelector1(BaseModel):
 
         for n, f in type(self).model_fields.items():
             k = f.alias or n
-            val = serialized.get(k)
+            val = self._get_serialized_value(serialized, n, f.alias)
 
             if val != UNSET_SENTINEL:
                 if val is not None or k not in optional_fields:
