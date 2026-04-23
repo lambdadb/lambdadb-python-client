@@ -6,7 +6,6 @@ from .version import GEN_VERSION, OPENAPI_DOC_VERSION, get_user_agent, get_versi
 from dataclasses import dataclass, field
 from lambdadb import models
 from lambdadb.types import OptionalNullable, UNSET
-from pydantic import Field
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 
@@ -30,7 +29,7 @@ class SDKConfiguration:
     security: Optional[Union[models.Security, Callable[[], models.Security]]] = None
     server_url: Optional[str] = ""
     server_idx: Optional[int] = 0
-    server_defaults: List[Dict[str, str]] = field(default_factory=List)
+    server_defaults: List[Dict[str, str]] = field(default_factory=list)
     base_url: Optional[str] = None
     project_name: Optional[str] = None
     language: str = "python"
@@ -38,7 +37,7 @@ class SDKConfiguration:
     sdk_version: str = field(default_factory=get_version)
     gen_version: str = GEN_VERSION
     user_agent: str = field(default_factory=get_user_agent)
-    retry_config: OptionalNullable[RetryConfig] = Field(default_factory=lambda: UNSET)
+    retry_config: OptionalNullable[RetryConfig] = field(default_factory=lambda: UNSET)
     timeout_ms: Optional[int] = None
 
     def get_server_details(self) -> Tuple[str, Dict[str, str]]:

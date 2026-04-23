@@ -4,6 +4,8 @@ Run: poetry run pytest tests/ -v
 """
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
 
@@ -69,6 +71,83 @@ def test_request_options_instantiation() -> None:
 
     opts2 = RequestOptions()
     assert opts2 is not None
+
+
+def test_sdk_close_closes_both_owned_clients() -> None:
+    """close() closes both sync and async clients created by the SDK."""
+    from lambdadb import LambdaDB
+
+    client = LambdaDB(project_api_key="test-key")
+    assert client.sdk_configuration.client is not None
+    assert client.sdk_configuration.async_client is not None
+
+    client.close()
+
+    assert client.sdk_configuration.client is None
+    assert client.sdk_configuration.async_client is None
+
+
+def test_sdk_aclose_closes_both_owned_clients() -> None:
+    """aclose() closes both sync and async clients created by the SDK."""
+    from lambdadb import LambdaDB
+
+    async def run() -> None:
+        client = LambdaDB(project_api_key="test-key")
+        assert client.sdk_configuration.client is not None
+        assert client.sdk_configuration.async_client is not None
+
+        await client.aclose()
+
+        assert client.sdk_configuration.client is None
+        assert client.sdk_configuration.async_client is None
+
+    asyncio.run(run())
+
+
+def test_sdk_use_after_close_raises_clear_error() -> None:
+    """Using the SDK after close() raises a clear client-closed error."""
+    from lambdadb import LambdaDB
+
+    client = LambdaDB(project_api_key="test-key")
+    client.close()
+
+    with pytest.raises(ValueError, match="HTTP client is not available"):
+        client.collections.list()
+
+
+def test_sdk_use_after_aclose_raises_clear_error() -> None:
+    """Using the SDK after aclose() raises a clear client-closed error."""
+    from lambdadb import LambdaDB
+
+    async def run() -> None:
+        client = LambdaDB(project_api_key="test-key")
+        await client.aclose()
+
+        with pytest.raises(ValueError, match="HTTP client is not available"):
+            await client.collections.list_async()
+
+    asyncio.run(run())
+
+
+def test_sdkconfiguration_defaults_are_valid() -> None:
+    """SDKConfiguration dataclass defaults use concrete runtime values."""
+    from lambdadb.sdkconfiguration import SDKConfiguration
+    from lambdadb.types import UNSET
+
+    class DummyLogger:
+        def debug(self, *_args, **_kwargs) -> None:
+            return None
+
+    config = SDKConfiguration(
+        client=None,
+        client_supplied=True,
+        async_client=None,
+        async_client_supplied=True,
+        debug_logger=DummyLogger(),
+    )
+
+    assert config.server_defaults == []
+    assert config.retry_config is UNSET
 
 
 def test_collection_response_has_datetime_properties() -> None:
