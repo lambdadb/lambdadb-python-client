@@ -102,6 +102,33 @@ def test_collection_response_has_datetime_properties() -> None:
     assert resp.created_at_dt == datetime.fromtimestamp(1000000, tz=timezone.utc)
 
 
+def test_get_collection_response_model_dump_preserves_values() -> None:
+    """GetCollectionResponse.model_dump keeps parsed collection values."""
+    from lambdadb.models import GetCollectionResponse
+
+    resp = GetCollectionResponse.model_validate(
+        {
+            "collection": {
+                "projectName": "p",
+                "collectionName": "c",
+                "indexConfigs": {"f": {"type": "keyword"}},
+                "numPartitions": 1,
+                "numDocs": 0,
+                "collectionStatus": "ACTIVE",
+                "createdAt": 1000000,
+                "updatedAt": 2000000,
+                "dataUpdatedAt": 3000000,
+            }
+        }
+    )
+
+    assert resp.collection.project_name == "p"
+    assert resp.collection.collection_name == "c"
+    assert resp.model_dump()["collection"]["projectName"] == "p"
+    assert resp.model_dump()["collection"]["collectionName"] == "c"
+    assert resp.model_dump(by_alias=True)["collection"]["projectName"] == "p"
+
+
 def test_list_collections_response_has_next_page_token() -> None:
     """ListCollectionsResponse has collections and next_page_token."""
     from lambdadb.models import ListCollectionsResponse
