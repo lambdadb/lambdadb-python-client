@@ -138,6 +138,40 @@ with LambdaDB(
     coll.docs.upsert(docs=[{"id": "1", "text": "hello"}])
 ```
 
+### Create a collection with managed embeddings
+
+Managed embedding vector fields set `managedEmbedding=True` and put provider/model/source
+settings under `embedding`. Do not set top-level `dimensions` or `similarity` on managed
+embedding vector fields. For unmanaged vector fields, keep using top-level `dimensions`.
+
+```python
+from lambdadb import LambdaDB, models
+
+with LambdaDB(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+) as client:
+    client.collections.create(
+        collection_name="articles",
+        index_configs={
+            "body": {
+                "type": models.TypeText.TEXT,
+                "analyzers": [models.Analyzer.ENGLISH],
+            },
+            "bodyEmbedding": {
+                "type": models.TypeVector.VECTOR,
+                "managedEmbedding": True,
+                "embedding": {
+                    "provider": models.Provider.OPENAI,
+                    "model": "text-embedding-3-small",
+                    "sourceField": "body",
+                },
+            },
+        },
+    )
+```
+
 ### List all collections (sync / async)
 
 ```python

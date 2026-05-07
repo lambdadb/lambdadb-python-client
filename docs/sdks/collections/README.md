@@ -113,6 +113,16 @@ with LambdaDB(
         index_configs={
             "example-field1": {"type": models.TypeText.TEXT, "analyzers": [models.Analyzer.ENGLISH]},
             "example-field2": {"type": models.TypeVector.VECTOR, "dimensions": 128, "similarity": models.Similarity.COSINE},
+            "body": {"type": models.TypeText.TEXT, "analyzers": [models.Analyzer.ENGLISH]},
+            "bodyEmbedding": {
+                "type": models.TypeVector.VECTOR,
+                "managedEmbedding": True,
+                "embedding": {
+                    "provider": models.Provider.OPENAI,
+                    "model": "text-embedding-3-small",
+                    "sourceField": "body",
+                },
+            },
         },
     )
     print(res)
