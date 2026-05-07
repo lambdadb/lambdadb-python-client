@@ -181,6 +181,308 @@ def test_collection_response_has_datetime_properties() -> None:
     assert resp.created_at_dt == datetime.fromtimestamp(1000000, tz=timezone.utc)
 
 
+def test_managed_embedding_index_config_serializes_with_api_aliases() -> None:
+    """Managed embedding vector configs parse and dump using API field names."""
+    from lambdadb.models import (
+        CreateCollectionRequest,
+        EmbeddingConfig,
+        IndexConfigsVector,
+        Provider,
+        Similarity,
+        TypeVector,
+    )
+
+    req = CreateCollectionRequest(
+        collection_name="articles",
+        index_configs={
+            "bodyEmbedding": IndexConfigsVector(
+                type=TypeVector.VECTOR,
+                managed_embedding=True,
+                embedding=EmbeddingConfig(
+                    provider=Provider.OPENAI,
+                    model="text-embedding-3-small",
+                    source_field="body",
+                ),
+            )
+        },
+    )
+
+    assert req.index_configs is not None
+    vector_config = req.index_configs["bodyEmbedding"]
+    assert isinstance(vector_config, IndexConfigsVector)
+    assert vector_config.managed_embedding is True
+    assert vector_config.embedding is not None
+    assert vector_config.embedding.similarity is Similarity.COSINE
+
+    assert req.model_dump(by_alias=True)["indexConfigs"]["bodyEmbedding"] == {
+        "type": "vector",
+        "managedEmbedding": True,
+        "embedding": {
+            "provider": "openai",
+            "model": "text-embedding-3-small",
+            "sourceField": "body",
+            "similarity": "cosine",
+        },
+    }
+
+
+def test_managed_embedding_index_config_accepts_plain_dict_input() -> None:
+    """Managed embedding vector configs also work as plain request dictionaries."""
+    from lambdadb.models import CreateCollectionRequest, IndexConfigsVector
+
+    req = CreateCollectionRequest.model_validate(
+        {
+            "collectionName": "articles",
+            "indexConfigs": {
+                "bodyEmbedding": {
+                    "type": "vector",
+                    "managedEmbedding": True,
+                    "embedding": {
+                        "provider": "openai",
+                        "model": "text-embedding-3-small",
+                        "sourceField": "body",
+                    },
+                }
+            },
+        }
+    )
+
+    assert req.index_configs is not None
+    assert isinstance(req.index_configs["bodyEmbedding"], IndexConfigsVector)
+    assert req.model_dump(by_alias=True, mode="json")["indexConfigs"][
+        "bodyEmbedding"
+    ] == {
+        "type": "vector",
+        "managedEmbedding": True,
+        "embedding": {
+            "provider": "openai",
+            "model": "text-embedding-3-small",
+            "sourceField": "body",
+            "similarity": "cosine",
+        },
+    }
+
+
+def test_collection_response_parses_managed_embedding_index_config() -> None:
+    """CollectionResponse accepts managed embedding metadata returned by the API."""
+    from lambdadb.models import CollectionResponse, IndexConfigsVector
+
+    resp = CollectionResponse.model_validate(
+        {
+            "projectName": "p",
+            "collectionName": "c",
+            "indexConfigs": {
+                "bodyEmbedding": {
+                    "type": "vector",
+                    "managedEmbedding": True,
+                    "embedding": {
+                        "provider": "openai",
+                        "model": "text-embedding-3-small",
+                        "sourceField": "body",
+                        "dimensions": 1536,
+                        "similarity": "cosine",
+                    },
+                }
+            },
+            "numPartitions": 1,
+            "numDocs": 0,
+            "collectionStatus": "ACTIVE",
+            "createdAt": 1000000,
+            "updatedAt": 2000000,
+            "dataUpdatedAt": 3000000,
+        }
+    )
+
+    vector_config = resp.index_configs["bodyEmbedding"]
+    assert isinstance(vector_config, IndexConfigsVector)
+    assert vector_config.managed_embedding is True
+    assert vector_config.embedding is not None
+    assert vector_config.embedding.source_field == "body"
+    assert vector_config.embedding.dimensions == 1536
+    assert (
+        resp.model_dump(by_alias=True)["indexConfigs"]["bodyEmbedding"]["embedding"][
+            "sourceField"
+        ]
+        == "body"
+    )
+
+
+def test_unmanaged_vector_index_config_requires_dimensions_and_defaults_similarity() -> None:
+    """Unmanaged vector configs keep existing dimensions + default similarity behavior."""
+    from lambdadb.models import CreateCollectionRequest, IndexConfigsVector, Similarity
+
+    req = CreateCollectionRequest.model_validate(
+        {
+            "collectionName": "articles",
+            "indexConfigs": {
+                "bodyEmbedding": {
+                    "type": "vector",
+                    "dimensions": 1536,
+                }
+            },
+        }
+    )
+
+    assert req.index_configs is not None
+    vector_config = req.index_configs["bodyEmbedding"]
+    assert isinstance(vector_config, IndexConfigsVector)
+    assert vector_config.managed_embedding is None
+    assert vector_config.dimensions == 1536
+    assert vector_config.similarity is Similarity.COSINE
+
+
+def test_vector_index_config_rejects_embedding_without_managed_embedding() -> None:
+    """embedding requires managedEmbedding=true."""
+    from pydantic import ValidationError
+    from lambdadb.models import CreateCollectionRequest
+
+    with pytest.raises(ValidationError, match="managedEmbedding=true is required"):
+        CreateCollectionRequest.model_validate(
+            {
+                "collectionName": "articles",
+                "indexConfigs": {
+                    "bodyEmbedding": {
+                        "type": "vector",
+                        "embedding": {
+                            "provider": "openai",
+                            "model": "text-embedding-3-small",
+                            "sourceField": "body",
+                        },
+                    }
+                },
+            }
+        )
+
+
+def test_vector_index_config_rejects_managed_embedding_without_embedding() -> None:
+    """embedding is required when managedEmbedding=true."""
+    from pydantic import ValidationError
+    from lambdadb.models import CreateCollectionRequest
+
+    with pytest.raises(ValidationError, match="embedding is required"):
+        CreateCollectionRequest.model_validate(
+            {
+                "collectionName": "articles",
+                "indexConfigs": {
+                    "bodyEmbedding": {
+                        "type": "vector",
+                        "managedEmbedding": True,
+                    }
+                },
+            }
+        )
+
+
+def test_vector_index_config_rejects_top_level_managed_vector_fields() -> None:
+    """Managed embedding vectors cannot use top-level vector parameters."""
+    from pydantic import ValidationError
+    from lambdadb.models import CreateCollectionRequest
+
+    with pytest.raises(ValidationError, match="Top-level dimensions are not allowed"):
+        CreateCollectionRequest.model_validate(
+            {
+                "collectionName": "articles",
+                "indexConfigs": {
+                    "bodyEmbedding": {
+                        "type": "vector",
+                        "managedEmbedding": True,
+                        "dimensions": 1536,
+                        "embedding": {
+                            "provider": "openai",
+                            "model": "text-embedding-3-small",
+                            "sourceField": "body",
+                        },
+                    }
+                },
+            }
+        )
+
+    with pytest.raises(ValidationError, match="Top-level similarity is not allowed"):
+        CreateCollectionRequest.model_validate(
+            {
+                "collectionName": "articles",
+                "indexConfigs": {
+                    "bodyEmbedding": {
+                        "type": "vector",
+                        "managedEmbedding": True,
+                        "similarity": "cosine",
+                        "embedding": {
+                            "provider": "openai",
+                            "model": "text-embedding-3-small",
+                            "sourceField": "body",
+                        },
+                    }
+                },
+            }
+        )
+
+
+def test_vector_index_config_rejects_unmanaged_embedding_fields() -> None:
+    """Unmanaged vectors require dimensions and cannot include embedding."""
+    from pydantic import ValidationError
+    from lambdadb.models import CreateCollectionRequest
+
+    with pytest.raises(ValidationError, match="embedding is not allowed"):
+        CreateCollectionRequest.model_validate(
+            {
+                "collectionName": "articles",
+                "indexConfigs": {
+                    "bodyEmbedding": {
+                        "type": "vector",
+                        "managedEmbedding": False,
+                        "dimensions": 1536,
+                        "embedding": {
+                            "provider": "openai",
+                            "model": "text-embedding-3-small",
+                            "sourceField": "body",
+                        },
+                    }
+                },
+            }
+        )
+
+    with pytest.raises(ValidationError, match="Dimensions is required field"):
+        CreateCollectionRequest.model_validate(
+            {
+                "collectionName": "articles",
+                "indexConfigs": {
+                    "bodyEmbedding": {
+                        "type": "vector",
+                        "managedEmbedding": False,
+                    }
+                },
+            }
+        )
+
+    with pytest.raises(ValidationError, match="Dimensions must be between 1 and 4096"):
+        CreateCollectionRequest.model_validate(
+            {
+                "collectionName": "articles",
+                "indexConfigs": {
+                    "bodyEmbedding": {
+                        "type": "vector",
+                        "managedEmbedding": False,
+                        "dimensions": 4097,
+                    }
+                },
+            }
+        )
+
+    with pytest.raises(ValidationError, match="Dimensions must be between 1 and 4096"):
+        CreateCollectionRequest.model_validate(
+            {
+                "collectionName": "articles",
+                "indexConfigs": {
+                    "bodyEmbedding": {
+                        "type": "vector",
+                        "managedEmbedding": False,
+                        "dimensions": 0,
+                    }
+                },
+            }
+        )
+
+
 def test_get_collection_response_model_dump_preserves_values() -> None:
     """GetCollectionResponse.model_dump keeps parsed collection values."""
     from lambdadb.models import GetCollectionResponse

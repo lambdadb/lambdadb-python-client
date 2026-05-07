@@ -5,9 +5,13 @@ from enum import Enum
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import get_discriminator
 import pydantic
-from pydantic import Discriminator, Tag, model_serializer
+from pydantic import Discriminator, Tag, model_serializer, model_validator
 from typing import Any, Dict, List, Optional, Union
 from typing_extensions import Annotated, NotRequired, TypeAliasType, TypedDict
+
+
+MIN_VECTOR_DIMENSIONS = 1
+MAX_VECTOR_DIMENSIONS = 4096
 
 
 class TypeObject(str, Enum):
@@ -52,6 +56,12 @@ class TypeVector(str, Enum):
     VECTOR = "vector"
 
 
+class Provider(str, Enum):
+    r"""Embedding provider."""
+
+    OPENAI = "openai"
+
+
 class Similarity(str, Enum):
     r"""Vector similarity metric."""
 
@@ -61,32 +71,135 @@ class Similarity(str, Enum):
     MAX_INNER_PRODUCT = "max_inner_product"
 
 
-class IndexConfigsVectorTypedDict(TypedDict):
-    type: TypeVector
-    dimensions: int
-    r"""Vector dimensions."""
+class EmbeddingConfigTypedDict(TypedDict):
+    r"""Managed embedding configuration for vector fields."""
+
+    provider: Provider
+    r"""Embedding provider."""
+    model: str
+    r"""Embedding model name. See /guides/collections/managed-embeddings for the current supported providers and models."""
+    source_field: str
+    r"""Source text field name used to generate embeddings."""
+    dimensions: NotRequired[int]
+    r"""Resolved embedding dimensions. Optional in requests and resolved in stored collection metadata."""
     similarity: NotRequired[Similarity]
-    r"""Vector similarity metric."""
+    r"""Resolved vector similarity metric. Optional in requests and resolved in stored collection metadata."""
 
 
-class IndexConfigsVector(BaseModel):
-    type: TypeVector
+class EmbeddingConfig(BaseModel):
+    r"""Managed embedding configuration for vector fields."""
 
-    dimensions: int
-    r"""Vector dimensions."""
+    provider: Provider
+    r"""Embedding provider."""
+
+    model: str
+    r"""Embedding model name. See /guides/collections/managed-embeddings for the current supported providers and models."""
+
+    source_field: Annotated[str, pydantic.Field(alias="sourceField")]
+    r"""Source text field name used to generate embeddings."""
+
+    dimensions: Optional[int] = None
+    r"""Resolved embedding dimensions. Optional in requests and resolved in stored collection metadata."""
 
     similarity: Optional[Similarity] = Similarity.COSINE
-    r"""Vector similarity metric."""
+    r"""Resolved vector similarity metric. Optional in requests and resolved in stored collection metadata."""
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["similarity"])
+        optional_fields = set(["dimensions", "similarity"])
         serialized = handler(self)
         m = {}
 
         for n, f in type(self).model_fields.items():
             k = f.alias or n
             val = self._get_serialized_value(serialized, n, f.alias)
+
+            if val != UNSET_SENTINEL:
+                if val is not None or k not in optional_fields:
+                    m[k] = val
+
+        return m
+
+
+class IndexConfigsVectorTypedDict(TypedDict):
+    type: TypeVector
+    managed_embedding: NotRequired[bool]
+    r"""Set to true for managed embedding vector fields, or false/omit for unmanaged vector fields."""
+    dimensions: NotRequired[int]
+    r"""Vector dimensions for unmanaged vector fields."""
+    similarity: NotRequired[Similarity]
+    r"""Vector similarity metric for unmanaged vector fields."""
+    embedding: NotRequired[EmbeddingConfigTypedDict]
+    r"""Managed embedding configuration for vector fields."""
+
+
+class IndexConfigsVector(BaseModel):
+    type: TypeVector
+
+    managed_embedding: Annotated[
+        Optional[bool], pydantic.Field(alias="managedEmbedding")
+    ] = None
+    r"""Set to true for managed embedding vector fields, or false/omit for unmanaged vector fields."""
+
+    dimensions: Optional[int] = None
+    r"""Vector dimensions for unmanaged vector fields."""
+
+    similarity: Optional[Similarity] = Similarity.COSINE
+    r"""Vector similarity metric for unmanaged vector fields."""
+
+    embedding: Optional[EmbeddingConfig] = None
+    r"""Managed embedding configuration for vector fields."""
+
+    @model_validator(mode="after")
+    def validate_vector_type(self):
+        if self.managed_embedding is None and self.embedding is not None:
+            raise ValueError(
+                "managedEmbedding=true is required when embedding config is provided"
+            )
+
+        if self.managed_embedding is True:
+            if "dimensions" in self.model_fields_set and self.dimensions is not None:
+                raise ValueError(
+                    "Top-level dimensions are not allowed for managed embedding field"
+                )
+            if "similarity" in self.model_fields_set and self.similarity is not None:
+                raise ValueError(
+                    "Top-level similarity is not allowed for managed embedding field"
+                )
+            if self.embedding is None:
+                raise ValueError("embedding is required when managedEmbedding=true")
+
+            return self
+
+        if self.embedding is not None:
+            raise ValueError("embedding is not allowed when managedEmbedding=false")
+
+        if self.dimensions is None:
+            raise ValueError("Dimensions is required field")
+        if (
+            self.dimensions > MAX_VECTOR_DIMENSIONS
+            or self.dimensions < MIN_VECTOR_DIMENSIONS
+        ):
+            raise ValueError(
+                f"Dimensions must be between {MIN_VECTOR_DIMENSIONS} and {MAX_VECTOR_DIMENSIONS}"
+            )
+
+        return self
+
+    @model_serializer(mode="wrap")
+    def serialize_model(self, handler):
+        optional_fields = set(
+            ["managedEmbedding", "dimensions", "similarity", "embedding"]
+        )
+        serialized = handler(self)
+        m = {}
+
+        for n, f in type(self).model_fields.items():
+            k = f.alias or n
+            val = self._get_serialized_value(serialized, n, f.alias)
+
+            if self.managed_embedding is True and k == "similarity":
+                continue
 
             if val != UNSET_SENTINEL:
                 if val is not None or k not in optional_fields:
