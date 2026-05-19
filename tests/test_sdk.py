@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 
+import httpx
 import pytest
 
 
@@ -148,6 +149,106 @@ def test_sdkconfiguration_defaults_are_valid() -> None:
 
     assert config.server_defaults == []
     assert config.retry_config is UNSET
+
+
+def test_retry_retries_read_error_when_connection_retries_enabled() -> None:
+    from lambdadb.utils.retries import BackoffStrategy, Retries, RetryConfig, retry
+
+    attempts = 0
+
+    def flaky() -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise httpx.ReadError("bad file descriptor")
+        return httpx.Response(202)
+
+    result = retry(
+        flaky,
+        Retries(
+            RetryConfig("backoff", BackoffStrategy(0, 0, 1, 1000), True),
+            [],
+        ),
+    )
+
+    assert result.status_code == 202
+    assert attempts == 2
+
+
+def test_retry_does_not_retry_read_error_when_connection_retries_disabled() -> None:
+    from lambdadb.utils.retries import BackoffStrategy, Retries, RetryConfig, retry
+
+    attempts = 0
+
+    def flaky() -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        raise httpx.ReadError("bad file descriptor")
+
+    with pytest.raises(httpx.ReadError):
+        retry(
+            flaky,
+            Retries(
+                RetryConfig("backoff", BackoffStrategy(0, 0, 1, 1000), False),
+                [],
+            ),
+        )
+
+    assert attempts == 1
+
+
+def test_retry_does_not_retry_protocol_errors() -> None:
+    from lambdadb.utils.retries import BackoffStrategy, Retries, RetryConfig, retry
+
+    attempts = 0
+
+    def invalid_request() -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        raise httpx.UnsupportedProtocol("missing URL scheme")
+
+    with pytest.raises(httpx.UnsupportedProtocol):
+        retry(
+            invalid_request,
+            Retries(
+                RetryConfig("backoff", BackoffStrategy(0, 0, 1, 1000), True),
+                [],
+            ),
+        )
+
+    assert attempts == 1
+
+
+def test_retry_async_retries_read_error_when_connection_retries_enabled() -> None:
+    from lambdadb.utils.retries import (
+        BackoffStrategy,
+        Retries,
+        RetryConfig,
+        retry_async,
+    )
+
+    async def run() -> None:
+        attempts = 0
+
+        async def flaky() -> httpx.Response:
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise httpx.ReadError("bad file descriptor")
+            return httpx.Response(202)
+
+        result = await retry_async(
+            flaky,
+            Retries(
+                RetryConfig("backoff", BackoffStrategy(0, 0, 1, 1000), True),
+                [],
+            ),
+        )
+
+        assert result.status_code == 202
+        assert attempts == 2
+
+    asyncio.run(run())
 
 
 def test_collection_response_has_datetime_properties() -> None:
