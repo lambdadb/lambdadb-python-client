@@ -1,0 +1,434 @@
+from __future__ import annotations
+
+from types import SimpleNamespace
+
+import pytest
+
+
+class FakeIndexConfigModel:
+    def __init__(self, data):
+        self.data = data
+
+    def model_dump(self, **kwargs):
+        assert kwargs["mode"] == "json"
+        return self.data
+
+
+class FakeDocs:
+    def __init__(self) -> None:
+        self.upserts = []
+        self.deletes = []
+        self.fetches = []
+        self.list_pages_calls = []
+
+    def upsert(self, *, docs):
+        self.upserts.append(docs)
+        return SimpleNamespace(message="ok")
+
+    def fetch(self, **kwargs):
+        self.fetches.append(kwargs)
+        return SimpleNamespace(
+            results=[
+                SimpleNamespace(
+                    doc={
+                        "id": "1",
+                        "_qdrant_id": 1,
+                        "_qdrant_vector": [0.1, 0.2],
+                        "tenant": "acme",
+                    }
+                )
+            ]
+        )
+
+    def delete(self, **kwargs):
+        self.deletes.append(kwargs)
+        return SimpleNamespace(message="ok")
+
+    def list_pages(self, *, size):
+        self.list_pages_calls.append({"size": size})
+        yield [{"id": "1", "_qdrant_id": 1, "tenant": "acme"}]
+
+
+class FakeCollection:
+    def __init__(self) -> None:
+        self.docs = FakeDocs()
+        self.queries = []
+
+    def query(self, **kwargs):
+        self.queries.append(kwargs)
+        return SimpleNamespace(
+            results=[
+                SimpleNamespace(
+                    score=0.9,
+                    doc={
+                        "id": "1",
+                        "_qdrant_id": 1,
+                        "_qdrant_vector": [0.1, 0.2],
+                        "tenant": "acme",
+                    },
+                )
+            ]
+        )
+
+
+class FakeCollections:
+    def __init__(self) -> None:
+        self.created = []
+        self.deleted = []
+        self.gets = []
+        self.updated = []
+        self.index_configs = {}
+        self.num_docs = 12
+
+    def create(self, **kwargs):
+        self.created.append(kwargs)
+        self.index_configs = kwargs.get("index_configs", {})
+        return SimpleNamespace(collection=SimpleNamespace(collection_name=kwargs["collection_name"]))
+
+    def delete(self, **kwargs):
+        self.deleted.append(kwargs)
+        return SimpleNamespace(message="ok")
+
+    def get(self, **kwargs):
+        self.gets.append(kwargs)
+        return SimpleNamespace(collection=SimpleNamespace(num_docs=self.num_docs, index_configs=self.index_configs))
+
+    def update(self, **kwargs):
+        self.updated.append(kwargs)
+        self.index_configs = kwargs.get("index_configs", {})
+        return SimpleNamespace(collection=SimpleNamespace(collection_name=kwargs["collection_name"], index_configs=self.index_configs))
+
+
+class FakeLambdaDB:
+    def __init__(self) -> None:
+        self.collections = FakeCollections()
+        self._collections_by_name = {}
+
+    def collection(self, name):
+        if name not in self._collections_by_name:
+            self._collections_by_name[name] = FakeCollection()
+        return self._collections_by_name[name]
+
+
+def test_qdrant_compat_imports() -> None:
+    from lambdadb.compat.qdrant import QdrantClient, QdrantCompatClient, models
+    from lambdadb.compat.qdrant.models import PointStruct
+
+    assert QdrantClient is QdrantCompatClient
+    assert models.PointStruct is PointStruct
+
+
+def test_create_collection_maps_vector_params() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+
+    assert client.create_collection(
+        collection_name="docs",
+        vectors_config=models.VectorParams(size=3, distance=models.Distance.DOT),
+    )
+
+    assert fake.collections.created == [
+        {
+            "collection_name": "docs",
+            "index_configs": {
+                "_qdrant_vector": {
+                    "type": "vector",
+                    "dimensions": 3,
+                    "similarity": "dot_product",
+                }
+            },
+        }
+    ]
+
+
+def test_create_collection_maps_payload_schema() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+
+    assert client.create_collection(
+        collection_name="docs",
+        vectors_config=models.VectorParams(size=3, distance=models.Distance.COSINE),
+        payload_schema={
+            "tenant": models.PayloadSchemaType.KEYWORD,
+            "views": models.PayloadSchemaType.INTEGER,
+            "score": models.PayloadSchemaType.FLOAT,
+            "active": models.PayloadSchemaType.BOOL,
+        },
+    )
+
+    assert fake.collections.created[0]["index_configs"] == {
+        "_qdrant_vector": {
+            "type": "vector",
+            "dimensions": 3,
+            "similarity": "cosine",
+        },
+        "tenant": {"type": "keyword"},
+        "views": {"type": "long"},
+        "score": {"type": "double"},
+        "active": {"type": "boolean"},
+    }
+
+
+def test_get_collection_returns_qdrant_style_vector_config() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    fake.collections.index_configs = {
+        "_qdrant_vector": {
+            "type": "vector",
+            "dimensions": 3,
+            "similarity": "cosine",
+        }
+    }
+    client = QdrantCompatClient(fake)
+
+    collection = client.get_collection(collection_name="docs")
+
+    assert collection.config.params.vectors == models.VectorParams(
+        size=3,
+        distance=models.Distance.COSINE,
+    )
+
+
+def test_create_payload_index_merges_existing_index_configs() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    fake.collections.num_docs = 0
+    fake.collections.index_configs = {
+        "_qdrant_vector": {
+            "type": "vector",
+            "dimensions": 3,
+            "similarity": "cosine",
+        }
+    }
+    client = QdrantCompatClient(fake)
+
+    assert client.create_payload_index(
+        collection_name="docs",
+        field_name="tenant",
+        field_schema=models.PayloadSchemaType.KEYWORD,
+    )
+
+    assert fake.collections.updated == [
+        {
+            "collection_name": "docs",
+            "index_configs": {
+                "_qdrant_vector": {
+                    "type": "vector",
+                    "dimensions": 3,
+                    "similarity": "cosine",
+                },
+                "tenant": {"type": "keyword"},
+            },
+        }
+    ]
+
+
+def test_create_payload_index_rejects_non_empty_collection() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    fake = FakeLambdaDB()
+    fake.collections.num_docs = 3
+    fake.collections.index_configs = {
+        "_qdrant_vector": {
+            "type": "vector",
+            "dimensions": 3,
+            "similarity": "cosine",
+        }
+    }
+    client = QdrantCompatClient(fake)
+
+    with pytest.raises(UnsupportedQdrantFeatureError, match="only supported for empty"):
+        client.create_payload_index(
+            collection_name="docs",
+            field_name="tenant",
+            field_schema=models.PayloadSchemaType.KEYWORD,
+        )
+
+    assert fake.collections.updated == []
+
+
+def test_create_payload_index_is_idempotent_for_existing_index_on_non_empty_collection() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    fake.collections.num_docs = 3
+    fake.collections.index_configs = {
+        "_qdrant_vector": {
+            "type": "vector",
+            "dimensions": 3,
+            "similarity": "cosine",
+        },
+        "tenant": {"type": "keyword"},
+    }
+    client = QdrantCompatClient(fake)
+
+    assert client.create_payload_index(
+        collection_name="docs",
+        field_name="tenant",
+        field_schema=models.PayloadSchemaType.KEYWORD,
+    )
+
+    assert fake.collections.updated == []
+
+
+def test_create_payload_index_normalizes_existing_index_models() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    fake.collections.num_docs = 3
+    fake.collections.index_configs = {
+        "tenant": FakeIndexConfigModel({"type": "keyword"}),
+    }
+    client = QdrantCompatClient(fake)
+
+    assert client.create_payload_index(
+        collection_name="docs",
+        field_name="tenant",
+        field_schema=models.PayloadSchemaType.KEYWORD,
+    )
+
+    assert fake.collections.updated == []
+
+
+def test_upsert_maps_points_to_documents() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+    result = client.upsert(
+        collection_name="docs",
+        points=[
+            models.PointStruct(
+                id=1,
+                vector=[0.1, 0.2],
+                payload={"tenant": "acme"},
+            )
+        ],
+    )
+
+    assert result.status == models.UpdateStatus.COMPLETED
+    assert fake.collection("docs").docs.upserts == [
+        [
+            {
+                "id": "1",
+                "_qdrant_id": 1,
+                "_qdrant_vector": [0.1, 0.2],
+                "tenant": "acme",
+            }
+        ]
+    ]
+
+
+def test_upsert_rejects_reserved_payload_fields() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+    from lambdadb.compat.qdrant.errors import QdrantCompatValidationError
+
+    client = QdrantCompatClient(FakeLambdaDB())
+
+    with pytest.raises(QdrantCompatValidationError):
+        client.upsert(
+            collection_name="docs",
+            points=[
+                models.PointStruct(
+                    id=1,
+                    vector=[0.1],
+                    payload={"_qdrant_vector": [0.2]},
+                )
+            ],
+        )
+
+
+def test_query_points_maps_vector_and_filter() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+
+    response = client.query_points(
+        collection_name="docs",
+        query=[0.1, 0.2],
+        query_filter=models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="tenant",
+                    match=models.MatchValue(value="acme"),
+                )
+            ],
+            must_not=[
+                models.FieldCondition(
+                    key="status",
+                    match=models.MatchValue(value="deleted"),
+                )
+            ],
+        ),
+        limit=5,
+        with_vectors=True,
+    )
+
+    assert response.points[0].id == 1
+    assert response.points[0].payload == {"tenant": "acme"}
+    assert response.points[0].vector == [0.1, 0.2]
+    assert fake.collection("docs").queries == [
+        {
+            "query": {
+                "knn": {
+                    "field": "_qdrant_vector",
+                    "k": 5,
+                    "queryVector": [0.1, 0.2],
+                    "filter": {
+                        "bool": [
+                            {
+                                "queryString": {"query": "tenant:acme"},
+                                "occur": "filter",
+                            },
+                            {
+                                "queryString": {"query": "status:deleted"},
+                                "occur": "must_not",
+                            },
+                        ]
+                    },
+                }
+            },
+            "size": 5,
+            "consistent_read": True,
+            "include_vectors": True,
+        }
+    ]
+
+
+def test_retrieve_and_delete_by_ids() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+
+    records = client.retrieve(collection_name="docs", ids=[1], with_vectors=True)
+    delete_result = client.delete(collection_name="docs", points_selector=[1])
+
+    docs = fake.collection("docs").docs
+    assert records[0].id == 1
+    assert records[0].payload == {"tenant": "acme"}
+    assert records[0].vector == [0.1, 0.2]
+    assert docs.fetches == [{"ids": ["1"], "consistent_read": True, "include_vectors": True}]
+    assert docs.deletes == [{"ids": ["1"]}]
+    assert delete_result.status == "completed"
+
+
+def test_filtered_scroll_and_filtered_count_are_not_implemented() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    client = QdrantCompatClient(FakeLambdaDB())
+    filt = models.Filter(must=[models.FieldCondition(key="tenant", match=models.MatchValue(value="acme"))])
+
+    with pytest.raises(UnsupportedQdrantFeatureError):
+        client.scroll(collection_name="docs", scroll_filter=filt)
+    with pytest.raises(UnsupportedQdrantFeatureError):
+        client.count(collection_name="docs", count_filter=filt)

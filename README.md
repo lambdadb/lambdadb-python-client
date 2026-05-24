@@ -20,6 +20,7 @@ LambdaDB API: LambdaDB Open API Spec
 <!-- $toc-max-depth=2 -->
 * [LambdaDB Python SDK](#lambdadb-python-sdk)
   * [SDK Installation](#sdk-installation)
+  * [Qdrant Compatibility](#qdrant-compatibility)
   * [IDE Support](#ide-support)
   * [SDK Example Usage](#sdk-example-usage)
   * [Authentication](#authentication)
@@ -43,6 +44,8 @@ LambdaDB API: LambdaDB Open API Spec
 > **Python version upgrade policy**
 >
 > Once a Python version reaches its [official end of life date](https://devguide.python.org/versions/), a 3-month grace period is provided for users to upgrade. Following this grace period, the minimum python version supported in the SDK will be updated.
+
+The SDK currently supports Python `>=3.9.2,<3.14`.
 
 The SDK can be installed with *uv*, *pip*, or *poetry* package managers.
 
@@ -103,6 +106,25 @@ client = LambdaDB(
 Once that is saved to a file, you can run it with `uv run script.py` where
 `script.py` can be replaced with the actual file name.
 <!-- End SDK Installation [installation] -->
+
+## Qdrant Compatibility
+
+LambdaDB includes explicit compatibility clients for migrating common vector
+database workflows with minimal application changes. The first supported
+compatibility layer is Qdrant:
+
+```python
+from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+client = QdrantCompatClient(
+    project_api_key="<YOUR_PROJECT_API_KEY>",
+    base_url="https://api.lambdadb.ai",
+    project_name="playground",
+)
+```
+
+See [Qdrant compatibility](docs/compatibility/qdrant.md) for supported APIs,
+payload index behavior, data mapping, limitations, and live test setup.
 
 <!-- Start IDE Support [idesupport] -->
 ## IDE Support
