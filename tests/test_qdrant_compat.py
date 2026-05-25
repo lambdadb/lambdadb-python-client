@@ -46,7 +46,15 @@ class FakeDocs:
 
     def list_pages(self, *, size):
         self.list_pages_calls.append({"size": size})
-        yield [{"id": "1", "_qdrant_id": 1, "tenant": "acme"}]
+        yield [
+            {
+                "id": "1",
+                "_qdrant_id": 1,
+                "_qdrant_vector": [0.1, 0.2],
+                "_qdrant_vector_title": [0.3, 0.4],
+                "tenant": "acme",
+            }
+        ]
 
 
 class FakeCollection:
@@ -460,6 +468,26 @@ def test_payload_and_vector_selectors_map_to_fields_and_response() -> None:
         "include_vectors": False,
         "fields": {"include": ["_qdrant_id", "tenant"]},
     }
+
+
+def test_scroll_maps_list_documents_and_applies_selectors() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+
+    records, next_page = client.scroll(
+        collection_name="docs",
+        limit=3,
+        with_payload=["tenant"],
+        with_vectors=["title"],
+    )
+
+    assert next_page is None
+    assert records[0].id == 1
+    assert records[0].payload == {"tenant": "acme"}
+    assert records[0].vector == {"title": [0.3, 0.4]}
+    assert fake.collection("docs").docs.list_pages_calls == [{"size": 3}]
 
 
 def test_retrieve_and_delete_by_ids() -> None:

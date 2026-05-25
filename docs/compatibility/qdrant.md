@@ -93,7 +93,7 @@ result = client.query_points(
 | `query_points()` | Supported | Dense vector query plus simple payload filters. Supports boolean and field-list payload/vector selectors. |
 | `search()` | Supported | Wrapper around `query_points()`. |
 | `delete()` | Supported | Point IDs and supported Qdrant filters. Accepts `points_selector=[...]`, `points=[...]`, `ids=[...]`, `filter=...`, and `points_selector={"filter": ...}`. |
-| `scroll()` | Limited | Unfiltered scroll without vectors only. |
+| `scroll()` | Limited | Unfiltered scroll with payload/vector response selectors. |
 | `count()` | Limited | Unfiltered collection count only. |
 
 ## Payload Indexes
@@ -177,8 +177,9 @@ client.query_points(
 )
 ```
 
-`scroll()` still rejects vector selectors because scroll with vectors is not
-supported in this compatibility layer.
+`scroll()` maps to LambdaDB list documents. LambdaDB list responses include
+stored vector values, so the compatibility layer applies Qdrant-style vector
+selectors while shaping the response.
 
 ## Filter Support
 
@@ -204,7 +205,6 @@ supported in this compatibility layer.
 - Geo payload indexes and geo filters
 - Filtered scroll
 - Filtered count
-- Scroll with vectors
 - `query_points()` offset
 - `score_threshold`
 - HNSW/search tuning semantics beyond warnings

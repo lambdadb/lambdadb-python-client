@@ -60,7 +60,7 @@ Implement enough for common application code and integrations:
 | `search()` | alias to `query_points()` | Legacy compatibility. |
 | `retrieve()` | `coll.docs.fetch()` | Return Qdrant-style records. |
 | `delete()` | `coll.docs.delete()` | Point IDs and supported Qdrant filters. |
-| `scroll()` | `coll.docs.list_pages()` | Unfiltered scroll only; no vectors in v1. |
+| `scroll()` | `coll.docs.list_pages()` | Unfiltered scroll only; payload/vector response selectors are applied client-side. |
 | `count()` | collection metadata | Unfiltered count only. |
 
 ### Phase 2: Better Coverage
@@ -748,7 +748,7 @@ The `0.8.1` patch extends the adapter without changing existing behavior:
 
 - `delete()` supports supported Qdrant filters through the same `filters.py`
   conversion path used by `query_points()`.
-- `retrieve()`, `query_points()`, and `search()` support field-list
+- `retrieve()`, `query_points()`, `search()`, and `scroll()` support field-list
   `with_payload` and `with_vectors` selectors.
 - External smoke coverage includes LangChain filtered search and LlamaIndex
   delete-by-filter flows.

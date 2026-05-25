@@ -384,13 +384,11 @@ class QdrantCompatClient:
             raise UnsupportedQdrantFeatureError("Filtered scroll is not supported in v1")
         payload_selector = self._normalize_payload_selector(with_payload)
         vector_selector = self._normalize_vector_selector(with_vectors)
-        if vector_selector is not False:
-            raise UnsupportedQdrantFeatureError("Scroll with vectors is not supported in v1")
         docs: List[Dict[str, Any]] = next(
             self._client.collection(collection_name).docs.list_pages(size=limit),
             [],
         )
-        return [doc_to_record(doc, with_payload=payload_selector, with_vectors=False) for doc in docs], None
+        return [doc_to_record(doc, with_payload=payload_selector, with_vectors=vector_selector) for doc in docs], None
 
     def count(
         self,
