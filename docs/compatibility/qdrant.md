@@ -89,10 +89,10 @@ result = client.query_points(
 | `upsert()` | Supported | Dense vectors only. Qdrant IDs become LambdaDB document IDs. |
 | `upload_points()` | Supported | Batches points through `upsert()`. |
 | `upload_collection()` | Supported | Converts vectors, ids, and payload arrays into points. |
-| `retrieve()` | Supported | Uses strongly consistent LambdaDB fetches. |
-| `query_points()` | Supported | Dense vector query plus simple payload filters. |
+| `retrieve()` | Supported | Uses strongly consistent LambdaDB fetches. Supports boolean and field-list payload/vector selectors. |
+| `query_points()` | Supported | Dense vector query plus simple payload filters. Supports boolean and field-list payload/vector selectors. |
 | `search()` | Supported | Wrapper around `query_points()`. |
-| `delete()` | Limited | Point IDs only. Delete by filter is unsupported. |
+| `delete()` | Supported | Point IDs and supported Qdrant filters. Accepts `points_selector=[...]`, `points=[...]`, `ids=[...]`, `filter=...`, and `points_selector={"filter": ...}`. |
 | `scroll()` | Limited | Unfiltered scroll without vectors only. |
 | `count()` | Limited | Unfiltered collection count only. |
 
@@ -142,6 +142,44 @@ collection with `payload_schema` or reingest documents after adding the index.
 
 Payload fields cannot use `id` or the reserved `_qdrant_` prefix.
 
+## Payload And Vector Selectors
+
+Boolean selectors work as expected:
+
+```python
+client.query_points(
+    collection_name="docs",
+    query=[1.0, 0.0, 0.0],
+    with_payload=True,
+    with_vectors=False,
+)
+```
+
+Field-list payload selectors are mapped to LambdaDB `fields.include` and are
+also applied to the Qdrant-style response payload:
+
+```python
+client.query_points(
+    collection_name="docs",
+    query=[1.0, 0.0, 0.0],
+    with_payload=["tenant", "title"],
+)
+```
+
+Vector-name selectors request vectors from LambdaDB and filter the returned
+Qdrant-style vector object by Qdrant vector name:
+
+```python
+client.query_points(
+    collection_name="docs",
+    query=[1.0, 0.0, 0.0],
+    with_vectors=["title"],
+)
+```
+
+`scroll()` still rejects vector selectors because scroll with vectors is not
+supported in this compatibility layer.
+
 ## Filter Support
 
 | Qdrant filter | Status |
@@ -164,7 +202,6 @@ Payload fields cannot use `id` or the reserved `_qdrant_` prefix.
 - Sparse vectors
 - Multi-vector comparators
 - Geo payload indexes and geo filters
-- Delete by filter
 - Filtered scroll
 - Filtered count
 - Scroll with vectors

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple, Union
 
 from lambdadb import models as lambdadb_models
 
@@ -26,6 +26,9 @@ _PAYLOAD_SCHEMA_TYPE_ALIASES = {
     "text": "text",
     "uuid": "keyword",
 }
+
+PayloadSelector = Union[bool, List[str]]
+VectorSelector = Union[bool, List[str]]
 
 
 def vector_field_name(name: Optional[str] = None) -> str:
@@ -88,24 +91,32 @@ def points_to_docs(points: Iterable[Union[models.PointStruct, Mapping[str, Any]]
     return [point_to_doc(point) for point in points]
 
 
-def _payload_from_doc(doc: Mapping[str, Any]) -> Dict[str, Any]:
+def _payload_from_doc(doc: Mapping[str, Any], selector: PayloadSelector = True) -> Optional[Dict[str, Any]]:
+    if selector is False:
+        return None
+    selected_fields = set(selector) if isinstance(selector, list) else None
     return {
         key: value
         for key, value in doc.items()
-        if key != ID_FIELD and not key.startswith(RESERVED_PREFIX)
+        if key != ID_FIELD
+        and not key.startswith(RESERVED_PREFIX)
+        and (selected_fields is None or key in selected_fields)
     }
 
 
-def _vector_from_doc(doc: Mapping[str, Any], with_vectors: bool = False) -> Optional[Any]:
-    if not with_vectors:
+def _vector_from_doc(doc: Mapping[str, Any], selector: VectorSelector = False) -> Optional[Any]:
+    if selector is False:
         return None
+    selected_names = set(selector) if isinstance(selector, list) else None
     named: Dict[str, Any] = {}
     default = None
     for key, value in doc.items():
-        if key == DEFAULT_VECTOR_NAME:
+        if key == DEFAULT_VECTOR_NAME and _should_include_vector_name("", key, selected_names):
             default = value
         elif key.startswith(f"{DEFAULT_VECTOR_NAME}_"):
-            named[key[len(DEFAULT_VECTOR_NAME) + 1 :]] = value
+            name = key[len(DEFAULT_VECTOR_NAME) + 1 :]
+            if _should_include_vector_name(name, key, selected_names):
+                named[name] = value
     if named:
         if default is not None:
             named[""] = default
@@ -113,19 +124,31 @@ def _vector_from_doc(doc: Mapping[str, Any], with_vectors: bool = False) -> Opti
     return default
 
 
+def _should_include_vector_name(qdrant_name: str, internal_name: str, selected_names: Optional[Set[str]]) -> bool:
+    return selected_names is None or qdrant_name in selected_names or internal_name in selected_names
+
+
 def doc_id(doc: Mapping[str, Any]) -> Union[int, str]:
     return doc.get(ORIGINAL_ID_FIELD, doc.get(ID_FIELD, ""))
 
 
-def doc_to_record(doc: Mapping[str, Any], with_payload: bool = True, with_vectors: bool = False) -> models.Record:
+def doc_to_record(
+    doc: Mapping[str, Any],
+    with_payload: PayloadSelector = True,
+    with_vectors: VectorSelector = False,
+) -> models.Record:
     return models.Record(
         id=doc_id(doc),
-        payload=_payload_from_doc(doc) if with_payload else None,
+        payload=_payload_from_doc(doc, with_payload),
         vector=_vector_from_doc(doc, with_vectors),
     )
 
 
-def result_to_scored_point(result: Any, with_payload: bool = True, with_vectors: bool = False) -> models.ScoredPoint:
+def result_to_scored_point(
+    result: Any,
+    with_payload: PayloadSelector = True,
+    with_vectors: VectorSelector = False,
+) -> models.ScoredPoint:
     doc = getattr(result, "doc", result)
     score = getattr(result, "score", None)
     if not isinstance(doc, Mapping):
@@ -133,7 +156,7 @@ def result_to_scored_point(result: Any, with_payload: bool = True, with_vectors:
     return models.ScoredPoint(
         id=doc_id(doc),
         score=score,
-        payload=_payload_from_doc(doc) if with_payload else None,
+        payload=_payload_from_doc(doc, with_payload),
         vector=_vector_from_doc(doc, with_vectors),
     )
 

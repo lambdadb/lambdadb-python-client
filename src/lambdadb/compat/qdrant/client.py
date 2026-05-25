@@ -15,12 +15,16 @@ from lambdadb.utils.retries import RetryConfig
 from . import models
 from .conversions import (
     DEFAULT_VECTOR_NAME,
+    ORIGINAL_ID_FIELD,
+    PayloadSelector,
+    VectorSelector,
     doc_to_record,
     merge_index_configs,
     payload_schema_to_index_configs,
     points_to_docs,
     query_vector_and_field,
     result_to_scored_point,
+    vector_field_name,
     vector_config_to_index_configs,
 )
 from .errors import QdrantCompatError, QdrantCompatValidationError, UnsupportedQdrantFeatureError
@@ -238,18 +242,30 @@ class QdrantCompatClient:
         self,
         collection_name: str,
         ids: List[Union[int, str]],
-        with_payload: bool = True,
-        with_vectors: bool = False,
+        with_payload: PayloadSelector = True,
+        with_vectors: VectorSelector = False,
         **kwargs: Any,
     ) -> List[models.Record]:
         self._warn_ignored(kwargs)
+        payload_selector = self._normalize_payload_selector(with_payload)
+        vector_selector = self._normalize_vector_selector(with_vectors)
+        fetch_kwargs: Dict[str, Any] = {
+            "ids": [str(item) for item in ids],
+            "consistent_read": True,
+            "include_vectors": vector_selector is not False,
+        }
+        fields = self._fields_for_selectors(payload_selector, vector_selector)
+        if fields is not None:
+            fetch_kwargs["fields"] = fields
         response = self._client.collection(collection_name).docs.fetch(
-            ids=[str(item) for item in ids],
-            consistent_read=True,
-            include_vectors=with_vectors,
+            **fetch_kwargs,
         )
         return [
-            doc_to_record(cast(Mapping[str, Any], item.doc if hasattr(item, "doc") else item), with_payload=with_payload, with_vectors=with_vectors)
+            doc_to_record(
+                cast(Mapping[str, Any], item.doc if hasattr(item, "doc") else item),
+                with_payload=payload_selector,
+                with_vectors=vector_selector,
+            )
             for item in response.results
         ]
 
@@ -260,13 +276,23 @@ class QdrantCompatClient:
         wait: Optional[bool] = None,
         **kwargs: Any,
     ) -> models.UpdateResult:
+        direct_filter = kwargs.pop("filter", None)
+        points = kwargs.pop("points", None)
+        ids_option = kwargs.pop("ids", None)
         self._warn_ignored(kwargs)
-        ids = self._ids_from_selector(points_selector)
-        if ids is None:
-            raise UnsupportedQdrantFeatureError("Only delete by point IDs is supported in v1")
+        selector = points_selector if points_selector is not None else points if points is not None else ids_option
+        ids = self._ids_from_selector(selector)
+        converted_filter = filter_to_lambdadb(self._filter_from_selector(selector) or direct_filter)
+        if ids is None and not converted_filter:
+            raise UnsupportedQdrantFeatureError("delete requires point IDs or a supported Qdrant filter")
         if wait is False:
             warnings.warn("wait=False is accepted but LambdaDB write visibility follows LambdaDB semantics", RuntimeWarning, stacklevel=2)
-        self._client.collection(collection_name).docs.delete(ids=[str(item) for item in ids])
+        delete_kwargs: Dict[str, Any] = {}
+        if ids is not None:
+            delete_kwargs["ids"] = [str(item) for item in ids]
+        if converted_filter:
+            delete_kwargs["filter_"] = converted_filter
+        self._client.collection(collection_name).docs.delete(**delete_kwargs)
         return models.UpdateResult(status=models.UpdateStatus.COMPLETED)
 
     def query_points(
@@ -275,8 +301,8 @@ class QdrantCompatClient:
         query: Any,
         query_filter: Optional[Union[models.Filter, Dict[str, Any]]] = None,
         limit: int = 10,
-        with_payload: bool = True,
-        with_vectors: bool = False,
+        with_payload: PayloadSelector = True,
+        with_vectors: VectorSelector = False,
         using: Optional[str] = None,
         search_params: Optional[models.SearchParams] = None,
         offset: int = 0,
@@ -296,6 +322,8 @@ class QdrantCompatClient:
             raise UnsupportedQdrantFeatureError("Qdrant shard key routing is not supported in v1")
         if search_params is not None:
             warnings.warn("Qdrant search_params are ignored by the LambdaDB compatibility client", RuntimeWarning, stacklevel=2)
+        payload_selector = self._normalize_payload_selector(with_payload)
+        vector_selector = self._normalize_vector_selector(with_vectors)
         vector, field = query_vector_and_field(query, using=using)
         knn: Dict[str, Any] = {
             "field": field,
@@ -305,15 +333,19 @@ class QdrantCompatClient:
         converted_filter = filter_to_lambdadb(query_filter)
         if converted_filter:
             knn["filter"] = converted_filter
-        response = self._client.collection(collection_name).query(
-            query={"knn": knn},
-            size=limit,
-            consistent_read=True,
-            include_vectors=with_vectors,
-        )
+        query_kwargs: Dict[str, Any] = {
+            "query": {"knn": knn},
+            "size": limit,
+            "consistent_read": True,
+            "include_vectors": vector_selector is not False,
+        }
+        fields = self._fields_for_selectors(payload_selector, vector_selector)
+        if fields is not None:
+            query_kwargs["fields"] = fields
+        response = self._client.collection(collection_name).query(**query_kwargs)
         return models.QueryResponse(
             points=[
-                result_to_scored_point(result, with_payload=with_payload, with_vectors=with_vectors)
+                result_to_scored_point(result, with_payload=payload_selector, with_vectors=vector_selector)
                 for result in response.results
             ]
         )
@@ -324,8 +356,8 @@ class QdrantCompatClient:
         query_vector: Any,
         query_filter: Optional[Union[models.Filter, Dict[str, Any]]] = None,
         limit: int = 10,
-        with_payload: bool = True,
-        with_vectors: bool = False,
+        with_payload: PayloadSelector = True,
+        with_vectors: VectorSelector = False,
         **kwargs: Any,
     ) -> List[models.ScoredPoint]:
         return self.query_points(
@@ -343,20 +375,22 @@ class QdrantCompatClient:
         collection_name: str,
         scroll_filter: Optional[Union[models.Filter, Dict[str, Any]]] = None,
         limit: int = 10,
-        with_payload: bool = True,
-        with_vectors: bool = False,
+        with_payload: PayloadSelector = True,
+        with_vectors: VectorSelector = False,
         **kwargs: Any,
     ) -> Tuple[List[models.Record], Optional[str]]:
         self._warn_ignored(kwargs)
         if scroll_filter is not None:
             raise UnsupportedQdrantFeatureError("Filtered scroll is not supported in v1")
-        if with_vectors:
+        payload_selector = self._normalize_payload_selector(with_payload)
+        vector_selector = self._normalize_vector_selector(with_vectors)
+        if vector_selector is not False:
             raise UnsupportedQdrantFeatureError("Scroll with vectors is not supported in v1")
         docs: List[Dict[str, Any]] = next(
             self._client.collection(collection_name).docs.list_pages(size=limit),
             [],
         )
-        return [doc_to_record(doc, with_payload=with_payload, with_vectors=False) for doc in docs], None
+        return [doc_to_record(doc, with_payload=payload_selector, with_vectors=False) for doc in docs], None
 
     def count(
         self,
@@ -384,6 +418,45 @@ class QdrantCompatClient:
         if hasattr(points_selector, "points"):
             return list(cast(Any, points_selector).points)
         return None
+
+    @staticmethod
+    def _filter_from_selector(points_selector: Optional[Any]) -> Optional[Any]:
+        if isinstance(points_selector, dict) and "filter" in points_selector:
+            return points_selector["filter"]
+        if isinstance(points_selector, dict) and any(key in points_selector for key in ("must", "should", "must_not")):
+            return points_selector
+        if hasattr(points_selector, "filter"):
+            return cast(Any, points_selector).filter
+        if any(hasattr(points_selector, attr) for attr in ("must", "should", "must_not")):
+            return points_selector
+        return None
+
+    @staticmethod
+    def _normalize_payload_selector(selector: Any) -> PayloadSelector:
+        if selector is True or selector is False:
+            return cast(PayloadSelector, selector)
+        if isinstance(selector, list) and all(isinstance(item, str) for item in selector):
+            return selector
+        raise QdrantCompatValidationError("with_payload must be a bool or a string field list")
+
+    @staticmethod
+    def _normalize_vector_selector(selector: Any) -> VectorSelector:
+        if selector is True or selector is False:
+            return cast(VectorSelector, selector)
+        if isinstance(selector, list) and all(isinstance(item, str) for item in selector):
+            return selector
+        raise QdrantCompatValidationError("with_vectors must be a bool or a string vector-name list")
+
+    @staticmethod
+    def _fields_for_selectors(payload_selector: PayloadSelector, vector_selector: VectorSelector) -> Optional[Dict[str, List[str]]]:
+        if not isinstance(payload_selector, list):
+            return None
+        if vector_selector is True:
+            return None
+        include = [ORIGINAL_ID_FIELD, *payload_selector]
+        if isinstance(vector_selector, list):
+            include.extend(vector_field_name(name) for name in vector_selector)
+        return {"include": list(dict.fromkeys(include))}
 
     def _wait_for_collection_active(
         self,

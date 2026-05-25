@@ -143,6 +143,24 @@ def test_qdrant_compat_live_smoke() -> None:
 
         delete_result = client.delete(collection_name=collection_name, points_selector=[1])
         assert delete_result.status == models.UpdateStatus.COMPLETED
+
+        delete_by_filter_result = client.delete(
+            collection_name=collection_name,
+            points_selector={
+                "filter": models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="tenant",
+                            match=models.MatchValue(value="other"),
+                        )
+                    ]
+                )
+            },
+        )
+        assert delete_by_filter_result.status == models.UpdateStatus.COMPLETED
+
+        deleted_by_filter = client.retrieve(collection_name=collection_name, ids=[3])
+        assert deleted_by_filter == []
     finally:
         try:
             client.delete_collection(collection_name)
