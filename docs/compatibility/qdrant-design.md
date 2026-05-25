@@ -59,8 +59,8 @@ Implement enough for common application code and integrations:
 | `query_points()` | `coll.query()` | Main search method. |
 | `search()` | alias to `query_points()` | Legacy compatibility. |
 | `retrieve()` | `coll.docs.fetch()` | Return Qdrant-style records. |
-| `delete()` | `coll.docs.delete()` | Point IDs only; delete by filter is unsupported in v1. |
-| `scroll()` | `coll.docs.list_pages()` | Unfiltered scroll only; no vectors in v1. |
+| `delete()` | `coll.docs.delete()` | Point IDs and supported Qdrant filters. |
+| `scroll()` | `coll.docs.list_pages()` | Unfiltered scroll only; payload/vector response selectors are applied client-side. |
 | `count()` | collection metadata | Unfiltered count only. |
 
 ### Phase 2: Better Coverage
@@ -550,7 +550,7 @@ Exit criteria:
 - Implement `upload_points`.
 - Implement `upload_collection`.
 - Implement `retrieve`.
-- Implement `delete` for ID selectors.
+- Implement `delete` for ID selectors and supported Qdrant filters.
 
 Exit criteria:
 
@@ -563,7 +563,7 @@ Exit criteria:
 - Implement `query_points`.
 - Implement legacy `search`.
 - Implement v1 filter conversion.
-- Implement `with_payload` and `with_vectors` behavior.
+- Implement boolean and field-list `with_payload` and `with_vectors` behavior.
 
 Exit criteria:
 
@@ -704,13 +704,17 @@ Avoid saying "drop-in replacement" without qualification. Prefer:
 
 ## Release Plan
 
-Ship behind a minor version bump because it is additive:
+Initial compatibility support shipped behind a minor version bump because it is
+additive:
 
 - Add compatibility layer.
 - Add tests.
 - Add README section.
 - Add compatibility docs.
 - Bump SDK package/runtime version to `0.8.0`.
+
+Patch-level compatibility expansions can ship as `0.8.x` releases when they
+only broaden supported Qdrant-shaped inputs without changing existing behavior.
 
 Do not publish a `qdrant_client` namespace shim in the same release. Keep that
 as a separate package or later opt-in module after the explicit adapter has real
@@ -739,8 +743,17 @@ Implemented:
 - Warn and continue only for unsupported options that do not change result
   correctness, such as Qdrant-specific performance tuning knobs.
 - Keep LambdaDB filter DSL translation isolated in `filters.py`.
-- Treat filtered count, filtered scroll, delete-by-filter, query offset,
-  score threshold, sparse vectors, and async parity as future work.
+
+The `0.8.1` patch extends the adapter without changing existing behavior:
+
+- `delete()` supports supported Qdrant filters through the same `filters.py`
+  conversion path used by `query_points()`.
+- `retrieve()`, `query_points()`, `search()`, and `scroll()` support field-list
+  `with_payload` and `with_vectors` selectors.
+- External smoke coverage includes LangChain filtered search and LlamaIndex
+  delete-by-filter flows.
+- Treat filtered count, filtered scroll, query offset, score threshold, sparse
+  vectors, and async parity as future work.
 
 ## References
 

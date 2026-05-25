@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from types import SimpleNamespace
+from types import MethodType, SimpleNamespace
 
 import pytest
 
@@ -46,7 +46,15 @@ class FakeDocs:
 
     def list_pages(self, *, size):
         self.list_pages_calls.append({"size": size})
-        yield [{"id": "1", "_qdrant_id": 1, "tenant": "acme"}]
+        yield [
+            {
+                "id": "1",
+                "_qdrant_id": 1,
+                "_qdrant_vector": [0.1, 0.2],
+                "_qdrant_vector_title": [0.3, 0.4],
+                "tenant": "acme",
+            }
+        ]
 
 
 class FakeCollection:
@@ -403,6 +411,85 @@ def test_query_points_maps_vector_and_filter() -> None:
     ]
 
 
+def test_payload_and_vector_selectors_map_to_fields_and_response() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+
+    fake = FakeLambdaDB()
+    collection = fake.collection("docs")
+
+    def query(self, **kwargs):
+        self.queries.append(kwargs)
+        return SimpleNamespace(
+            results=[
+                SimpleNamespace(
+                    score=0.9,
+                    doc={
+                        "id": "1",
+                        "_qdrant_id": 1,
+                        "_qdrant_vector": [0.1, 0.2],
+                        "_qdrant_vector_title": [0.3, 0.4],
+                        "tenant": "acme",
+                        "hidden": "value",
+                    },
+                )
+            ]
+        )
+
+    collection.query = MethodType(query, collection)
+    client = QdrantCompatClient(fake)
+
+    response = client.query_points(
+        collection_name="docs",
+        query=[0.1, 0.2],
+        limit=1,
+        with_payload=["tenant"],
+        with_vectors=["title"],
+    )
+
+    assert response.points[0].payload == {"tenant": "acme"}
+    assert response.points[0].vector == {"title": [0.3, 0.4]}
+    assert collection.queries[0]["fields"] == {
+        "include": ["_qdrant_id", "tenant", "_qdrant_vector_title"]
+    }
+    assert collection.queries[0]["include_vectors"] is True
+
+    records = client.retrieve(
+        collection_name="docs",
+        ids=[1],
+        with_payload=["tenant"],
+        with_vectors=False,
+    )
+
+    assert records[0].payload == {"tenant": "acme"}
+    assert records[0].vector is None
+    assert collection.docs.fetches[-1] == {
+        "ids": ["1"],
+        "consistent_read": True,
+        "include_vectors": False,
+        "fields": {"include": ["_qdrant_id", "tenant"]},
+    }
+
+
+def test_scroll_maps_list_documents_and_applies_selectors() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+
+    records, next_page = client.scroll(
+        collection_name="docs",
+        limit=3,
+        with_payload=["tenant"],
+        with_vectors=["title"],
+    )
+
+    assert next_page is None
+    assert records[0].id == 1
+    assert records[0].payload == {"tenant": "acme"}
+    assert records[0].vector == {"title": [0.3, 0.4]}
+    assert fake.collection("docs").docs.list_pages_calls == [{"size": 3}]
+
+
 def test_retrieve_and_delete_by_ids() -> None:
     from lambdadb.compat.qdrant import QdrantCompatClient
 
@@ -419,6 +506,45 @@ def test_retrieve_and_delete_by_ids() -> None:
     assert docs.fetches == [{"ids": ["1"], "consistent_read": True, "include_vectors": True}]
     assert docs.deletes == [{"ids": ["1"]}]
     assert delete_result.status == "completed"
+
+
+def test_delete_by_filter() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+
+    result = client.delete(
+        collection_name="docs",
+        filter=models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="tenant",
+                    match=models.MatchValue(value="acme"),
+                )
+            ]
+        ),
+    )
+    result_from_selector = client.delete(
+        collection_name="docs",
+        points_selector={
+            "filter": {
+                "must": [
+                    {
+                        "key": "status",
+                        "match": {"value": "archived"},
+                    }
+                ]
+            }
+        },
+    )
+
+    assert result.status == "completed"
+    assert result_from_selector.status == "completed"
+    assert fake.collection("docs").docs.deletes == [
+        {"filter_": {"queryString": {"query": "tenant:acme"}}},
+        {"filter_": {"queryString": {"query": "status:archived"}}},
+    ]
 
 
 def test_filtered_scroll_and_filtered_count_are_not_implemented() -> None:

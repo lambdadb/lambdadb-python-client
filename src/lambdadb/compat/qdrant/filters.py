@@ -13,6 +13,8 @@ def _as_model(value: Any, klass):
         return value
     if isinstance(value, dict):
         return klass.model_validate(value)
+    if hasattr(value, "model_dump"):
+        return klass.model_validate(value.model_dump(exclude_none=True))
     return value
 
 
