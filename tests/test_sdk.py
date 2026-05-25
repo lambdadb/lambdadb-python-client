@@ -5,9 +5,24 @@ Run: poetry run pytest tests/ -v
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 
 import httpx
 import pytest
+
+
+def test_runtime_version_matches_project_metadata() -> None:
+    """Runtime version constants match pyproject metadata."""
+    from lambdadb import __version__
+
+    pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    version_line = next(
+        line for line in pyproject.read_text(encoding="utf-8").splitlines()
+        if line.startswith("version = ")
+    )
+    project_version = version_line.split("=", 1)[1].strip().strip('"')
+
+    assert __version__ == project_version
 
 
 def test_imports() -> None:
