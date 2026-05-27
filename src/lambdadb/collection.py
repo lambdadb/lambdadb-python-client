@@ -231,6 +231,14 @@ class CollectionDocs:
         *,
         size: Optional[int] = None,
         page_token: Optional[str] = None,
+        filter_: Optional[Dict[str, Any]] = None,
+        partition_filter: Optional[
+            Union[models.PartitionFilter, models.PartitionFilterTypedDict]
+        ] = None,
+        fields: Optional[
+            Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
+        ] = None,
+        include_vectors: Optional[bool] = False,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -239,15 +247,31 @@ class CollectionDocs:
     ) -> models.ListDocsResponse:
         """List documents in this collection. When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        response = self._docs.list_docs(
-            collection_name=self._collection_name,
-            size=size,
-            page_token=page_token,
-            retries=r,
-            server_url=s,
-            timeout_ms=t,
-            http_headers=h,
-        )
+        if filter_ is not None or partition_filter is not None or fields is not None:
+            response = self._docs.list_docs_extended(
+                collection_name=self._collection_name,
+                size=size,
+                page_token=page_token,
+                filter_=filter_,
+                partition_filter=partition_filter,
+                fields=fields,
+                include_vectors=include_vectors,
+                retries=r,
+                server_url=s,
+                timeout_ms=t,
+                http_headers=h,
+            )
+        else:
+            response = self._docs.list_docs(
+                collection_name=self._collection_name,
+                size=size,
+                page_token=page_token,
+                include_vectors=include_vectors,
+                retries=r,
+                server_url=s,
+                timeout_ms=t,
+                http_headers=h,
+            )
         client = self._docs.sdk_configuration.client
         if client is not None:
             timeout_sec = (t / 1000.0) if t is not None else (self._docs.sdk_configuration.timeout_ms / 1000.0 if self._docs.sdk_configuration.timeout_ms else None)
@@ -258,13 +282,22 @@ class CollectionDocs:
         self,
         *,
         size: int = 100,
+        page_token: Optional[str] = None,
+        filter_: Optional[Dict[str, Any]] = None,
+        partition_filter: Optional[
+            Union[models.PartitionFilter, models.PartitionFilterTypedDict]
+        ] = None,
+        fields: Optional[
+            Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
+        ] = None,
+        include_vectors: Optional[bool] = False,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[List[Dict[str, Any]]]:
         """Iterate pages of up to `size` documents each. Aggregates API responses so each
         yielded page has up to `size` documents (LambdaDB may return fewer per request due to payload limits).
         """
         r, s, t, h = _merge_options(options, UNSET, None, None, None)
-        page_token: Optional[str] = None
+        current_page_token = page_token
         buffer: List[Dict[str, Any]] = []
         while True:
             need = size - len(buffer)
@@ -272,30 +305,29 @@ class CollectionDocs:
                 page = buffer[:size]
                 buffer = buffer[size:]
                 yield page
-                if not buffer and page_token is None:
+                if not buffer and current_page_token is None:
                     return
                 continue
-            resp = self._docs.list_docs(
-                collection_name=self._collection_name,
+            resp = self.list(
                 size=min(need, _LIST_DOCS_MAX_SIZE),
-                page_token=page_token,
+                page_token=current_page_token,
+                filter_=filter_,
+                partition_filter=partition_filter,
+                fields=fields,
+                include_vectors=include_vectors,
                 retries=r,
                 server_url=s,
                 timeout_ms=t,
                 http_headers=h,
             )
-            client = self._docs.sdk_configuration.client
-            if client is not None:
-                timeout_sec = (t / 1000.0) if t is not None else (self._docs.sdk_configuration.timeout_ms / 1000.0 if self._docs.sdk_configuration.timeout_ms else None)
-                resp = _resolve_list_docs_response(resp, client, timeout_sec)
             for item in resp.results:
                 buffer.append(_doc_from_item(item))
-            page_token = resp.next_page_token
-            if len(buffer) >= size or page_token is None:
+            current_page_token = resp.next_page_token
+            if len(buffer) >= size or current_page_token is None:
                 page = buffer[:size]
                 buffer = buffer[size:]
                 yield page
-                if page_token is None:
+                if current_page_token is None:
                     if buffer:
                         yield buffer
                     return
@@ -316,6 +348,14 @@ class CollectionDocs:
         *,
         size: Optional[int] = None,
         page_token: Optional[str] = None,
+        filter_: Optional[Dict[str, Any]] = None,
+        partition_filter: Optional[
+            Union[models.PartitionFilter, models.PartitionFilterTypedDict]
+        ] = None,
+        fields: Optional[
+            Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
+        ] = None,
+        include_vectors: Optional[bool] = False,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -324,15 +364,31 @@ class CollectionDocs:
     ) -> models.ListDocsResponse:
         """List documents in this collection (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        response = await self._docs.list_docs_async(
-            collection_name=self._collection_name,
-            size=size,
-            page_token=page_token,
-            retries=r,
-            server_url=s,
-            timeout_ms=t,
-            http_headers=h,
-        )
+        if filter_ is not None or partition_filter is not None or fields is not None:
+            response = await self._docs.list_docs_extended_async(
+                collection_name=self._collection_name,
+                size=size,
+                page_token=page_token,
+                filter_=filter_,
+                partition_filter=partition_filter,
+                fields=fields,
+                include_vectors=include_vectors,
+                retries=r,
+                server_url=s,
+                timeout_ms=t,
+                http_headers=h,
+            )
+        else:
+            response = await self._docs.list_docs_async(
+                collection_name=self._collection_name,
+                size=size,
+                page_token=page_token,
+                include_vectors=include_vectors,
+                retries=r,
+                server_url=s,
+                timeout_ms=t,
+                http_headers=h,
+            )
         async_client = self._docs.sdk_configuration.async_client
         if async_client is not None:
             timeout_sec = (t / 1000.0) if t is not None else (self._docs.sdk_configuration.timeout_ms / 1000.0 if self._docs.sdk_configuration.timeout_ms else None)

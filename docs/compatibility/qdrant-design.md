@@ -60,7 +60,7 @@ Implement enough for common application code and integrations:
 | `search()` | alias to `query_points()` | Legacy compatibility. |
 | `retrieve()` | `coll.docs.fetch()` | Return Qdrant-style records. |
 | `delete()` | `coll.docs.delete()` | Point IDs and supported Qdrant filters. |
-| `scroll()` | `coll.docs.list_pages()` | Unfiltered scroll only; payload/vector response selectors are applied client-side. |
+| `scroll()` | `coll.docs.list()` / extended list docs | Filtered scroll; payload/vector response selectors are applied client-side. Uses returned LambdaDB page-token offsets, not Qdrant point-id offsets. |
 | `count()` | collection metadata | Unfiltered count only. |
 
 ### Phase 2: Better Coverage
@@ -435,7 +435,7 @@ supports common top-level conditions and fails clearly for unsupported forms.
 | `FieldCondition.match=MatchExcept` | NOT IN |
 | `FieldCondition.range` | gt/gte/lt/lte |
 | `HasIdCondition` | map to ID filter |
-| `MatchText` | raise in v1 |
+| `MatchText` | map whitespace-separated text terms to LambdaDB text query strings |
 | geo filters | raise |
 | nested object filters | raise in v1 |
 
@@ -744,7 +744,7 @@ Implemented:
   correctness, such as Qdrant-specific performance tuning knobs.
 - Keep LambdaDB filter DSL translation isolated in `filters.py`.
 
-The `0.8.1` patch extends the adapter without changing existing behavior:
+The `0.8.2` patch extends the adapter without changing existing behavior:
 
 - `delete()` supports supported Qdrant filters through the same `filters.py`
   conversion path used by `query_points()`.
@@ -752,8 +752,12 @@ The `0.8.1` patch extends the adapter without changing existing behavior:
   `with_payload` and `with_vectors` selectors.
 - External smoke coverage includes LangChain filtered search and LlamaIndex
   delete-by-filter flows.
-- Treat filtered count, filtered scroll, query offset, score threshold, sparse
-  vectors, and async parity as future work.
+- `scroll()` uses the extended LambdaDB list documents API for filtered scans,
+  field selection, vector inclusion, and returned page-token offsets.
+- `MatchText` maps whitespace-separated text terms to LambdaDB text query
+  strings.
+- Treat filtered count, query offset, score threshold, sparse vectors, and async
+  parity as future work.
 
 ## References
 

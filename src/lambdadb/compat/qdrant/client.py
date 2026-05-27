@@ -374,21 +374,33 @@ class QdrantCompatClient:
         self,
         collection_name: str,
         scroll_filter: Optional[Union[models.Filter, Dict[str, Any]]] = None,
+        offset: Optional[Union[int, str]] = None,
         limit: int = 10,
         with_payload: PayloadSelector = True,
         with_vectors: VectorSelector = False,
         **kwargs: Any,
     ) -> Tuple[List[models.Record], Optional[str]]:
         self._warn_ignored(kwargs)
-        if scroll_filter is not None:
-            raise UnsupportedQdrantFeatureError("Filtered scroll is not supported in v1")
+        if offset is not None and not isinstance(offset, str):
+            raise UnsupportedQdrantFeatureError(
+                "Qdrant point-id scroll offsets are not supported; use the returned LambdaDB page-token offset"
+            )
         payload_selector = self._normalize_payload_selector(with_payload)
         vector_selector = self._normalize_vector_selector(with_vectors)
-        docs: List[Dict[str, Any]] = next(
-            self._client.collection(collection_name).docs.list_pages(size=limit),
-            [],
+        fields = self._fields_for_selectors(payload_selector, vector_selector)
+        converted_filter = filter_to_lambdadb(scroll_filter)
+        response = self._client.collection(collection_name).docs.list(
+            size=limit,
+            page_token=offset,
+            filter_=converted_filter or None,
+            fields=cast(Any, fields),
+            include_vectors=vector_selector is not False,
         )
-        return [doc_to_record(doc, with_payload=payload_selector, with_vectors=vector_selector) for doc in docs], None
+        docs = [self._doc_from_list_item(item) for item in response.results]
+        return (
+            [doc_to_record(doc, with_payload=payload_selector, with_vectors=vector_selector) for doc in docs],
+            response.next_page_token,
+        )
 
     def count(
         self,
@@ -428,6 +440,16 @@ class QdrantCompatClient:
         if any(hasattr(points_selector, attr) for attr in ("must", "should", "must_not")):
             return points_selector
         return None
+
+    @staticmethod
+    def _doc_from_list_item(item: Any) -> Mapping[str, Any]:
+        if isinstance(item, Mapping):
+            doc = item.get("doc", item)
+        else:
+            doc = getattr(item, "doc", item)
+        if not isinstance(doc, Mapping):
+            raise QdrantCompatValidationError("LambdaDB list result doc must be a mapping")
+        return doc
 
     @staticmethod
     def _normalize_payload_selector(selector: Any) -> PayloadSelector:

@@ -73,7 +73,10 @@ def _match_queries(field: str, match: Any) -> List[Dict[str, Dict[str, str]]]:
     if isinstance(match, models.MatchExcept):
         return [_query_string(f"{field}:{_format_scalar(value)}") for value in match.except_]
     if isinstance(match, models.MatchText):
-        raise UnsupportedQdrantFeatureError("MatchText is not supported in the v1 Qdrant compatibility filter")
+        terms = [term for term in match.text.split() if term]
+        if not terms:
+            raise QdrantCompatValidationError("MatchText text must not be empty")
+        return [_query_string(f"{field}:{_format_scalar(term)}") for term in terms]
     raise UnsupportedQdrantFeatureError(f"Unsupported Qdrant match condition: {match!r}")
 
 
