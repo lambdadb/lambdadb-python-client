@@ -678,3 +678,28 @@ def test_list_docs_response_has_is_docs_inline_and_docs_url() -> None:
     )
     assert resp_with_url.is_docs_inline is False
     assert resp_with_url.docs_url == "https://example.com/docs.json"
+
+
+def test_list_docs_extended_request_body_serializes_api_aliases() -> None:
+    """Extended list body uses API aliases for filter, fields, partitionFilter, and includeVectors."""
+    from lambdadb.models import ListDocsExtendedRequestBody
+
+    body = ListDocsExtendedRequestBody.model_validate(
+        {
+            "size": 10,
+            "pageToken": "page-1",
+            "filter": {"queryString": {"query": "category:docs"}},
+            "partitionFilter": {"field": "tenant", "in": ["acme"]},
+            "fields": {"include": ["id", "title"]},
+            "includeVectors": True,
+        }
+    )
+
+    assert body.model_dump(by_alias=True, mode="json", exclude_none=True) == {
+        "size": 10,
+        "pageToken": "page-1",
+        "filter": {"queryString": {"query": "category:docs"}},
+        "partitionFilter": {"field": "tenant", "in": ["acme"]},
+        "fields": {"include": ["id", "title"]},
+        "includeVectors": True,
+    }

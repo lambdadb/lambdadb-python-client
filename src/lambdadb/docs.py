@@ -16,6 +16,7 @@ class Docs(BaseSDK):
         collection_name: str,
         size: Optional[int] = None,
         page_token: Optional[str] = None,
+        include_vectors: Optional[bool] = False,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -26,6 +27,7 @@ class Docs(BaseSDK):
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once.
         :param page_token: Next page token.
+        :param include_vectors: Set to true to include vector values in the response.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -45,6 +47,7 @@ class Docs(BaseSDK):
             collection_name=collection_name,
             size=size,
             page_token=page_token,
+            include_vectors=include_vectors,
         )
 
         req = self._build_request(
@@ -134,6 +137,7 @@ class Docs(BaseSDK):
         collection_name: str,
         size: Optional[int] = None,
         page_token: Optional[str] = None,
+        include_vectors: Optional[bool] = False,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -144,6 +148,7 @@ class Docs(BaseSDK):
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once.
         :param page_token: Next page token.
+        :param include_vectors: Set to true to include vector values in the response.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -163,6 +168,7 @@ class Docs(BaseSDK):
             collection_name=collection_name,
             size=size,
             page_token=page_token,
+            include_vectors=include_vectors,
         )
 
         req = self._build_request_async(
@@ -236,6 +242,280 @@ class Docs(BaseSDK):
             response_data = unmarshal_json_response(
                 errors.InternalServerErrorData, http_res
             )
+            raise errors.InternalServerError(response_data, http_res)
+        if utils.match_response(http_res, "4XX", "*"):
+            http_res_text = await utils.stream_to_text_async(http_res)
+            raise errors.APIError("API error occurred", http_res, http_res_text)
+        if utils.match_response(http_res, "5XX", "*"):
+            http_res_text = await utils.stream_to_text_async(http_res)
+            raise errors.APIError("API error occurred", http_res, http_res_text)
+
+        raise errors.APIError("Unexpected response received", http_res)
+
+    def list_docs_extended(
+        self,
+        *,
+        collection_name: str,
+        size: Optional[int] = None,
+        page_token: Optional[str] = None,
+        filter_: Optional[Dict[str, Any]] = None,
+        partition_filter: Optional[
+            Union[models.PartitionFilter, models.PartitionFilterTypedDict]
+        ] = None,
+        fields: Optional[
+            Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
+        ] = None,
+        include_vectors: Optional[bool] = False,
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> models.ListDocsResponse:
+        r"""List documents in a collection with optional filters, field selection, and vector inclusion.
+
+        :param collection_name: Collection name.
+        :param size: Max number of documents to return at once.
+        :param page_token: Next page token.
+        :param filter_: Filter applied before pagination.
+        :param partition_filter:
+        :param fields: Field selector.
+        :param include_vectors: Set to true to include vector values in the response.
+        :param retries: Override the default retry configuration for this method
+        :param server_url: Override the default server URL for this method
+        :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
+        :param http_headers: Additional headers to set or replace on requests.
+        """
+        base_url = None
+        url_variables = None
+        if timeout_ms is None:
+            timeout_ms = self.sdk_configuration.timeout_ms
+
+        if server_url is not None:
+            base_url = server_url
+        else:
+            base_url = self._get_url(base_url, url_variables)
+
+        request = models.ListDocsExtendedRequest(
+            collection_name=collection_name,
+            request_body=models.ListDocsExtendedRequestBody(
+                size=size,
+                page_token=page_token,
+                filter_=filter_,
+                partition_filter=utils.get_pydantic_model(
+                    partition_filter, Optional[models.PartitionFilter]
+                ),
+                fields=utils.get_pydantic_model(
+                    fields, Optional[models.FieldsSelectorUnion]
+                ),
+                include_vectors=include_vectors,
+            ),
+        )
+
+        req = self._build_request(
+            method="POST",
+            path="/collections/{collectionName}/docs/list",
+            base_url=base_url,
+            url_variables=url_variables,
+            request=request,
+            request_body_required=True,
+            request_has_path_params=True,
+            request_has_query_params=True,
+            user_agent_header="user-agent",
+            accept_header_value="application/json",
+            http_headers=http_headers,
+            security=self.sdk_configuration.security,
+            get_serialized_body=lambda: utils.serialize_request_body(
+                request.request_body,
+                False,
+                False,
+                "json",
+                models.ListDocsExtendedRequestBody,
+            ),
+            allow_empty_value=None,
+            timeout_ms=timeout_ms,
+        )
+
+        if retries == UNSET:
+            if self.sdk_configuration.retry_config is not UNSET:
+                retries = self.sdk_configuration.retry_config
+            else:
+                retries = utils.RetryConfig(
+                    "backoff", utils.BackoffStrategy(500, 60000, 1.5, 3600000), True
+                )
+
+        retry_config = None
+        if isinstance(retries, utils.RetryConfig):
+            retry_config = (retries, ["429", "5XX"])
+
+        http_res = self.do_request(
+            hook_ctx=HookContext(
+                config=self.sdk_configuration,
+                base_url=base_url or "",
+                operation_id="listDocsExtended",
+                oauth2_scopes=None,
+                security_source=get_security_from_env(
+                    self.sdk_configuration.security, models.Security
+                ),
+            ),
+            request=req,
+            error_status_codes=["400", "401", "404", "429", "4XX", "500", "5XX"],
+            retry_config=retry_config,
+        )
+
+        response_data: Any = None
+        if utils.match_response(http_res, "200", "application/json"):
+            return unmarshal_json_response(models.ListDocsResponse, http_res)
+        if utils.match_response(http_res, "400", "application/json"):
+            response_data = unmarshal_json_response(errors.BadRequestErrorData, http_res)
+            raise errors.BadRequestError(response_data, http_res)
+        if utils.match_response(http_res, "401", "application/json"):
+            response_data = unmarshal_json_response(errors.UnauthenticatedErrorData, http_res)
+            raise errors.UnauthenticatedError(response_data, http_res)
+        if utils.match_response(http_res, "404", "application/json"):
+            response_data = unmarshal_json_response(errors.ResourceNotFoundErrorData, http_res)
+            raise errors.ResourceNotFoundError(response_data, http_res)
+        if utils.match_response(http_res, "429", "application/json"):
+            response_data = unmarshal_json_response(errors.TooManyRequestsErrorData, http_res)
+            raise errors.TooManyRequestsError(response_data, http_res)
+        if utils.match_response(http_res, "500", "application/json"):
+            response_data = unmarshal_json_response(errors.InternalServerErrorData, http_res)
+            raise errors.InternalServerError(response_data, http_res)
+        if utils.match_response(http_res, "4XX", "*"):
+            http_res_text = utils.stream_to_text(http_res)
+            raise errors.APIError("API error occurred", http_res, http_res_text)
+        if utils.match_response(http_res, "5XX", "*"):
+            http_res_text = utils.stream_to_text(http_res)
+            raise errors.APIError("API error occurred", http_res, http_res_text)
+
+        raise errors.APIError("Unexpected response received", http_res)
+
+    async def list_docs_extended_async(
+        self,
+        *,
+        collection_name: str,
+        size: Optional[int] = None,
+        page_token: Optional[str] = None,
+        filter_: Optional[Dict[str, Any]] = None,
+        partition_filter: Optional[
+            Union[models.PartitionFilter, models.PartitionFilterTypedDict]
+        ] = None,
+        fields: Optional[
+            Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
+        ] = None,
+        include_vectors: Optional[bool] = False,
+        retries: OptionalNullable[utils.RetryConfig] = UNSET,
+        server_url: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
+        http_headers: Optional[Mapping[str, str]] = None,
+    ) -> models.ListDocsResponse:
+        r"""List documents in a collection with optional filters, field selection, and vector inclusion.
+
+        :param collection_name: Collection name.
+        :param size: Max number of documents to return at once.
+        :param page_token: Next page token.
+        :param filter_: Filter applied before pagination.
+        :param partition_filter:
+        :param fields: Field selector.
+        :param include_vectors: Set to true to include vector values in the response.
+        :param retries: Override the default retry configuration for this method
+        :param server_url: Override the default server URL for this method
+        :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
+        :param http_headers: Additional headers to set or replace on requests.
+        """
+        base_url = None
+        url_variables = None
+        if timeout_ms is None:
+            timeout_ms = self.sdk_configuration.timeout_ms
+
+        if server_url is not None:
+            base_url = server_url
+        else:
+            base_url = self._get_url(base_url, url_variables)
+
+        request = models.ListDocsExtendedRequest(
+            collection_name=collection_name,
+            request_body=models.ListDocsExtendedRequestBody(
+                size=size,
+                page_token=page_token,
+                filter_=filter_,
+                partition_filter=utils.get_pydantic_model(
+                    partition_filter, Optional[models.PartitionFilter]
+                ),
+                fields=utils.get_pydantic_model(
+                    fields, Optional[models.FieldsSelectorUnion]
+                ),
+                include_vectors=include_vectors,
+            ),
+        )
+
+        req = self._build_request_async(
+            method="POST",
+            path="/collections/{collectionName}/docs/list",
+            base_url=base_url,
+            url_variables=url_variables,
+            request=request,
+            request_body_required=True,
+            request_has_path_params=True,
+            request_has_query_params=True,
+            user_agent_header="user-agent",
+            accept_header_value="application/json",
+            http_headers=http_headers,
+            security=self.sdk_configuration.security,
+            get_serialized_body=lambda: utils.serialize_request_body(
+                request.request_body,
+                False,
+                False,
+                "json",
+                models.ListDocsExtendedRequestBody,
+            ),
+            allow_empty_value=None,
+            timeout_ms=timeout_ms,
+        )
+
+        if retries == UNSET:
+            if self.sdk_configuration.retry_config is not UNSET:
+                retries = self.sdk_configuration.retry_config
+            else:
+                retries = utils.RetryConfig(
+                    "backoff", utils.BackoffStrategy(500, 60000, 1.5, 3600000), True
+                )
+
+        retry_config = None
+        if isinstance(retries, utils.RetryConfig):
+            retry_config = (retries, ["429", "5XX"])
+
+        http_res = await self.do_request_async(
+            hook_ctx=HookContext(
+                config=self.sdk_configuration,
+                base_url=base_url or "",
+                operation_id="listDocsExtended",
+                oauth2_scopes=None,
+                security_source=get_security_from_env(
+                    self.sdk_configuration.security, models.Security
+                ),
+            ),
+            request=req,
+            error_status_codes=["400", "401", "404", "429", "4XX", "500", "5XX"],
+            retry_config=retry_config,
+        )
+
+        response_data: Any = None
+        if utils.match_response(http_res, "200", "application/json"):
+            return unmarshal_json_response(models.ListDocsResponse, http_res)
+        if utils.match_response(http_res, "400", "application/json"):
+            response_data = unmarshal_json_response(errors.BadRequestErrorData, http_res)
+            raise errors.BadRequestError(response_data, http_res)
+        if utils.match_response(http_res, "401", "application/json"):
+            response_data = unmarshal_json_response(errors.UnauthenticatedErrorData, http_res)
+            raise errors.UnauthenticatedError(response_data, http_res)
+        if utils.match_response(http_res, "404", "application/json"):
+            response_data = unmarshal_json_response(errors.ResourceNotFoundErrorData, http_res)
+            raise errors.ResourceNotFoundError(response_data, http_res)
+        if utils.match_response(http_res, "429", "application/json"):
+            response_data = unmarshal_json_response(errors.TooManyRequestsErrorData, http_res)
+            raise errors.TooManyRequestsError(response_data, http_res)
+        if utils.match_response(http_res, "500", "application/json"):
+            response_data = unmarshal_json_response(errors.InternalServerErrorData, http_res)
             raise errors.InternalServerError(response_data, http_res)
         if utils.match_response(http_res, "4XX", "*"):
             http_res_text = await utils.stream_to_text_async(http_res)

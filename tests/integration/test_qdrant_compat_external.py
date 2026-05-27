@@ -49,6 +49,17 @@ class FakeDocs:
     def list_pages(self, *, size):
         yield self.docs[:size]
 
+    def list(self, **kwargs):
+        filter_query = kwargs.get("filter_") or kwargs.get("filter")
+        docs = [doc for doc in self.docs if _matches_filter(doc, filter_query)]
+        return SimpleNamespace(
+            results=[
+                {"collection": "docs", "doc": _project_doc(doc, kwargs.get("fields"))}
+                for doc in docs[: kwargs.get("size") or 10]
+            ],
+            next_page_token=None,
+        )
+
 
 class FakeCollection:
     def __init__(self) -> None:

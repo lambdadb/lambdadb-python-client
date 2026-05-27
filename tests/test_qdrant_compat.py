@@ -20,6 +20,7 @@ class FakeDocs:
         self.deletes = []
         self.fetches = []
         self.list_pages_calls = []
+        self.lists = []
 
     def upsert(self, *, docs):
         self.upserts.append(docs)
@@ -55,6 +56,24 @@ class FakeDocs:
                 "tenant": "acme",
             }
         ]
+
+    def list(self, **kwargs):
+        self.lists.append(kwargs)
+        return SimpleNamespace(
+            results=[
+                {
+                    "collection": "docs",
+                    "doc": {
+                        "id": "1",
+                        "_qdrant_id": 1,
+                        "_qdrant_vector": [0.1, 0.2],
+                        "_qdrant_vector_title": [0.3, 0.4],
+                        "tenant": "acme",
+                    },
+                }
+            ],
+            next_page_token="next-token",
+        )
 
 
 class FakeCollection:
@@ -411,6 +430,33 @@ def test_query_points_maps_vector_and_filter() -> None:
     ]
 
 
+def test_match_text_maps_to_lambdadb_text_filter_terms() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+
+    client.query_points(
+        collection_name="docs",
+        query=[0.1, 0.2],
+        query_filter=models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="body",
+                    match=models.MatchText(text="serverless database"),
+                )
+            ],
+        ),
+    )
+
+    assert fake.collection("docs").queries[0]["query"]["knn"]["filter"] == {
+        "bool": [
+            {"queryString": {"query": "body:serverless"}, "occur": "filter"},
+            {"queryString": {"query": "body:database"}, "occur": "filter"},
+        ]
+    }
+
+
 def test_payload_and_vector_selectors_map_to_fields_and_response() -> None:
     from lambdadb.compat.qdrant import QdrantCompatClient
 
@@ -483,11 +529,19 @@ def test_scroll_maps_list_documents_and_applies_selectors() -> None:
         with_vectors=["title"],
     )
 
-    assert next_page is None
+    assert next_page == "next-token"
     assert records[0].id == 1
     assert records[0].payload == {"tenant": "acme"}
     assert records[0].vector == {"title": [0.3, 0.4]}
-    assert fake.collection("docs").docs.list_pages_calls == [{"size": 3}]
+    assert fake.collection("docs").docs.lists == [
+        {
+            "size": 3,
+            "page_token": None,
+            "filter_": None,
+            "fields": {"include": ["_qdrant_id", "tenant", "_qdrant_vector_title"]},
+            "include_vectors": True,
+        }
+    ]
 
 
 def test_retrieve_and_delete_by_ids() -> None:
@@ -547,14 +601,44 @@ def test_delete_by_filter() -> None:
     ]
 
 
-def test_filtered_scroll_and_filtered_count_are_not_implemented() -> None:
+def test_filtered_scroll_maps_extended_list_documents() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+    filt = models.Filter(must=[models.FieldCondition(key="tenant", match=models.MatchValue(value="acme"))])
+
+    records, next_page = client.scroll(collection_name="docs", scroll_filter=filt, offset="page-1")
+
+    assert next_page == "next-token"
+    assert records[0].payload == {"tenant": "acme"}
+    assert fake.collection("docs").docs.lists == [
+        {
+            "size": 10,
+            "page_token": "page-1",
+            "filter_": {"queryString": {"query": "tenant:acme"}},
+            "fields": None,
+            "include_vectors": False,
+        }
+    ]
+
+
+def test_scroll_rejects_qdrant_point_id_offset() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    client = QdrantCompatClient(FakeLambdaDB())
+
+    with pytest.raises(UnsupportedQdrantFeatureError, match="point-id scroll offsets"):
+        client.scroll(collection_name="docs", offset=1)
+
+
+def test_filtered_count_is_not_implemented() -> None:
     from lambdadb.compat.qdrant import QdrantCompatClient, models
     from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
 
     client = QdrantCompatClient(FakeLambdaDB())
     filt = models.Filter(must=[models.FieldCondition(key="tenant", match=models.MatchValue(value="acme"))])
 
-    with pytest.raises(UnsupportedQdrantFeatureError):
-        client.scroll(collection_name="docs", scroll_filter=filt)
     with pytest.raises(UnsupportedQdrantFeatureError):
         client.count(collection_name="docs", count_filter=filt)

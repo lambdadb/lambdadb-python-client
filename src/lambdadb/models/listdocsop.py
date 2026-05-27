@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 import warnings
+from .fieldsselector_union import FieldsSelectorUnion, FieldsSelectorUnionTypedDict
+from .partitionfilter import PartitionFilter, PartitionFilterTypedDict
 from lambdadb.types import BaseModel, UNSET_SENTINEL
-from lambdadb.utils import FieldMetadata, PathParamMetadata, QueryParamMetadata
+from lambdadb.utils import FieldMetadata, PathParamMetadata, QueryParamMetadata, RequestMetadata
 import pydantic
 from pydantic import model_serializer
 from typing import Any, Dict, List, Optional
@@ -17,6 +19,8 @@ class ListDocsRequestTypedDict(TypedDict):
     r"""Max number of documents to return at once."""
     page_token: NotRequired[str]
     r"""Next page token."""
+    include_vectors: NotRequired[bool]
+    r"""Set to true to include vector values in the response. Defaults to false."""
 
 
 class ListDocsRequest(BaseModel):
@@ -40,9 +44,16 @@ class ListDocsRequest(BaseModel):
     ] = None
     r"""Next page token."""
 
+    include_vectors: Annotated[
+        Optional[bool],
+        pydantic.Field(alias="includeVectors"),
+        FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
+    ] = False
+    r"""Set to true to include vector values in the response. Defaults to false."""
+
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["size", "pageToken"])
+        optional_fields = set(["size", "pageToken", "includeVectors"])
         serialized = handler(self)
         m = {}
 
@@ -55,6 +66,81 @@ class ListDocsRequest(BaseModel):
                     m[k] = val
 
         return m
+
+
+class ListDocsExtendedRequestBodyTypedDict(TypedDict):
+    size: NotRequired[int]
+    r"""Max number of documents to return at once."""
+    page_token: NotRequired[str]
+    r"""Next page token."""
+    filter_: NotRequired[Dict[str, Any]]
+    r"""Filter applied before pagination."""
+    partition_filter: NotRequired[PartitionFilterTypedDict]
+    fields: NotRequired[FieldsSelectorUnionTypedDict]
+    r"""An object to specify a list of field names to include and/or exclude in the result."""
+    include_vectors: NotRequired[bool]
+    r"""Set to true to include vector values in the response. Defaults to false."""
+
+
+class ListDocsExtendedRequestBody(BaseModel):
+    size: Optional[int] = None
+    r"""Max number of documents to return at once."""
+
+    page_token: Annotated[Optional[str], pydantic.Field(alias="pageToken")] = None
+    r"""Next page token."""
+
+    filter_: Annotated[Optional[Dict[str, Any]], pydantic.Field(alias="filter")] = None
+    r"""Filter applied before pagination."""
+
+    partition_filter: Annotated[
+        Optional[PartitionFilter], pydantic.Field(alias="partitionFilter")
+    ] = None
+
+    fields: Optional[FieldsSelectorUnion] = None
+    r"""An object to specify a list of field names to include and/or exclude in the result."""
+
+    include_vectors: Annotated[
+        Optional[bool], pydantic.Field(alias="includeVectors")
+    ] = False
+    r"""Set to true to include vector values in the response. Defaults to false."""
+
+    @model_serializer(mode="wrap")
+    def serialize_model(self, handler):
+        optional_fields = set(
+            ["size", "pageToken", "filter", "partitionFilter", "fields", "includeVectors"]
+        )
+        serialized = handler(self)
+        m = {}
+
+        for n, f in type(self).model_fields.items():
+            k = f.alias or n
+            val = self._get_serialized_value(serialized, n, f.alias)
+
+            if val != UNSET_SENTINEL:
+                if val is not None or k not in optional_fields:
+                    m[k] = val
+
+        return m
+
+
+class ListDocsExtendedRequestTypedDict(TypedDict):
+    collection_name: str
+    r"""Collection name."""
+    request_body: ListDocsExtendedRequestBodyTypedDict
+
+
+class ListDocsExtendedRequest(BaseModel):
+    collection_name: Annotated[
+        str,
+        pydantic.Field(alias="collectionName"),
+        FieldMetadata(path=PathParamMetadata(style="simple", explode=False)),
+    ]
+    r"""Collection name."""
+
+    request_body: Annotated[
+        ListDocsExtendedRequestBody,
+        FieldMetadata(request=RequestMetadata(media_type="application/json")),
+    ]
 
 
 class ListDocsResponseTypedDict(TypedDict):
