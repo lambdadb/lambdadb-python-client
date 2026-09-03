@@ -58,10 +58,14 @@ pip excludes prereleases from normal selection by default, so an existing
 stable installation does not upgrade to an RC unless the consumer opts in.
 
 1. Complete development and environment smoke tests.
-2. Set both version sources to the next RC, such as `0.9.0rc1`.
-3. Merge the reviewed release commit into `main`.
-4. Create tag `v0.9.0rc1` from that exact `main` commit.
-5. Create a GitHub Release for the tag and mark it as a prerelease.
+2. Create a release branch from the exact reviewed `develop` commit. Set both
+   version sources to the next RC, such as `0.9.0rc1`, and change the
+   `CHANGELOG.md` Unreleased heading to that exact package version.
+3. Merge the reviewed release PR into `main` and record the exact merge commit.
+4. After explicit publication approval, create tag `v0.9.0rc1` from that exact
+   `main` commit. Never move an existing tag.
+5. Create a GitHub Release whose name exactly matches the tag. Mark an RC as a
+   prerelease and explicitly leave it out of the `latest` designation.
 6. Wait for the **Publish to PyPI** workflow to validate, test, build, and
    publish the package.
 7. Verify the explicit RC installation in a clean environment:
@@ -86,6 +90,14 @@ python -m pip install --pre --upgrade lambdadb
 If an RC needs a fix, publish a new commit and increment the RC number. Never
 move or replace an existing tag or PyPI version.
 
+After the release, synchronize `main` back into `develop` without rewriting the
+reviewed main ancestry. Only a fast-forward or a merge commit is allowed; do
+not squash or rebase the synchronization PR. Verify:
+
+```bash
+git merge-base --is-ancestor <reviewed-main-sha> origin/develop
+```
+
 ## Stable releases
 
 Publish the matching stable version only after the release candidate is
@@ -105,7 +117,8 @@ Before publishing an RC or stable release:
 
 - Pin and record the API contract revision used for the SDK.
 - Confirm the target API is deployed in the intended test environment.
-- Confirm the Git tag, `pyproject.toml`, and runtime SDK version agree.
+- Confirm the Git tag, GitHub Release name, `CHANGELOG.md` heading,
+  `pyproject.toml`, and runtime SDK version agree.
 - Confirm the version uses canonical PEP 440 syntax.
 - Confirm the release commit belongs to `main`.
 - Run non-integration tests on Python 3.9, 3.10, 3.11, 3.12, and 3.13.
@@ -124,9 +137,11 @@ See [docs/TESTING.md](docs/TESTING.md) for local and integration test commands.
   credentials.
 - `.github/workflows/publish.yaml` runs only for a published GitHub Release. It
   rejects development versions, non-canonical versions, version mismatches,
-  incorrect GitHub prerelease flags, and release commits outside `main`.
+  mismatched release names or changelog headings, incorrect GitHub prerelease
+  flags, and release commits outside `main`.
 - The production publish job uses PyPI Trusted Publishing with a short-lived
   OIDC credential.
+- `scripts/publish.sh` intentionally refuses direct token-based publishing.
 
 For additional administrative protection, configure a protected GitHub
 Environment for production PyPI publishing and update the PyPI Trusted

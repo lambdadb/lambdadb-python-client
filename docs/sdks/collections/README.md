@@ -124,6 +124,9 @@ with LambdaDB(
                 },
             },
         },
+        description="Product catalog",
+        tags={"environment": "production"},
+        snapshot_retention_in_days=30,
     )
     print(res)
 ```
@@ -133,12 +136,11 @@ with LambdaDB(
 | Parameter                                                                               | Type                                                                                    | Required                                                                                | Description                                                                             |
 | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `collection_name`                                                                       | *str*                                                                                   | :heavy_check_mark:                                                                      | Collection name must be unique within a project and the supported maximum length is 52. |
-| `index_configs`                                                                         | Dict[str, [models.IndexConfigsUnion](../../models/indexconfigsunion.md)]                | :heavy_minus_sign:                                                                      | N/A                                                                                     |
+| `index_configs`                                                                         | Dict[str, [models.IndexConfigsUnion](../../models/indexconfigsunion.md)]                | :heavy_check_mark:                                                                      | Collection index configuration.                                                        |
 | `partition_config`                                                                      | [Optional[models.PartitionConfig]](../../models/partitionconfig.md)                     | :heavy_minus_sign:                                                                      | N/A                                                                                     |
-| `source_project_name`                                                                   | *Optional[str]*                                                                         | :heavy_minus_sign:                                                                      | N/A                                                                                     |
-| `source_collection_name`                                                                | *Optional[str]*                                                                         | :heavy_minus_sign:                                                                      | N/A                                                                                     |
-| `source_datetime`                                                                       | *Optional[str]*                                                                         | :heavy_minus_sign:                                                                      | N/A                                                                                     |
-| `source_project_api_key`                                                                | *Optional[str]*                                                                         | :heavy_minus_sign:                                                                      | N/A                                                                                     |
+| `description`                                                                           | *Optional[str]*                                                                         | :heavy_minus_sign:                                                                      | Collection description.                                                                |
+| `tags`                                                                                  | *Optional[Dict[str, str]]*                                                              | :heavy_minus_sign:                                                                      | Up to five metadata tags.                                                              |
+| `snapshot_retention_in_days`                                                            | *Optional[int]*                                                                         | :heavy_minus_sign:                                                                      | Snapshot retention from 1 through 31 days.                                             |
 | `retries`                                                                               | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                        | :heavy_minus_sign:                                                                      | Configuration to override the default retry behavior of the client.                     |
 
 ### Response

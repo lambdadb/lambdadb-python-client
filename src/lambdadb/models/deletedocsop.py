@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from .partitionfilter import PartitionFilter, PartitionFilterTypedDict
+from .versioning import RefName
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
@@ -16,6 +17,7 @@ class DeleteDocsRequestBodyTypedDict(TypedDict):
     filter_: NotRequired[Dict[str, Any]]
     r"""Query filter."""
     partition_filter: NotRequired[PartitionFilterTypedDict]
+    branch: NotRequired[str]
 
 
 class DeleteDocsRequestBody(BaseModel):
@@ -29,9 +31,11 @@ class DeleteDocsRequestBody(BaseModel):
         Optional[PartitionFilter], pydantic.Field(alias="partitionFilter")
     ] = None
 
+    branch: Optional[RefName] = None
+
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["ids", "filter", "partitionFilter"])
+        optional_fields = set(["ids", "filter", "partitionFilter", "branch"])
         serialized = handler(self)
         m = {}
 

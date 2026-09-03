@@ -3,6 +3,7 @@
 from __future__ import annotations
 from .fieldsselector_union import FieldsSelectorUnion, FieldsSelectorUnionTypedDict
 from .partitionfilter import PartitionFilter, PartitionFilterTypedDict
+from .versioning import Ref
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
@@ -22,6 +23,7 @@ class FetchDocsRequestBodyTypedDict(TypedDict):
     fields: NotRequired[FieldsSelectorUnionTypedDict]
     r"""An object to specify a list of field names to include and/or exclude in the result."""
     partition_filter: NotRequired[PartitionFilterTypedDict]
+    ref: NotRequired[dict]
 
 
 class FetchDocsRequestBody(BaseModel):
@@ -45,10 +47,12 @@ class FetchDocsRequestBody(BaseModel):
         Optional[PartitionFilter], pydantic.Field(alias="partitionFilter")
     ] = None
 
+    ref: Optional[Ref] = None
+
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
         optional_fields = set(
-            ["consistentRead", "includeVectors", "fields", "partitionFilter"]
+            ["consistentRead", "includeVectors", "fields", "partitionFilter", "ref"]
         )
         serialized = handler(self)
         m = {}

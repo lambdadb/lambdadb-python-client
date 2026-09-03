@@ -35,70 +35,9 @@ jobs:
       - name: Validate release tag and package versions
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_NAME: ${{ github.event.release.name }}
           RELEASE_IS_PRERELEASE: ${{ github.event.release.prerelease }}
-        run: |
-          python - <<'PY'
-          import os
-          import re
-          import runpy
-          import tomllib
-          from packaging.version import Version
-
-          tag = os.environ["RELEASE_TAG"]
-          release_is_prerelease = (
-              os.environ["RELEASE_IS_PRERELEASE"].lower() == "true"
-          )
-          match = re.fullmatch(r"v(?P<version>.+)", tag)
-          if not match:
-              raise SystemExit(f"Release tag must look like v<version>, got: {tag}")
-
-          tag_version_text = match.group("version")
-          tag_version = Version(tag_version_text)
-          if str(tag_version) != tag_version_text:
-              raise SystemExit(
-                  "Release tag must use canonical PEP 440 syntax: "
-                  f"{tag_version_text!r} normalizes to {str(tag_version)!r}"
-              )
-
-          with open("pyproject.toml", "rb") as file:
-              project_version_text = tomllib.load(file)["project"]["version"]
-          runtime_version_text = runpy.run_path(
-              "src/lambdadb/version.py"
-          )["SDK_VERSION"]
-
-          if (
-              tag_version_text != project_version_text
-              or tag_version_text != runtime_version_text
-          ):
-              raise SystemExit(
-                  "Tag, project, and runtime versions must match: "
-                  f"tag={tag_version_text!r}, "
-                  f"project={project_version_text!r}, "
-                  f"runtime={runtime_version_text!r}"
-              )
-
-          if tag_version.is_devrelease:
-              raise SystemExit(
-                  "Development releases must use dev-package.yaml and must not "
-                  "be published to production PyPI"
-              )
-
-          if tag_version.is_prerelease:
-              if tag_version.pre is None or tag_version.pre[0] != "rc":
-                  raise SystemExit(
-                      "Only release-candidate prereleases (X.Y.ZrcN) may be "
-                      "published to production PyPI"
-                  )
-
-          if tag_version.is_prerelease != release_is_prerelease:
-              raise SystemExit(
-                  "GitHub prerelease flag does not match the package version: "
-                  f"version={tag_version}, "
-                  f"release.prerelease={release_is_prerelease}"
-              )
-
-          print(f"Validated release tag and versions: {tag}")
-          PY
+        run: python scripts/validate_release_metadata.py
 
       - name: Verify release commit is on main
         env:

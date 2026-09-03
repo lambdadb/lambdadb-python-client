@@ -5,7 +5,7 @@ from .sdkconfiguration import SDKConfiguration
 from lambdadb import errors, models, utils
 from lambdadb._hooks import HookContext
 from lambdadb.docs import Docs
-from lambdadb.types import OptionalNullable, UNSET
+from lambdadb.types import OptionalNullable, UNSET, Unset
 from lambdadb.utils import get_security_from_env
 from lambdadb.utils.unmarshal_json_response import unmarshal_json_response
 from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional, Union
@@ -330,19 +330,16 @@ class Collections(BaseSDK):
         self,
         *,
         collection_name: str,
-        index_configs: Optional[
-            Union[
-                Dict[str, models.IndexConfigsUnion],
-                Dict[str, models.IndexConfigsUnionTypedDict],
-            ]
-        ] = None,
+        index_configs: Union[
+            Dict[str, models.IndexConfigsUnion],
+            Dict[str, models.IndexConfigsUnionTypedDict],
+        ],
+        description: Optional[str] = None,
+        tags: Optional[Dict[str, str]] = None,
         partition_config: Optional[
             Union[models.PartitionConfig, models.PartitionConfigTypedDict]
         ] = None,
-        source_project_name: Optional[str] = None,
-        source_collection_name: Optional[str] = None,
-        source_datetime: Optional[str] = None,
-        source_project_api_key: Optional[str] = None,
+        snapshot_retention_in_days: Optional[int] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -352,11 +349,10 @@ class Collections(BaseSDK):
 
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
         :param index_configs:
+        :param description: Optional collection description (maximum 255 characters).
+        :param tags: Up to five collection metadata tags.
         :param partition_config:
-        :param source_project_name:
-        :param source_collection_name:
-        :param source_datetime:
-        :param source_project_api_key:
+        :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -375,15 +371,14 @@ class Collections(BaseSDK):
         request = models.CreateCollectionRequest(
             collection_name=collection_name,
             index_configs=utils.get_pydantic_model(
-                index_configs, Optional[Dict[str, models.IndexConfigsUnion]]
+                index_configs, Dict[str, models.IndexConfigsUnion]
             ),
+            description=description,
+            tags=tags,
             partition_config=utils.get_pydantic_model(
                 partition_config, Optional[models.PartitionConfig]
             ),
-            source_project_name=source_project_name,
-            source_collection_name=source_collection_name,
-            source_datetime=source_datetime,
-            source_project_api_key=source_project_api_key,
+            snapshot_retention_in_days=snapshot_retention_in_days,
         )
 
         req = self._build_request(
@@ -434,7 +429,7 @@ class Collections(BaseSDK):
         )
 
         response_data: Any = None
-        if utils.match_response(http_res, "202", "application/json"):
+        if utils.match_response(http_res, "201", "application/json"):
             return unmarshal_json_response(models.CreateCollectionResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = unmarshal_json_response(
@@ -474,19 +469,16 @@ class Collections(BaseSDK):
         self,
         *,
         collection_name: str,
-        index_configs: Optional[
-            Union[
-                Dict[str, models.IndexConfigsUnion],
-                Dict[str, models.IndexConfigsUnionTypedDict],
-            ]
-        ] = None,
+        index_configs: Union[
+            Dict[str, models.IndexConfigsUnion],
+            Dict[str, models.IndexConfigsUnionTypedDict],
+        ],
+        description: Optional[str] = None,
+        tags: Optional[Dict[str, str]] = None,
         partition_config: Optional[
             Union[models.PartitionConfig, models.PartitionConfigTypedDict]
         ] = None,
-        source_project_name: Optional[str] = None,
-        source_collection_name: Optional[str] = None,
-        source_datetime: Optional[str] = None,
-        source_project_api_key: Optional[str] = None,
+        snapshot_retention_in_days: Optional[int] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -496,11 +488,10 @@ class Collections(BaseSDK):
 
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
         :param index_configs:
+        :param description: Optional collection description (maximum 255 characters).
+        :param tags: Up to five collection metadata tags.
         :param partition_config:
-        :param source_project_name:
-        :param source_collection_name:
-        :param source_datetime:
-        :param source_project_api_key:
+        :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -519,15 +510,14 @@ class Collections(BaseSDK):
         request = models.CreateCollectionRequest(
             collection_name=collection_name,
             index_configs=utils.get_pydantic_model(
-                index_configs, Optional[Dict[str, models.IndexConfigsUnion]]
+                index_configs, Dict[str, models.IndexConfigsUnion]
             ),
+            description=description,
+            tags=tags,
             partition_config=utils.get_pydantic_model(
                 partition_config, Optional[models.PartitionConfig]
             ),
-            source_project_name=source_project_name,
-            source_collection_name=source_collection_name,
-            source_datetime=source_datetime,
-            source_project_api_key=source_project_api_key,
+            snapshot_retention_in_days=snapshot_retention_in_days,
         )
 
         req = self._build_request_async(
@@ -578,7 +568,7 @@ class Collections(BaseSDK):
         )
 
         response_data: Any = None
-        if utils.match_response(http_res, "202", "application/json"):
+        if utils.match_response(http_res, "201", "application/json"):
             return unmarshal_json_response(models.CreateCollectionResponse, http_res)
         if utils.match_response(http_res, "400", "application/json"):
             response_data = unmarshal_json_response(
@@ -690,7 +680,7 @@ class Collections(BaseSDK):
         )
 
         response_data: Any = None
-        if utils.match_response(http_res, "202", "application/json"):
+        if utils.match_response(http_res, "200", "application/json"):
             return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = unmarshal_json_response(
@@ -797,7 +787,7 @@ class Collections(BaseSDK):
         )
 
         response_data: Any = None
-        if utils.match_response(http_res, "202", "application/json"):
+        if utils.match_response(http_res, "200", "application/json"):
             return unmarshal_json_response(models.MessageResponse, http_res)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = unmarshal_json_response(
@@ -1049,7 +1039,11 @@ class Collections(BaseSDK):
         index_configs: Union[
             Dict[str, models.IndexConfigsUnion],
             Dict[str, models.IndexConfigsUnionTypedDict],
-        ],
+            Unset,
+        ] = UNSET,
+        description: Union[str, Unset] = UNSET,
+        tags: Union[Dict[str, str], Unset] = UNSET,
+        snapshot_retention_in_days: Union[int, Unset] = UNSET,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1059,6 +1053,9 @@ class Collections(BaseSDK):
 
         :param collection_name: Collection name.
         :param index_configs:
+        :param description: Replacement collection description.
+        :param tags: Replacement metadata tags; pass an empty dict to clear them.
+        :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1077,9 +1074,16 @@ class Collections(BaseSDK):
         request = models.UpdateCollectionRequest(
             collection_name=collection_name,
             request_body=models.UpdateCollectionRequestBody(
-                index_configs=utils.get_pydantic_model(
-                    index_configs, Dict[str, models.IndexConfigsUnion]
+                index_configs=(
+                    UNSET
+                    if index_configs is UNSET
+                    else utils.get_pydantic_model(
+                        index_configs, Dict[str, models.IndexConfigsUnion]
+                    )
                 ),
+                description=description,
+                tags=tags,
+                snapshot_retention_in_days=snapshot_retention_in_days,
             ),
         )
 
@@ -1178,7 +1182,11 @@ class Collections(BaseSDK):
         index_configs: Union[
             Dict[str, models.IndexConfigsUnion],
             Dict[str, models.IndexConfigsUnionTypedDict],
-        ],
+            Unset,
+        ] = UNSET,
+        description: Union[str, Unset] = UNSET,
+        tags: Union[Dict[str, str], Unset] = UNSET,
+        snapshot_retention_in_days: Union[int, Unset] = UNSET,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1188,6 +1196,9 @@ class Collections(BaseSDK):
 
         :param collection_name: Collection name.
         :param index_configs:
+        :param description: Replacement collection description.
+        :param tags: Replacement metadata tags; pass an empty dict to clear them.
+        :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1206,9 +1217,16 @@ class Collections(BaseSDK):
         request = models.UpdateCollectionRequest(
             collection_name=collection_name,
             request_body=models.UpdateCollectionRequestBody(
-                index_configs=utils.get_pydantic_model(
-                    index_configs, Dict[str, models.IndexConfigsUnion]
+                index_configs=(
+                    UNSET
+                    if index_configs is UNSET
+                    else utils.get_pydantic_model(
+                        index_configs, Dict[str, models.IndexConfigsUnion]
+                    )
                 ),
+                description=description,
+                tags=tags,
+                snapshot_retention_in_days=snapshot_retention_in_days,
             ),
         )
 
@@ -1315,6 +1333,7 @@ class Collections(BaseSDK):
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1335,6 +1354,10 @@ class Collections(BaseSDK):
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
         :param http_headers: Additional headers to set or replace on requests.
         """
+        ref_model = None if ref is None else models.Ref.model_validate(ref)
+        if consistent_read and ref_model is not None and ref_model.kind is not models.RefKind.BRANCH:
+            raise ValueError("consistent_read=True requires a direct branch ref")
+
         base_url = None
         url_variables = None
         if timeout_ms is None:
@@ -1359,6 +1382,7 @@ class Collections(BaseSDK):
                 partition_filter=utils.get_pydantic_model(
                     partition_filter, Optional[models.PartitionFilter]
                 ),
+                ref=ref_model,
             ),
         )
 
@@ -1465,6 +1489,7 @@ class Collections(BaseSDK):
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1485,6 +1510,10 @@ class Collections(BaseSDK):
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
         :param http_headers: Additional headers to set or replace on requests.
         """
+        ref_model = None if ref is None else models.Ref.model_validate(ref)
+        if consistent_read and ref_model is not None and ref_model.kind is not models.RefKind.BRANCH:
+            raise ValueError("consistent_read=True requires a direct branch ref")
+
         base_url = None
         url_variables = None
         if timeout_ms is None:
@@ -1509,6 +1538,7 @@ class Collections(BaseSDK):
                 partition_filter=utils.get_pydantic_model(
                     partition_filter, Optional[models.PartitionFilter]
                 ),
+                ref=ref_model,
             ),
         )
 

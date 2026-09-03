@@ -1,14 +1,14 @@
 # GetBulkUpsertDocsResponse
 
-Required info to upload documents.
-
+Required information for a signed bulk upload.
 
 ## Fields
 
-| Field                                                                        | Type                                                                         | Required                                                                     | Description                                                                  |
-| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `url`                                                                        | *str*                                                                        | :heavy_check_mark:                                                           | Presigned URL.                                                               |
-| `type`                                                                       | [Optional[models.GetBulkUpsertDocsType]](../models/getbulkupsertdocstype.md) | :heavy_minus_sign:                                                           | Content type that must be specified when uploading documents.                |
-| `http_method`                                                                | [Optional[models.HTTPMethod]](../models/httpmethod.md)                       | :heavy_minus_sign:                                                           | HTTP method that must be specified when uploading documents.                 |
-| `object_key`                                                                 | *str*                                                                        | :heavy_check_mark:                                                           | Object key that must be specified when uploading documents.                  |
-| `size_limit_bytes`                                                           | *Optional[int]*                                                              | :heavy_minus_sign:                                                           | Object size limit in bytes.                                                  |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `url` | `str` | Yes | Presigned upload URL. |
+| `type` | `models.GetBulkUpsertDocsType` | Yes | Required upload content type. |
+| `http_method` | `models.HTTPMethod` | Yes | Required upload HTTP method. |
+| `object_key` | `str` | Yes | Object key supplied to bulk completion. |
+| `size_limit_bytes` | `int` | Yes | Maximum upload size. |
+| `headers` | `Dict[str, str]` | Yes | Signed headers to forward unchanged. |

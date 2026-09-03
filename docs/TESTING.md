@@ -75,6 +75,18 @@ Required configuration:
 
 Do not expose credentials in command output, logs, artifacts, or review notes.
 
+Run the Data Versioning smoke test separately. It creates a uniquely named
+temporary collection and deletes it through a `finally` cleanup path:
+
+```bash
+LAMBDADB_RUN_VERSIONING_SMOKE=1 \
+poetry run pytest tests/integration/test_data_versioning_live.py -v
+```
+
+If `.env.local` exists, load it without printing its values before running the
+command. If cleanup fails, report only the temporary collection name; never
+include request headers or credentials.
+
 ## Third-party compatibility smoke tests
 
 The external compatibility tests require their optional dependencies and an
