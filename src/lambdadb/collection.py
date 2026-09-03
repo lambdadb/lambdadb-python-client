@@ -196,8 +196,7 @@ def _bulk_upload_headers(info: models.GetBulkUpsertDocsResponse) -> Dict[str, st
     """Return signed upload headers plus the contract-required content type."""
     headers = dict(info.headers)
     if not any(name.lower() == "content-type" for name in headers):
-        content_type = info.type.value if info.type is not None else "application/json"
-        headers["Content-Type"] = content_type
+        headers["Content-Type"] = info.type.value
     return headers
 
 
@@ -611,7 +610,7 @@ class CollectionDocs:
         )
         payload = docs if isinstance(docs, dict) else {"docs": docs}
         body = json.dumps(payload).encode("utf-8")
-        size_limit = info.size_limit_bytes or 209715200
+        size_limit = info.size_limit_bytes
         if len(body) > size_limit:
             raise ValueError(
                 f"Documents payload size {len(body)} bytes exceeds limit {size_limit} bytes"
@@ -622,7 +621,7 @@ class CollectionDocs:
             raise ValueError("HTTP client is required for bulk_upsert_docs")
         timeout_sec = (t / 1000.0) if t is not None else (config.timeout_ms / 1000.0 if config.timeout_ms else None)
         req = client.build_request(
-            info.http_method.value if info.http_method is not None else "PUT",
+            info.http_method.value,
             info.url,
             content=body,
             headers=_bulk_upload_headers(info),
@@ -668,7 +667,7 @@ class CollectionDocs:
         )
         payload = docs if isinstance(docs, dict) else {"docs": docs}
         body = json.dumps(payload).encode("utf-8")
-        size_limit = info.size_limit_bytes or 209715200
+        size_limit = info.size_limit_bytes
         if len(body) > size_limit:
             raise ValueError(
                 f"Documents payload size {len(body)} bytes exceeds limit {size_limit} bytes"
@@ -679,7 +678,7 @@ class CollectionDocs:
             raise ValueError("Async HTTP client is required for bulk_upsert_docs_async")
         timeout_sec = (t / 1000.0) if t is not None else (config.timeout_ms / 1000.0 if config.timeout_ms else None)
         req = async_client.build_request(
-            info.http_method.value if info.http_method is not None else "PUT",
+            info.http_method.value,
             info.url,
             content=body,
             headers=_bulk_upload_headers(info),

@@ -561,6 +561,64 @@ def test_bulk_upload_forwards_signed_headers_uses_transfer_client_and_same_branc
     assert transfer_requests[0].headers["content-type"] == "application/json"
 
 
+def test_bulk_upload_respects_zero_size_limit_without_transfer_or_completion() -> None:
+    api_requests: List[httpx.Request] = []
+    transfer_requests: List[httpx.Request] = []
+
+    def api_handler(request: httpx.Request) -> httpx.Response:
+        api_requests.append(request)
+        return _response(
+            request,
+            200,
+            {
+                "url": "https://storage.example/upload",
+                "type": "application/json",
+                "httpMethod": "PUT",
+                "objectKey": "objects/data.json",
+                "sizeLimitBytes": 0,
+                "headers": {},
+            },
+        )
+
+    def transfer_handler(request: httpx.Request) -> httpx.Response:
+        transfer_requests.append(request)
+        return _response(request, 200, {})
+
+    with (
+        httpx.Client(transport=httpx.MockTransport(api_handler)) as api_client,
+        httpx.Client(
+            transport=httpx.MockTransport(transfer_handler)
+        ) as transfer_client,
+    ):
+        client = LambdaDB(project_api_key="secret", client=api_client)
+        with pytest.raises(ValueError, match="exceeds limit 0 bytes"):
+            client.collection("catalog").docs.bulk_upsert_docs(
+                docs=[{"id": "1"}], transfer_client=transfer_client
+            )
+
+    assert len(api_requests) == 1
+    assert not transfer_requests
+
+    api_requests.clear()
+
+    async def run() -> None:
+        async with (
+            httpx.AsyncClient(transport=httpx.MockTransport(api_handler)) as api_client,
+            httpx.AsyncClient(
+                transport=httpx.MockTransport(transfer_handler)
+            ) as transfer_client,
+        ):
+            client = LambdaDB(project_api_key="secret", async_client=api_client)
+            with pytest.raises(ValueError, match="exceeds limit 0 bytes"):
+                await client.collection("catalog").docs.bulk_upsert_docs_async(
+                    docs=[{"id": "1"}], transfer_client=transfer_client
+                )
+
+    asyncio.run(run())
+    assert len(api_requests) == 1
+    assert not transfer_requests
+
+
 def test_async_lifecycle_read_and_bulk_upload_match_sync_behavior() -> None:
     api_requests: List[httpx.Request] = []
     transfer_requests: List[httpx.Request] = []
