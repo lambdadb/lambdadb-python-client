@@ -28,6 +28,9 @@ that the API is deployed in a particular environment.
   need not use the LambdaDB API client.
 - Epoch-millisecond datetime helpers for collection, branch, tag, and alias
   creation timestamps.
+- Runtime dependencies now exclude their next incompatible major versions.
+  This keeps `pip install --pre --upgrade lambdadb` from selecting an
+  incompatible `httpx` 1.0 development release while opting into the SDK RC.
 
 ### Breaking changes from `0.8.2`
 

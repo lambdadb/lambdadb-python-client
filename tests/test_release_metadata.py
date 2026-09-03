@@ -4,15 +4,47 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import re
 from types import ModuleType
 
 import pytest
+from packaging.requirements import Requirement
+from packaging.version import Version
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts/validate_release_metadata.py"
 SPEC = importlib.util.spec_from_file_location("validate_release_metadata", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
+
+
+def _project_requirements() -> dict[str, Requirement]:
+    pyproject = (SCRIPT.parents[1] / "pyproject.toml").read_text(encoding="utf-8")
+    match = re.search(r"(?ms)^dependencies\s*=\s*\[(?P<body>.*?)^\]", pyproject)
+    assert match is not None
+    requirements = [
+        Requirement(value) for value in re.findall(r'"([^"]+)"', match.group("body"))
+    ]
+    return {requirement.name: requirement for requirement in requirements}
+
+
+@pytest.mark.parametrize(
+    ("name", "supported", "next_major_prerelease"),
+    [
+        ("httpcore", "1.0.9", "2.0.dev1"),
+        ("httpx", "0.28.1", "1.0.dev1"),
+        ("pydantic", "2.11.2", "3.0a1"),
+    ],
+)
+def test_runtime_dependencies_exclude_incompatible_major_prereleases(
+    name: str, supported: str, next_major_prerelease: str
+) -> None:
+    requirement = _project_requirements()[name]
+
+    assert requirement.specifier.contains(Version(supported), prereleases=True)
+    assert not requirement.specifier.contains(
+        Version(next_major_prerelease), prereleases=True
+    )
 
 
 def _release_tree(

@@ -87,6 +87,11 @@ python -m pip install "lambdadb==0.9.0rc1"
 python -m pip install --pre --upgrade lambdadb
 ```
 
+Because pip's `--pre` flag also enables prerelease dependency candidates, keep
+the runtime dependency upper bounds in `pyproject.toml` aligned with the major
+versions supported by the SDK. Validate both opt-in forms in clean
+environments before publishing.
+
 If an RC needs a fix, publish a new commit and increment the RC number. Never
 move or replace an existing tag or PyPI version.
 
@@ -121,6 +126,8 @@ Before publishing an RC or stable release:
   `pyproject.toml`, and runtime SDK version agree.
 - Confirm the version uses canonical `X.Y.ZrcN` or `X.Y.Z` syntax. Epoch,
   abbreviated, alpha/beta, post, and local versions are not release channels.
+- Confirm an exact RC install and a `--pre` RC install both import successfully,
+  while an install without either opt-in still selects the stable release.
 - Confirm the release commit belongs to `main`.
 - Run non-integration tests on Python 3.9, 3.10, 3.11, 3.12, and 3.13.
 - Build both the wheel and source distribution.
