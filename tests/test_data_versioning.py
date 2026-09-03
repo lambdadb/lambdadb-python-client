@@ -179,6 +179,68 @@ def test_collection_metadata_and_create_delete_status_contract() -> None:
         )
 
 
+def test_collection_metadata_and_status_contract_async() -> None:
+    requests: List[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if request.method == "POST":
+            payload = json.loads(request.content)
+            return _response(
+                request,
+                201,
+                {
+                    "collection": {
+                        "collectionName": payload["collectionName"],
+                        "description": payload["description"],
+                        "tags": payload["tags"],
+                        "defaultBranchName": "main",
+                        "snapshotRetentionInDays": payload["snapshotRetentionInDays"],
+                        "createdAt": 1788336000123,
+                    }
+                },
+            )
+        if request.method == "PATCH":
+            return _response(request, 200, {"collection": _collection_body()})
+        return _response(request, 200, {"message": "Collection deleted"})
+
+    async def run() -> None:
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(handler)
+        ) as transport:
+            client = LambdaDB(
+                project_api_key="secret",
+                base_url="https://api.example",
+                project_name="project",
+                async_client=transport,
+            )
+            created = await client.collections.create_async(
+                collection_name="catalog",
+                index_configs=_text_index(models.Analyzer.ENGLISH),
+                description="Product catalog",
+                tags={"environment": "test"},
+                snapshot_retention_in_days=14,
+            )
+            updated = await client.collections.update_async(
+                collection_name="catalog", tags={}, snapshot_retention_in_days=14
+            )
+            deleted = await client.collections.delete_async(collection_name="catalog")
+            assert created.collection.default_branch_name == "main"
+            assert updated.collection.snapshot_retention_in_days == 14
+            assert deleted.message == "Collection deleted"
+
+    asyncio.run(run())
+    assert [(request.method, request.url.path) for request in requests] == [
+        ("POST", "/projects/project/collections"),
+        ("PATCH", "/projects/project/collections/catalog"),
+        ("DELETE", "/projects/project/collections/catalog"),
+    ]
+    assert json.loads(requests[1].content) == {
+        "tags": {},
+        "snapshotRetentionInDays": 14,
+    }
+
+
 def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
     requests: List[httpx.Request] = []
 
@@ -287,6 +349,117 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
     assert alias.alias.target_kind.value == "TAG"
     assert retargeted.alias.target_kind.value == "BRANCH"
     assert aliases.aliases[0].dangling is True
+
+
+def test_all_lifecycle_endpoints_work_async() -> None:
+    requests: List[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        path = request.url.path
+        if path.endswith("/branches") and request.method == "POST":
+            body = json.loads(request.content)
+            if body["branchName"] == "duplicate":
+                return _response(request, 409, {"message": "already exists"})
+            return _response(
+                request,
+                201,
+                {
+                    "branch": {
+                        "name": body["branchName"],
+                        "snapshotId": "snapshot-1",
+                        "createdAt": 1788336000001,
+                    }
+                },
+            )
+        if path.endswith("/branches"):
+            return _response(request, 200, {"branches": []})
+        if "/branches/" in path:
+            return _response(request, 200, {"message": "Ref deleted"})
+        if path.endswith("/tags") and request.method == "POST":
+            body = json.loads(request.content)
+            return _response(
+                request,
+                201,
+                {
+                    "tag": {
+                        "name": body["tagName"],
+                        "snapshotId": "snapshot-1",
+                        "createdAt": 1788336000002,
+                    }
+                },
+            )
+        if path.endswith("/tags"):
+            return _response(request, 200, {"tags": []})
+        if "/tags/" in path:
+            return _response(request, 200, {"message": "Ref deleted"})
+        if path.endswith("/aliases") and request.method == "POST":
+            body = json.loads(request.content)
+            return _response(
+                request,
+                201,
+                {"alias": _alias_body(body["aliasName"], body["target"], 0)},
+            )
+        if path.endswith("/aliases"):
+            return _response(request, 200, {"aliases": []})
+        if request.method == "PATCH":
+            body = json.loads(request.content)
+            return _response(
+                request,
+                200,
+                {"alias": _alias_body("production-read", body["target"], 1)},
+            )
+        return _response(request, 200, {"message": "Ref deleted"})
+
+    async def run() -> None:
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(handler)
+        ) as transport:
+            client = LambdaDB(
+                project_api_key="secret",
+                base_url="https://api.example",
+                project_name="project",
+                async_client=transport,
+            )
+            collection = client.collection("catalog")
+            await collection.branches.create_async(
+                "experiment", source=RefSource.tag("release-1")
+            )
+            await collection.branches.list_async()
+            await collection.branches.delete_async("experiment")
+            await collection.tags.create_async(
+                "release-1", source=RefSource.branch("main")
+            )
+            await collection.tags.list_async()
+            await collection.tags.delete_async("release-1")
+            await collection.aliases.create_async(
+                "production-read", target=AliasTarget.tag("release-1")
+            )
+            await collection.aliases.list_async()
+            await collection.aliases.retarget_async(
+                "production-read", target=AliasTarget.branch("main")
+            )
+            await collection.aliases.delete_async("production-read")
+            with pytest.raises(errors.ResourceAlreadyExistsError):
+                await collection.branches.create_async("duplicate")
+
+    asyncio.run(run())
+    assert [(request.method, request.url.path) for request in requests[:10]] == [
+        ("POST", "/projects/project/collections/catalog/branches"),
+        ("GET", "/projects/project/collections/catalog/branches"),
+        ("DELETE", "/projects/project/collections/catalog/branches/experiment"),
+        ("POST", "/projects/project/collections/catalog/tags"),
+        ("GET", "/projects/project/collections/catalog/tags"),
+        ("DELETE", "/projects/project/collections/catalog/tags/release-1"),
+        ("POST", "/projects/project/collections/catalog/aliases"),
+        ("GET", "/projects/project/collections/catalog/aliases"),
+        ("PATCH", "/projects/project/collections/catalog/aliases/production-read"),
+        ("DELETE", "/projects/project/collections/catalog/aliases/production-read"),
+    ]
+    assert json.loads(requests[0].content)["source"] == {
+        "kind": "tag",
+        "name": "release-1",
+    }
 
 
 def _alias_body(
