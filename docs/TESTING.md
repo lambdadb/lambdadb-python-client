@@ -11,6 +11,10 @@ Install the locked development environment:
 poetry install --no-interaction
 ```
 
+The lock uses pytest 9.0.3 or newer on Python 3.10 through 3.13. Python 3.9
+uses the latest compatible pytest 8.x release because pytest 9 requires Python
+3.10 or newer.
+
 ## Non-integration tests
 
 Run the deterministic test suite without live services or third-party SDKs:
