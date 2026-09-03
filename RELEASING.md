@@ -119,7 +119,8 @@ Before publishing an RC or stable release:
 - Confirm the target API is deployed in the intended test environment.
 - Confirm the Git tag, GitHub Release name, `CHANGELOG.md` heading,
   `pyproject.toml`, and runtime SDK version agree.
-- Confirm the version uses canonical PEP 440 syntax.
+- Confirm the version uses canonical `X.Y.ZrcN` or `X.Y.Z` syntax. Epoch,
+  abbreviated, alpha/beta, post, and local versions are not release channels.
 - Confirm the release commit belongs to `main`.
 - Run non-integration tests on Python 3.9, 3.10, 3.11, 3.12, and 3.13.
 - Build both the wheel and source distribution.
@@ -137,8 +138,9 @@ See [docs/TESTING.md](docs/TESTING.md) for local and integration test commands.
   credentials.
 - `.github/workflows/publish.yaml` runs only for a published GitHub Release. It
   rejects development versions, non-canonical versions, version mismatches,
-  mismatched release names or changelog headings, incorrect GitHub prerelease
-  flags, and release commits outside `main`.
+  versions outside exact `X.Y.ZrcN` / `X.Y.Z` channels, mismatched release
+  names or changelog headings, incorrect GitHub prerelease flags, and release
+  commits outside `main`.
 - The production publish job uses PyPI Trusted Publishing with a short-lived
   OIDC credential.
 - `scripts/publish.sh` intentionally refuses direct token-based publishing.

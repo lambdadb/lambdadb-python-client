@@ -28,7 +28,15 @@ def validate_release_metadata(
             "Release tag must use canonical PEP 440 syntax: "
             f"{version_text!r} normalizes to {str(version)!r}"
         )
-
+    if version.is_devrelease:
+        raise ValueError(
+            "Development releases must not be published to production PyPI"
+        )
+    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:rc[0-9]+)?", version_text) is None:
+        raise ValueError(
+            "Production releases must use exactly X.Y.Z or X.Y.ZrcN, got: "
+            f"{version_text}"
+        )
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     project_section = re.search(
         r"(?ms)^\[project\]\s*$\n(?P<body>.*?)(?=^\[|\Z)", pyproject
@@ -58,10 +66,6 @@ def validate_release_metadata(
     if release_name != release_tag:
         raise ValueError(
             f"GitHub Release name must exactly match tag {release_tag!r}, got {release_name!r}"
-        )
-    if version.is_devrelease:
-        raise ValueError(
-            "Development releases must not be published to production PyPI"
         )
     if version.is_prerelease and (version.pre is None or version.pre[0] != "rc"):
         raise ValueError("Only X.Y.ZrcN prereleases may be published")

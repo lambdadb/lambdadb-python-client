@@ -100,6 +100,21 @@ def test_validator_rejects_noncanonical_pep440_tag() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    "version",
+    ["0.9", "0.9.0.post1", "1!0.9.0", "0.9.0+private", "0.9.0a1"],
+)
+def test_validator_rejects_versions_outside_stable_and_rc_channels(
+    version: str,
+) -> None:
+    with pytest.raises(ValueError, match=r"exactly X\.Y\.Z or X\.Y\.ZrcN"):
+        MODULE.validate_release_metadata(
+            release_tag=f"v{version}",
+            release_name=f"v{version}",
+            release_is_prerelease=True,
+        )
+
+
 def test_validator_requires_exact_changelog_heading(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
