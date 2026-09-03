@@ -97,8 +97,6 @@ class RefSource(BaseModel):
     def validate_as_of(self) -> "RefSource":
         if self.kind is RefSourceKind.TAG and self.as_of is not None:
             raise ValueError("as_of is only valid for a branch source")
-        if self.as_of is not None and self.as_of < 0:
-            raise ValueError("as_of must be a Unix epoch timestamp in milliseconds")
         return self
 
     @classmethod

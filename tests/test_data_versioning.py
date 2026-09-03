@@ -78,6 +78,7 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
 
     with pytest.raises(ValidationError, match="as_of is only valid"):
         models.RefSource.model_validate({"kind": "tag", "name": "release-1", "asOf": 1})
+    assert RefSource.branch("main", as_of=-1).as_of == -1
     with pytest.raises(ValidationError):
         Ref.branch("x")
     with pytest.raises(ValidationError):
@@ -161,6 +162,21 @@ def test_collection_metadata_and_create_delete_status_contract() -> None:
 
     with pytest.raises(ValidationError, match="at least one collection field"):
         models.UpdateCollectionRequestBody()
+    with pytest.raises(ValidationError):
+        models.CreatedCollection.model_validate(
+            {
+                "collectionName": "catalog",
+                "description": "",
+                "tags": {},
+                "defaultBranchName": "develop",
+                "snapshotRetentionInDays": 30,
+                "createdAt": 1788336000123,
+            }
+        )
+    with pytest.raises(ValidationError):
+        models.BulkUpsertDocsRequestBody.model_validate(
+            {"objectKey": "object", "type": None}
+        )
 
 
 def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:

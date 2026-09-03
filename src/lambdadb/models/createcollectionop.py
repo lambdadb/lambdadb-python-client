@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional
 
 import pydantic
 from pydantic import field_validator, model_serializer
@@ -81,7 +81,7 @@ class CreatedCollectionTypedDict(TypedDict):
     collection_name: str
     description: str
     tags: Dict[str, str]
-    default_branch_name: str
+    default_branch_name: Literal["main"]
     snapshot_retention_in_days: int
     created_at: int
 
@@ -90,7 +90,9 @@ class CreatedCollection(BaseModel):
     collection_name: Annotated[str, pydantic.Field(alias="collectionName")]
     description: str
     tags: Dict[str, str]
-    default_branch_name: Annotated[str, pydantic.Field(alias="defaultBranchName")]
+    default_branch_name: Annotated[
+        Literal["main"], pydantic.Field(alias="defaultBranchName")
+    ]
     snapshot_retention_in_days: Annotated[
         int, pydantic.Field(alias="snapshotRetentionInDays", ge=1, le=31)
     ]

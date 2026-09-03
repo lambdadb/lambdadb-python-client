@@ -19,7 +19,7 @@ class BulkUpsertDocsRequestBodyTypedDict(TypedDict):
 class BulkUpsertDocsRequestBody(BaseModel):
     object_key: Annotated[str, pydantic.Field(alias="objectKey")]
     r"""Object key uploaded based on bulk upsert info."""
-    type: Optional[str] = "application/json"
+    type: str = "application/json"
     branch: Optional[RefName] = None
 
 

@@ -7,7 +7,7 @@ from .partitionconfig import PartitionConfig, PartitionConfigTypedDict
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 import pydantic
 from pydantic import model_serializer
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
 
@@ -23,7 +23,7 @@ class CollectionResponseTypedDict(TypedDict):
     r"""Total number of documents."""
     description: str
     tags: Dict[str, str]
-    default_branch_name: str
+    default_branch_name: Literal["main"]
     snapshot_retention_in_days: int
     created_at: int
     r"""Collection creation time in milliseconds since the Unix epoch."""
@@ -55,7 +55,9 @@ class CollectionResponse(BaseModel):
 
     tags: Dict[str, str]
 
-    default_branch_name: Annotated[str, pydantic.Field(alias="defaultBranchName")]
+    default_branch_name: Annotated[
+        Literal["main"], pydantic.Field(alias="defaultBranchName")
+    ]
 
     snapshot_retention_in_days: Annotated[
         int, pydantic.Field(alias="snapshotRetentionInDays", ge=1, le=31)
