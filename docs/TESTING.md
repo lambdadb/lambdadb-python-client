@@ -1,52 +1,103 @@
-# SDK Testing (Pre-publish Checklist)
+# SDK testing
 
-## Current status
+This document describes local, CI, development-package, and prerelease
+validation for the Python SDK.
 
-| Item | Status |
-|------|--------|
-| **Unit test file** | `tests/test_sdk.py` added (7 test cases) |
-| **pytest** | Added to dev dependencies in `pyproject.toml` |
-| **CI** | Import check + mypy + pylint; pytest step added to run tests on push/PR |
+## Local setup
 
-## How to run tests
-
-After installing dependencies:
+Install the locked development environment:
 
 ```bash
 poetry install --no-interaction
-poetry run pytest tests/ -v
 ```
 
-Or:
+## Non-integration tests
+
+Run the deterministic test suite without live services or third-party SDKs:
 
 ```bash
-pip install -e ".[dev]"  # or install project dependencies
-pytest tests/ -v
+poetry run pytest tests/ -m "not integration" -v
 ```
 
-## Test coverage (`tests/test_sdk.py`)
+These tests cover the public SDK surface, request and response models, retry and
+client lifecycle behavior, managed embedding configuration, document helpers,
+and the Qdrant compatibility layer.
 
-- **test_imports**: Core imports (LambdaDB, RequestOptions, response types, etc.)
-- **test_client_collection_docs_has_convenience_methods**: Presence of `coll.docs.list_pages`, `iter_all`, `bulk_upsert_docs`
-- **test_collections_has_list_pages_and_iter_all**: Presence of `client.collections.list_pages`, `iter_all` and async variants
-- **test_request_options_instantiation**: RequestOptions construction
-- **test_collection_response_has_datetime_properties**: CollectionResponse `created_at_dt` and related datetime properties
-- **test_list_collections_response_has_next_page_token**: ListCollectionsResponse `next_page_token` field
-- **test_query_and_fetch_response_has_results_and_documents**: Query/Fetch responses `.results` and `.documents`
+## Static checks
 
-All tests validate the **public API surface only**, with **no network calls or API keys**.
+Run the configured type and lint checks:
 
-## Pre-publish recommendations
+```bash
+poetry run mypy src/lambdadb --ignore-missing-imports
+poetry run pylint src/lambdadb
+```
 
-1. **Run tests locally once**  
-   Confirm all 7 tests pass with `poetry run pytest tests/ -v`.
+The normal CI workflow currently reports mypy and pylint findings without
+blocking the build. Release readiness must be decided from the reviewed
+findings; do not describe those checks as passing when they were allowed to
+fail.
 
-2. **CI**  
-   `.github/workflows/ci.yaml` includes a “Run tests” step so tests run on every push/PR.
+## Distribution checks
 
-3. **Optional additional tests**  
-   - Pagination behavior of `list_pages` / `iter_all` (with mocks or test API)
-   - `bulk_upsert_docs` presigned URL upload flow (mocked)
-   - `_resolve_fetch_response` / `_resolve_query_response` (mocked HTTP)
+Build and inspect the wheel and source distribution:
 
-The current tests are sufficient for **minimal pre-publish verification**.
+```bash
+python -m pip install --upgrade build twine
+python -m build
+python -m twine check dist/*
+```
+
+Install the wheel in a clean environment and verify the installed package,
+rather than importing from the source checkout:
+
+```bash
+python -m venv /tmp/lambdadb-wheel-check
+/tmp/lambdadb-wheel-check/bin/python -m pip install dist/*.whl
+/tmp/lambdadb-wheel-check/bin/python -c \
+  "from lambdadb import LambdaDB, __version__; print(__version__)"
+```
+
+## Live LambdaDB smoke test
+
+The live test creates and removes test data. Run it only against the intended
+development or staging project:
+
+```bash
+LAMBDADB_RUN_LIVE_TESTS=1 \
+poetry run pytest tests/integration/test_qdrant_compat_live.py -v
+```
+
+Required configuration:
+
+- `LAMBDADB_PROJECT_API_KEY`
+- `LAMBDADB_PROJECT_NAME`
+- `LAMBDADB_BASE_URL` when the default API URL is not the test target
+
+Do not expose credentials in command output, logs, artifacts, or review notes.
+
+## Third-party compatibility smoke tests
+
+The external compatibility tests require their optional dependencies and an
+explicit opt-in:
+
+```bash
+LAMBDADB_RUN_EXTERNAL_INTEGRATION_TESTS=1 \
+poetry run pytest tests/integration/test_qdrant_compat_external.py -v
+```
+
+Record dependency versions and the exact SDK commit when reporting these
+results.
+
+## Workflow coverage
+
+- `.github/workflows/ci.yaml` runs imports and the existing test suite for
+  pushes and pull requests on `main` and `develop`.
+- `.github/workflows/dev-package.yaml` validates an `X.Y.Z.devN` version, runs
+  non-integration tests, checks distributions, and uploads a commit-specific
+  wheel artifact without publishing to PyPI.
+- `.github/workflows/publish.yaml` validates a published GitHub Release, tests
+  Python 3.9 through 3.13, checks the built distributions, verifies wheel
+  installation, and publishes through PyPI Trusted Publishing only after all
+  required jobs succeed.
+
+See [RELEASING.md](../RELEASING.md) for the required release sequence.

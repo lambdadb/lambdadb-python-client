@@ -1,4 +1,9 @@
 
+# Historical releases
+
+This file contains historical generated release records. For the current
+development, release-candidate, and stable publishing process, see
+[RELEASING.md](RELEASING.md).
 
 ## 2025-06-12 00:41:24
 ### Changes

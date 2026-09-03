@@ -1,0 +1,98 @@
+name: Build development package
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git branch, tag, or commit to build
+        required: true
+        default: develop
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install build and test dependencies
+        run: python -m pip install --upgrade build packaging pytest twine
+
+      - name: Validate development version
+        id: package
+        run: |
+          python - <<'PY'
+          import os
+          import runpy
+          import subprocess
+          import tomllib
+          from packaging.version import Version
+
+          with open("pyproject.toml", "rb") as file:
+              project_version_text = tomllib.load(file)["project"]["version"]
+          runtime_version_text = runpy.run_path(
+              "src/lambdadb/version.py"
+          )["SDK_VERSION"]
+
+          project_version = Version(project_version_text)
+          if str(project_version) != project_version_text:
+              raise SystemExit(
+                  "Project version must use canonical PEP 440 syntax: "
+                  f"{project_version_text!r} normalizes to "
+                  f"{str(project_version)!r}"
+              )
+          if project_version_text != runtime_version_text:
+              raise SystemExit(
+                  "Project and runtime versions must match: "
+                  f"project={project_version_text!r}, "
+                  f"runtime={runtime_version_text!r}"
+              )
+          if not project_version.is_devrelease:
+              raise SystemExit(
+                  "Development artifacts require an X.Y.Z.devN package version"
+              )
+
+          short_sha = subprocess.check_output(
+              ["git", "rev-parse", "--short=12", "HEAD"], text=True
+          ).strip()
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"version={project_version}\n")
+              output.write(f"sha={short_sha}\n")
+
+          print(f"Validated development package {project_version} at {short_sha}")
+          PY
+
+      - name: Install package
+        run: python -m pip install .
+
+      - name: Run non-integration tests
+        run: python -m pytest tests/ -m "not integration" -v
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Check distributions
+        run: python -m twine check dist/*
+
+      - name: Verify wheel installation
+        run: |
+          python -m pip install --force-reinstall dist/*.whl
+          python -c "from lambdadb import LambdaDB, __version__; print(__version__)"
+
+      - name: Upload development distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambdadb-${{ steps.package.outputs.version }}-${{ steps.package.outputs.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
