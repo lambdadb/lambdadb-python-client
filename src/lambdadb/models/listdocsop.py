@@ -41,7 +41,7 @@ class ListDocsRequest(BaseModel):
     r"""Max number of documents to return at once."""
 
     page_token: Annotated[
-        Optional[RefName],
+        Optional[str],
         pydantic.Field(alias="pageToken"),
         FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
     ] = None
@@ -61,7 +61,7 @@ class ListDocsRequest(BaseModel):
     ] = None
 
     ref_name: Annotated[
-        Optional[str],
+        Optional[RefName],
         pydantic.Field(alias="refName"),
         FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
     ] = None

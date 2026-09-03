@@ -53,6 +53,12 @@ that the API is deployed in a particular environment.
   202.
 - `GetBulkUpsertDocsResponse` now requires `type`, `http_method`,
   `size_limit_bytes`, and `headers`, as required by the signed-upload contract.
+- `Collections.update()` / `update_async()` and
+  `UpdateCollectionRequestBody.index_configs` no longer require an index
+  update. They accept any non-empty combination of `index_configs`,
+  `description`, `tags`, and `snapshot_retention_in_days`; an empty update is
+  rejected locally. Direct model users will see `index_configs` change from a
+  required mapping to a mapping-or-`Unset` field.
 
 ### Migration guidance
 

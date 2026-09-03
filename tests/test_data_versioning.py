@@ -86,6 +86,23 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
         Ref.model_validate({"kind": "branch", "name": "main", "asOf": 1})
 
 
+def test_list_page_token_stays_opaque_while_ref_name_is_validated() -> None:
+    request = models.ListDocsRequest(
+        collection_name="catalog",
+        page_token="x+/=.",
+        ref_kind=models.RefKind.ALIAS,
+        ref_name="production-read",
+    )
+    assert request.page_token == "x+/=."
+
+    with pytest.raises(ValidationError):
+        models.ListDocsRequest(
+            collection_name="catalog",
+            ref_kind=models.RefKind.BRANCH,
+            ref_name="x",
+        )
+
+
 def test_collection_metadata_and_create_delete_status_contract() -> None:
     requests: List[httpx.Request] = []
 
@@ -371,7 +388,7 @@ def test_list_pages_and_iter_all_preserve_ref_on_every_page_sync_and_async() -> 
             "isDocsInline": True,
         }
         if not token:
-            body["nextPageToken"] = "opaque-next"
+            body["nextPageToken"] = "x+/=."
         return _response(request, 200, body)
 
     sync_transport = httpx.MockTransport(
@@ -427,6 +444,16 @@ def test_list_pages_and_iter_all_preserve_ref_on_every_page_sync_and_async() -> 
     assert [
         (r.url.params["refKind"], r.url.params["refName"]) for r in async_requests
     ] == [("alias", "production-read")] * 2
+    assert [r.url.params.get("pageToken") for r in sync_requests] == [
+        None,
+        "x+/=.",
+        None,
+        "x+/=.",
+    ]
+    assert [r.url.params.get("pageToken") for r in async_requests] == [
+        None,
+        "x+/=.",
+    ]
 
 
 def test_filtered_list_pages_preserve_body_ref_on_every_page() -> None:
