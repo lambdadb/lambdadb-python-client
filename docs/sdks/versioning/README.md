@@ -2,7 +2,7 @@
 
 The Python SDK implements the collection-scoped Data Versioning contract from
 docs revision
-[`63e07d6b2e281704aa3367fbeb94f40f519241b8`](https://github.com/lambdadb/docs/commit/63e07d6b2e281704aa3367fbeb94f40f519241b8).
+[`a52ce19f5a1ce5ad3a30a55a5560e4591f0be9fa`](https://github.com/lambdadb/docs/commit/a52ce19f5a1ce5ad3a30a55a5560e4591f0be9fa).
 
 ## Branch, Tag, and Alias lifecycle
 
@@ -46,6 +46,8 @@ or Alias ref; consistent reads require a directly selected Branch.
 
 Deleting a Branch or Tag can leave an Alias dangling. Such aliases remain in
 `aliases.list()` with `dangling=True` until they are retargeted or deleted.
+Reading through a dangling Alias raises `BadRequestError`; selecting a ref that
+does not exist raises `ResourceNotFoundError`.
 
 ## Ref-scoped reads
 

@@ -4,7 +4,7 @@
 
 This change implements the Data Versioning API contract pinned to LambdaDB
 docs revision
-[`63e07d6b2e281704aa3367fbeb94f40f519241b8`](https://github.com/lambdadb/docs/commit/63e07d6b2e281704aa3367fbeb94f40f519241b8).
+[`a52ce19f5a1ce5ad3a30a55a5560e4591f0be9fa`](https://github.com/lambdadb/docs/commit/a52ce19f5a1ce5ad3a30a55a5560e4591f0be9fa).
 A source revision records the implemented contract; it does not by itself show
 that the API is deployed in a particular environment.
 
@@ -19,6 +19,8 @@ that the API is deployed in a particular environment.
   reads require a directly selected Branch.
 - Read refs for query, fetch, and list operations. List page iterators and
   all-document iterators retain the ref on every request.
+- Typed read-ref errors: a missing ref raises `ResourceNotFoundError`, while a
+  dangling Alias target raises `BadRequestError` until the Alias is retargeted.
 - Write branches for upsert, update, delete, bulk-upload-info, bulk completion,
   and the one-step bulk helper.
 - Collection `description`, metadata `tags`, `default_branch_name`, and

@@ -193,6 +193,28 @@ def test_data_versioning_live_smoke() -> None:
             if item.alias_name == alias_name
         )
         assert dangling.dangling is True
+
+        with pytest.raises(errors.BadRequestError):
+            collection.docs.list(size=1, ref=Ref.alias(alias_name))
+        with pytest.raises(errors.BadRequestError):
+            collection.docs.fetch(ids=[seed_id], ref=Ref.alias(alias_name))
+        with pytest.raises(errors.BadRequestError):
+            collection.query(
+                query={"queryString": {"query": "title:seed"}},
+                ref=Ref.alias(alias_name),
+            )
+
+        missing_ref = Ref.alias(f"missing-{suffix}")
+        with pytest.raises(errors.ResourceNotFoundError):
+            collection.docs.list(size=1, ref=missing_ref)
+        with pytest.raises(errors.ResourceNotFoundError):
+            collection.docs.fetch(ids=[seed_id], ref=missing_ref)
+        with pytest.raises(errors.ResourceNotFoundError):
+            collection.query(
+                query={"queryString": {"query": "title:seed"}},
+                ref=missing_ref,
+            )
+
         retargeted = collection.aliases.retarget(
             alias_name, target=AliasTarget.branch(branch_name)
         ).alias

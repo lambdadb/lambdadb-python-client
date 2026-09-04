@@ -229,7 +229,11 @@ class CollectionDocs:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        """List documents, optionally from a Branch, Tag, or Alias ``ref``."""
+        """List documents, optionally from a Branch, Tag, or Alias ``ref``.
+
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         if filter_ is not None or partition_filter is not None or fields is not None:
             response = self._docs.list_docs_extended(
@@ -350,7 +354,12 @@ class CollectionDocs:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        """List documents in this collection (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
+        """List documents asynchronously from an optional ``ref``.
+
+        Presigned result payloads are fetched automatically.
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         if filter_ is not None or partition_filter is not None or fields is not None:
             response = await self._docs.list_docs_extended_async(
@@ -826,7 +835,11 @@ class CollectionDocs:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.FetchDocsResponse:
-        """Fetch documents by ID from an optional Branch, Tag, or Alias ``ref``."""
+        """Fetch documents by ID from an optional Branch, Tag, or Alias ``ref``.
+
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = self._docs.fetch(
             collection_name=self._collection_name,
@@ -866,7 +879,12 @@ class CollectionDocs:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.FetchDocsResponse:
-        """Fetch documents by IDs (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
+        """Fetch documents asynchronously from an optional ``ref``.
+
+        Presigned result payloads are fetched automatically.
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = await self._docs.fetch_async(
             collection_name=self._collection_name,
@@ -939,7 +957,11 @@ class Collection:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.QueryCollectionResponse:
-        """Search an optional Branch, Tag, or Alias ``ref``."""
+        """Search an optional Branch, Tag, or Alias ``ref``.
+
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = self._collections.query(
             collection_name=self._collection_name,
@@ -983,7 +1005,12 @@ class Collection:
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.QueryCollectionResponse:
-        """Search this collection (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
+        """Search an optional ``ref`` asynchronously.
+
+        Presigned result payloads are fetched automatically.
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = await self._collections.query_async(
             collection_name=self._collection_name,

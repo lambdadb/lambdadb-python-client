@@ -1,4 +1,4 @@
-"""Data Versioning contract tests pinned to docs revision 63e07d6b."""
+"""Data Versioning contract tests pinned to docs revision a52ce19f."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
-from lambdadb import AliasTarget, LambdaDB, Ref, RefSource
+from lambdadb import API_CONTRACT_REVISION, AliasTarget, LambdaDB, Ref, RefSource
 from lambdadb import errors, models
 
 
@@ -53,6 +53,10 @@ def _text_index(analyzer: models.Analyzer) -> Dict[
             type=models.TypeText.TEXT, analyzers=[analyzer]
         )
     }
+
+
+def test_contract_revision_is_pinned() -> None:
+    assert API_CONTRACT_REVISION == "a52ce19f5a1ce5ad3a30a55a5560e4591f0be9fa"
 
 
 def test_ref_validation_and_millisecond_round_trip() -> None:
@@ -513,7 +517,10 @@ def test_read_refs_and_write_branches_reach_correct_locations() -> None:
             client=transport,
         )
         collection = client.collection("catalog")
-        collection.query(query={"matchAll": {}}, ref=Ref.tag("release-1"))
+        collection.query(
+            query={"queryString": {"query": "title:seed"}},
+            ref=Ref.tag("release-1"),
+        )
         collection.docs.fetch(ids=["1"], ref=Ref.alias("production-read"))
         collection.docs.list(ref=Ref.branch("experiment"))
         collection.docs.list(
@@ -535,6 +542,93 @@ def test_read_refs_and_write_branches_reach_correct_locations() -> None:
     assert [body["branch"] for body in bodies[3:]] == ["experiment"] * 3
 
 
+def test_read_ref_errors_map_to_typed_exceptions_sync() -> None:
+    requests: List[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if request.method == "GET":
+            ref_name = request.url.params["refName"]
+        else:
+            ref_name = json.loads(request.content)["ref"]["name"]
+        status = 400 if ref_name == "dangling-alias" else 404
+        return _response(request, status, {"message": "ref cannot be resolved"})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as transport:
+        client = LambdaDB(
+            project_api_key="secret",
+            base_url="https://api.example",
+            project_name="project",
+            client=transport,
+        )
+        collection = client.collection("catalog")
+        operations: List[Callable[[Ref], Any]] = [
+            lambda ref: collection.docs.list(ref=ref),
+            lambda ref: collection.docs.fetch(ids=["1"], ref=ref),
+            lambda ref: collection.query(
+                query={"queryString": {"query": "title:seed"}}, ref=ref
+            ),
+        ]
+        for operation in operations:
+            with pytest.raises(errors.BadRequestError):
+                operation(Ref.alias("dangling-alias"))
+            with pytest.raises(errors.ResourceNotFoundError):
+                operation(Ref.branch("missing-branch"))
+
+    assert len(requests) == 6
+
+
+def test_read_ref_errors_map_to_typed_exceptions_async() -> None:
+    requests: List[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if request.method == "GET":
+            ref_name = request.url.params["refName"]
+        else:
+            ref_name = json.loads(request.content)["ref"]["name"]
+        status = 400 if ref_name == "dangling-alias" else 404
+        return _response(request, status, {"message": "ref cannot be resolved"})
+
+    async def run() -> None:
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(handler)
+        ) as transport:
+            client = LambdaDB(
+                project_api_key="secret",
+                base_url="https://api.example",
+                project_name="project",
+                async_client=transport,
+            )
+            collection = client.collection("catalog")
+
+            with pytest.raises(errors.BadRequestError):
+                await collection.docs.list_async(ref=Ref.alias("dangling-alias"))
+            with pytest.raises(errors.ResourceNotFoundError):
+                await collection.docs.list_async(ref=Ref.branch("missing-branch"))
+            with pytest.raises(errors.BadRequestError):
+                await collection.docs.fetch_async(
+                    ids=["1"], ref=Ref.alias("dangling-alias")
+                )
+            with pytest.raises(errors.ResourceNotFoundError):
+                await collection.docs.fetch_async(
+                    ids=["1"], ref=Ref.branch("missing-branch")
+                )
+            with pytest.raises(errors.BadRequestError):
+                await collection.query_async(
+                    query={"queryString": {"query": "title:seed"}},
+                    ref=Ref.alias("dangling-alias"),
+                )
+            with pytest.raises(errors.ResourceNotFoundError):
+                await collection.query_async(
+                    query={"queryString": {"query": "title:seed"}},
+                    ref=Ref.branch("missing-branch"),
+                )
+
+    asyncio.run(run())
+    assert len(requests) == 6
+
+
 def test_consistent_read_rejects_tag_and_alias_before_network() -> None:
     requests: List[httpx.Request] = []
 
@@ -547,7 +641,7 @@ def test_consistent_read_rejects_tag_and_alias_before_network() -> None:
         collection = client.collection("catalog")
         with pytest.raises(ValueError, match="direct branch ref"):
             collection.query(
-                query={"matchAll": {}},
+                query={"queryString": {"query": "title:seed"}},
                 consistent_read=True,
                 ref=Ref.tag("release-1"),
             )
@@ -851,7 +945,8 @@ def test_async_lifecycle_read_and_bulk_upload_match_sync_behavior() -> None:
             collection = client.collection("catalog")
             await collection.branches.create_async("experiment")
             await collection.query_async(
-                query={"matchAll": {}}, ref=Ref.tag("release-1")
+                query={"queryString": {"query": "title:seed"}},
+                ref=Ref.tag("release-1"),
             )
             await collection.docs.bulk_upsert_docs_async(
                 docs=[{"id": "1"}], branch="experiment", transfer_client=transfer_client
