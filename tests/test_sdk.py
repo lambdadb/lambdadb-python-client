@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
+from typing import Any, Dict
 
 import httpx
 import pytest
@@ -33,6 +34,10 @@ def test_imports() -> None:
         ListDocsResponse,
         QueryCollectionResponse,
         FetchDocsResponse,
+        Ref,
+        RefSource,
+        AliasTarget,
+        CollectionVersioning,
     )
     from lambdadb.collection import Collection, CollectionDocs, RequestOptions as RO
 
@@ -41,6 +46,10 @@ def test_imports() -> None:
     assert ListDocsResponse is not None
     assert QueryCollectionResponse is not None
     assert FetchDocsResponse is not None
+    assert Ref is not None
+    assert RefSource is not None
+    assert AliasTarget is not None
+    assert CollectionVersioning is not None
     assert Collection is not None
     assert CollectionDocs is not None
 
@@ -278,7 +287,10 @@ def test_collection_response_has_datetime_properties() -> None:
         "indexConfigs": {"f": {"type": "keyword"}},
         "numPartitions": 1,
         "numDocs": 0,
-        "collectionStatus": "ACTIVE",
+        "description": "",
+        "tags": {},
+        "defaultBranchName": "main",
+        "snapshotRetentionInDays": 30,
         "createdAt": 1000000,
         "updatedAt": 2000000,
         "dataUpdatedAt": 3000000,
@@ -294,7 +306,7 @@ def test_collection_response_has_datetime_properties() -> None:
     assert isinstance(resp.data_updated_at_dt, datetime)
 
     assert resp.created_at_dt.tzinfo is timezone.utc
-    assert resp.created_at_dt == datetime.fromtimestamp(1000000, tz=timezone.utc)
+    assert resp.created_at_dt == datetime.fromtimestamp(1000, tz=timezone.utc)
 
 
 def test_managed_embedding_index_config_serializes_with_api_aliases() -> None:
@@ -402,7 +414,10 @@ def test_collection_response_parses_managed_embedding_index_config() -> None:
             },
             "numPartitions": 1,
             "numDocs": 0,
-            "collectionStatus": "ACTIVE",
+            "description": "",
+            "tags": {},
+            "defaultBranchName": "main",
+            "snapshotRetentionInDays": 30,
             "createdAt": 1000000,
             "updatedAt": 2000000,
             "dataUpdatedAt": 3000000,
@@ -611,7 +626,10 @@ def test_get_collection_response_model_dump_preserves_values() -> None:
                 "indexConfigs": {"f": {"type": "keyword"}},
                 "numPartitions": 1,
                 "numDocs": 0,
-                "collectionStatus": "ACTIVE",
+                "description": "",
+                "tags": {},
+                "defaultBranchName": "main",
+                "snapshotRetentionInDays": 30,
                 "createdAt": 1000000,
                 "updatedAt": 2000000,
                 "dataUpdatedAt": 3000000,
@@ -630,7 +648,7 @@ def test_list_collections_response_has_next_page_token() -> None:
     """ListCollectionsResponse has collections and next_page_token."""
     from lambdadb.models import ListCollectionsResponse
 
-    data = {"collections": [], "nextPageToken": None}
+    data: Dict[str, Any] = {"collections": [], "nextPageToken": None}
     resp = ListCollectionsResponse.model_validate(data)
     assert hasattr(resp, "collections")
     assert hasattr(resp, "next_page_token")

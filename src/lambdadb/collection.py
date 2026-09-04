@@ -5,14 +5,16 @@ Aligns with REST: document operations under .docs, collection-level query at .qu
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
-from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
+from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional, Union
 
 from lambdadb import models, utils
 from lambdadb.docs import Docs
+from lambdadb.httpclient import AsyncHttpClient, HttpClient
+from lambdadb.requestoptions import RequestOptions, merge_options as _merge_options
 from lambdadb.collections import Collections
 from lambdadb.sdkconfiguration import SDKConfiguration
 from lambdadb.types import OptionalNullable, UNSET
+from lambdadb.versioning import Aliases, Branches, CollectionVersioning, Tags
 
 # API max page size for list_docs
 _LIST_DOCS_MAX_SIZE = 100
@@ -190,31 +192,12 @@ def _doc_from_item(item: Any) -> Dict[str, Any]:
     return item if isinstance(item, dict) else {}
 
 
-@dataclass
-class RequestOptions:
-    """Advanced options for a single request. Pass as options= to any docs method."""
-
-    retries: OptionalNullable[utils.RetryConfig] = field(default_factory=lambda: UNSET)
-    server_url: Optional[str] = None
-    timeout_ms: Optional[int] = None
-    http_headers: Optional[Mapping[str, str]] = None
-
-
-def _merge_options(
-    options: Optional[RequestOptions],
-    retries: OptionalNullable[utils.RetryConfig],
-    server_url: Optional[str],
-    timeout_ms: Optional[int],
-    http_headers: Optional[Mapping[str, str]],
-) -> tuple:
-    """Merge options object with legacy kwargs; options take precedence when set."""
-    if options is None:
-        return retries, server_url, timeout_ms, http_headers
-    r = options.retries if options.retries is not UNSET else retries
-    s = options.server_url or server_url
-    t = options.timeout_ms or timeout_ms
-    h = options.http_headers or http_headers
-    return r, s, t, h
+def _bulk_upload_headers(info: models.GetBulkUpsertDocsResponse) -> Dict[str, str]:
+    """Return signed upload headers plus the contract-required content type."""
+    headers = dict(info.headers)
+    if not any(name.lower() == "content-type" for name in headers):
+        headers["Content-Type"] = info.type.value
+    return headers
 
 
 class CollectionDocs:
@@ -239,13 +222,18 @@ class CollectionDocs:
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        """List documents in this collection. When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
+        """List documents, optionally from a Branch, Tag, or Alias ``ref``.
+
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         if filter_ is not None or partition_filter is not None or fields is not None:
             response = self._docs.list_docs_extended(
@@ -256,6 +244,7 @@ class CollectionDocs:
                 partition_filter=partition_filter,
                 fields=fields,
                 include_vectors=include_vectors,
+                ref=ref,
                 retries=r,
                 server_url=s,
                 timeout_ms=t,
@@ -267,6 +256,7 @@ class CollectionDocs:
                 size=size,
                 page_token=page_token,
                 include_vectors=include_vectors,
+                ref=ref,
                 retries=r,
                 server_url=s,
                 timeout_ms=t,
@@ -291,11 +281,10 @@ class CollectionDocs:
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[List[Dict[str, Any]]]:
-        """Iterate pages of up to `size` documents each. Aggregates API responses so each
-        yielded page has up to `size` documents (LambdaDB may return fewer per request due to payload limits).
-        """
+        """Iterate pages while retaining the selected ``ref`` on every request."""
         r, s, t, h = _merge_options(options, UNSET, None, None, None)
         current_page_token = page_token
         buffer: List[Dict[str, Any]] = []
@@ -315,6 +304,7 @@ class CollectionDocs:
                 partition_filter=partition_filter,
                 fields=fields,
                 include_vectors=include_vectors,
+                ref=ref,
                 retries=r,
                 server_url=s,
                 timeout_ms=t,
@@ -336,10 +326,11 @@ class CollectionDocs:
         self,
         *,
         page_size: int = 100,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[Dict[str, Any]]:
-        """Iterate over all documents in the collection. Handles pagination internally."""
-        for page in self.list_pages(size=page_size, options=options):
+        """Iterate all documents while retaining the selected ``ref``."""
+        for page in self.list_pages(size=page_size, options=options, ref=ref):
             for doc in page:
                 yield doc
 
@@ -356,13 +347,19 @@ class CollectionDocs:
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        """List documents in this collection (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
+        """List documents asynchronously from an optional ``ref``.
+
+        Presigned result payloads are fetched automatically.
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         if filter_ is not None or partition_filter is not None or fields is not None:
             response = await self._docs.list_docs_extended_async(
@@ -373,6 +370,7 @@ class CollectionDocs:
                 partition_filter=partition_filter,
                 fields=fields,
                 include_vectors=include_vectors,
+                ref=ref,
                 retries=r,
                 server_url=s,
                 timeout_ms=t,
@@ -384,6 +382,7 @@ class CollectionDocs:
                 size=size,
                 page_token=page_token,
                 include_vectors=include_vectors,
+                ref=ref,
                 retries=r,
                 server_url=s,
                 timeout_ms=t,
@@ -395,21 +394,86 @@ class CollectionDocs:
             response = await _resolve_list_docs_response_async(response, async_client, timeout_sec)
         return response
 
+    async def list_pages_async(
+        self,
+        *,
+        size: int = 100,
+        page_token: Optional[str] = None,
+        filter_: Optional[Dict[str, Any]] = None,
+        partition_filter: Optional[
+            Union[models.PartitionFilter, models.PartitionFilterTypedDict]
+        ] = None,
+        fields: Optional[
+            Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
+        ] = None,
+        include_vectors: Optional[bool] = False,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> AsyncIterator[List[Dict[str, Any]]]:
+        """Asynchronously iterate document pages while preserving the selected ref."""
+        current_page_token = page_token
+        buffer: List[Dict[str, Any]] = []
+        while True:
+            need = size - len(buffer)
+            if need <= 0:
+                page = buffer[:size]
+                buffer = buffer[size:]
+                yield page
+                if not buffer and current_page_token is None:
+                    return
+                continue
+            response = await self.list_async(
+                size=min(need, _LIST_DOCS_MAX_SIZE),
+                page_token=current_page_token,
+                filter_=filter_,
+                partition_filter=partition_filter,
+                fields=fields,
+                include_vectors=include_vectors,
+                ref=ref,
+                options=options,
+            )
+            buffer.extend(_doc_from_item(item) for item in response.results)
+            current_page_token = response.next_page_token
+            if len(buffer) >= size or current_page_token is None:
+                page = buffer[:size]
+                buffer = buffer[size:]
+                yield page
+                if current_page_token is None:
+                    if buffer:
+                        yield buffer
+                    return
+
+    async def iter_all_async(
+        self,
+        *,
+        page_size: int = 100,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> AsyncIterator[Dict[str, Any]]:
+        """Asynchronously iterate all documents while preserving the selected ref."""
+        async for page in self.list_pages_async(
+            size=page_size, ref=ref, options=options
+        ):
+            for document in page:
+                yield document
+
     def upsert(
         self,
         *,
         docs: List[Dict[str, Any]],
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.MessageResponse:
-        """Upsert documents into this collection (max payload 6MB). For advanced options use options=RequestOptions(...)."""
+        """Upsert documents into ``branch`` (default: ``main``)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         return self._docs.upsert(
             collection_name=self._collection_name,
             docs=docs,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -420,6 +484,7 @@ class CollectionDocs:
         self,
         *,
         docs: List[Dict[str, Any]],
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -431,6 +496,7 @@ class CollectionDocs:
         return await self._docs.upsert_async(
             collection_name=self._collection_name,
             docs=docs,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -440,16 +506,18 @@ class CollectionDocs:
     def get_bulk_upsert(
         self,
         *,
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.GetBulkUpsertDocsResponse:
-        """Request required info to upload documents (bulk). For advanced options use options=RequestOptions(...)."""
+        """Request signed bulk-upload info for ``branch`` (default: ``main``)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         return self._docs.get_bulk_upsert(
             collection_name=self._collection_name,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -459,6 +527,7 @@ class CollectionDocs:
     async def get_bulk_upsert_async(
         self,
         *,
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -469,6 +538,7 @@ class CollectionDocs:
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         return await self._docs.get_bulk_upsert_async(
             collection_name=self._collection_name,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -479,17 +549,19 @@ class CollectionDocs:
         self,
         *,
         object_key: str,
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.MessageResponse:
-        """Bulk upsert documents (max object size 200MB). For advanced options use options=RequestOptions(...)."""
+        """Complete a bulk upsert on the same ``branch`` used for upload info."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         return self._docs.bulk_upsert(
             collection_name=self._collection_name,
             object_key=object_key,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -500,6 +572,7 @@ class CollectionDocs:
         self,
         *,
         object_key: str,
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -511,6 +584,7 @@ class CollectionDocs:
         return await self._docs.bulk_upsert_async(
             collection_name=self._collection_name,
             object_key=object_key,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -521,18 +595,23 @@ class CollectionDocs:
         self,
         *,
         docs: Union[List[Dict[str, Any]], Dict[str, List[Dict[str, Any]]]],
+        branch: Optional[str] = None,
+        transfer_client: Optional[HttpClient] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.MessageResponse:
-        """One-step bulk upsert: gets presigned URL, uploads documents to S3, then triggers bulk_upsert.
-        Use this instead of calling get_bulk_upsert + manual upload + bulk_upsert. Max payload 200MB.
-        Accepts either docs=[...] or docs={"docs":[...]}."""
+        """Upload and complete bulk upsert on one branch.
+
+        Signed headers are forwarded unchanged. ``transfer_client`` can isolate
+        object-storage traffic from the LambdaDB API client.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         info = self._docs.get_bulk_upsert(
             collection_name=self._collection_name,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -540,21 +619,21 @@ class CollectionDocs:
         )
         payload = docs if isinstance(docs, dict) else {"docs": docs}
         body = json.dumps(payload).encode("utf-8")
-        size_limit = info.size_limit_bytes or 209715200
+        size_limit = info.size_limit_bytes
         if len(body) > size_limit:
             raise ValueError(
                 f"Documents payload size {len(body)} bytes exceeds limit {size_limit} bytes"
             )
         config = self._docs.sdk_configuration
-        client = config.client
+        client = transfer_client or config.client
         if client is None:
             raise ValueError("HTTP client is required for bulk_upsert_docs")
         timeout_sec = (t / 1000.0) if t is not None else (config.timeout_ms / 1000.0 if config.timeout_ms else None)
         req = client.build_request(
-            "PUT",
+            info.http_method.value,
             info.url,
             content=body,
-            headers={"Content-Type": "application/json"},
+            headers=_bulk_upload_headers(info),
             timeout=timeout_sec,
         )
         upload_res = client.send(req)
@@ -565,6 +644,7 @@ class CollectionDocs:
         return self._docs.bulk_upsert(
             collection_name=self._collection_name,
             object_key=info.object_key,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -575,6 +655,8 @@ class CollectionDocs:
         self,
         *,
         docs: Union[List[Dict[str, Any]], Dict[str, List[Dict[str, Any]]]],
+        branch: Optional[str] = None,
+        transfer_client: Optional[AsyncHttpClient] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -586,6 +668,7 @@ class CollectionDocs:
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         info = await self._docs.get_bulk_upsert_async(
             collection_name=self._collection_name,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -593,21 +676,21 @@ class CollectionDocs:
         )
         payload = docs if isinstance(docs, dict) else {"docs": docs}
         body = json.dumps(payload).encode("utf-8")
-        size_limit = info.size_limit_bytes or 209715200
+        size_limit = info.size_limit_bytes
         if len(body) > size_limit:
             raise ValueError(
                 f"Documents payload size {len(body)} bytes exceeds limit {size_limit} bytes"
             )
         config = self._docs.sdk_configuration
-        async_client = config.async_client
+        async_client = transfer_client or config.async_client
         if async_client is None:
             raise ValueError("Async HTTP client is required for bulk_upsert_docs_async")
         timeout_sec = (t / 1000.0) if t is not None else (config.timeout_ms / 1000.0 if config.timeout_ms else None)
         req = async_client.build_request(
-            "PUT",
+            info.http_method.value,
             info.url,
             content=body,
-            headers={"Content-Type": "application/json"},
+            headers=_bulk_upload_headers(info),
             timeout=timeout_sec,
         )
         upload_res = await async_client.send(req)
@@ -618,6 +701,7 @@ class CollectionDocs:
         return await self._docs.bulk_upsert_async(
             collection_name=self._collection_name,
             object_key=info.object_key,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -628,17 +712,19 @@ class CollectionDocs:
         self,
         *,
         docs: List[Dict[str, Any]],
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.MessageResponse:
-        """Update documents (each doc must have 'id'). Max payload 6MB. For advanced options use options=RequestOptions(...)."""
+        """Update documents in ``branch`` (default: ``main``)."""
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         return self._docs.update(
             collection_name=self._collection_name,
             docs=docs,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -649,6 +735,7 @@ class CollectionDocs:
         self,
         *,
         docs: List[Dict[str, Any]],
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -660,6 +747,7 @@ class CollectionDocs:
         return await self._docs.update_async(
             collection_name=self._collection_name,
             docs=docs,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -675,13 +763,14 @@ class CollectionDocs:
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.MessageResponse:
-        """Delete documents by IDs or query filter. Prefer query_filter= over filter_. For advanced options use options=RequestOptions(...)."""
+        """Delete documents from ``branch`` (default: ``main``)."""
         effective_filter = query_filter if query_filter is not None else filter_
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         return self._docs.delete(
@@ -689,6 +778,7 @@ class CollectionDocs:
             ids=ids,
             filter_=effective_filter,
             partition_filter=partition_filter,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -704,6 +794,7 @@ class CollectionDocs:
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        branch: Optional[str] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -718,6 +809,7 @@ class CollectionDocs:
             ids=ids,
             filter_=effective_filter,
             partition_filter=partition_filter,
+            branch=branch,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -736,13 +828,18 @@ class CollectionDocs:
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.FetchDocsResponse:
-        """Fetch documents by IDs (max 100). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
+        """Fetch documents by ID from an optional Branch, Tag, or Alias ``ref``.
+
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = self._docs.fetch(
             collection_name=self._collection_name,
@@ -751,6 +848,7 @@ class CollectionDocs:
             include_vectors=include_vectors,
             fields=fields,
             partition_filter=partition_filter,
+            ref=ref,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -774,13 +872,19 @@ class CollectionDocs:
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.FetchDocsResponse:
-        """Fetch documents by IDs (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
+        """Fetch documents asynchronously from an optional ``ref``.
+
+        Presigned result payloads are fetched automatically.
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = await self._docs.fetch_async(
             collection_name=self._collection_name,
@@ -789,6 +893,7 @@ class CollectionDocs:
             include_vectors=include_vectors,
             fields=fields,
             partition_filter=partition_filter,
+            ref=ref,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -807,6 +912,11 @@ class Collection:
     - .query(): search the collection
     """
 
+    versioning: CollectionVersioning
+    branches: Branches
+    tags: Tags
+    aliases: Aliases
+
     def __init__(
         self,
         sdk_configuration: SDKConfiguration,
@@ -819,6 +929,12 @@ class Collection:
         self._docs_instance = Docs(sdk_configuration, parent_ref=parent_ref)
         self.docs = CollectionDocs(self._docs_instance, collection_name)
         self._collections = Collections(sdk_configuration, parent_ref=parent_ref)
+        self.versioning = CollectionVersioning(
+            sdk_configuration, collection_name, parent_ref=parent_ref
+        )
+        self.branches = self.versioning.branches
+        self.tags = self.versioning.tags
+        self.aliases = self.versioning.aliases
 
     def query(
         self,
@@ -834,13 +950,18 @@ class Collection:
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.QueryCollectionResponse:
-        """Search this collection with a query (vector/keyword/hybrid). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
+        """Search an optional Branch, Tag, or Alias ``ref``.
+
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = self._collections.query(
             collection_name=self._collection_name,
@@ -851,6 +972,7 @@ class Collection:
             sort=sort,
             fields=fields,
             partition_filter=partition_filter,
+            ref=ref,
             retries=r,
             server_url=s,
             timeout_ms=t,
@@ -876,13 +998,19 @@ class Collection:
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.QueryCollectionResponse:
-        """Search this collection (async). When is_docs_inline is false, the SDK automatically fetches documents from the presigned docs_url. For advanced options use options=RequestOptions(...)."""
+        """Search an optional ``ref`` asynchronously.
+
+        Presigned result payloads are fetched automatically.
+        A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
+        ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = await self._collections.query_async(
             collection_name=self._collection_name,
@@ -893,6 +1021,7 @@ class Collection:
             sort=sort,
             fields=fields,
             partition_filter=partition_filter,
+            ref=ref,
             retries=r,
             server_url=s,
             timeout_ms=t,

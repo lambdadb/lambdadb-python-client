@@ -36,6 +36,19 @@ with LambdaDB(
 * [delete](#delete) - Delete documents by document IDs or query filter from a collection.
 * [fetch](#fetch) - Lookup and return documents by document IDs from a collection.
 
+## Data Versioning arguments
+
+- Pass `ref=Ref.branch(name)`, `Ref.tag(name)`, or `Ref.alias(name)` to List,
+  Fetch, and Query reads. `list_pages`, `iter_all`, and their async variants
+  preserve the ref on every page.
+- Pass `branch="name"` to Upsert, Update, Delete, Bulk Upsert, and the one-step
+  bulk helper. Writes do not accept Tag or Alias refs.
+- `bulk_upsert_docs(..., transfer_client=...)` can use a client separate from
+  the LambdaDB API client and forwards the signed upload headers returned by
+  `get_bulk_upsert`.
+
+See the complete [Data Versioning guide](../versioning/README.md).
+
 ## list_docs
 
 List documents in a collection.

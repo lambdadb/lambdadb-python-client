@@ -3,16 +3,18 @@
 from __future__ import annotations
 from enum import Enum
 from lambdadb.types import BaseModel, UNSET_SENTINEL
-from lambdadb.utils import FieldMetadata, PathParamMetadata
+from .versioning import RefName
+from lambdadb.utils import FieldMetadata, PathParamMetadata, QueryParamMetadata
 import pydantic
 from pydantic import model_serializer
-from typing import Optional
+from typing import Dict, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
 
 class GetBulkUpsertDocsRequestTypedDict(TypedDict):
     collection_name: str
     r"""Collection name."""
+    branch: NotRequired[str]
 
 
 class GetBulkUpsertDocsRequest(BaseModel):
@@ -22,6 +24,11 @@ class GetBulkUpsertDocsRequest(BaseModel):
         FieldMetadata(path=PathParamMetadata(style="simple", explode=False)),
     ]
     r"""Collection name."""
+
+    branch: Annotated[
+        Optional[RefName],
+        FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
+    ] = None
 
 
 class GetBulkUpsertDocsType(str, Enum):
@@ -43,12 +50,13 @@ class GetBulkUpsertDocsResponseTypedDict(TypedDict):
     r"""Presigned URL."""
     object_key: str
     r"""Object key that must be specified when uploading documents."""
-    type: NotRequired[GetBulkUpsertDocsType]
+    type: GetBulkUpsertDocsType
     r"""Content type that must be specified when uploading documents."""
-    http_method: NotRequired[HTTPMethod]
+    http_method: HTTPMethod
     r"""HTTP method that must be specified when uploading documents."""
-    size_limit_bytes: NotRequired[int]
+    size_limit_bytes: int
     r"""Object size limit in bytes."""
+    headers: Dict[str, str]
 
 
 class GetBulkUpsertDocsResponse(BaseModel):
@@ -60,22 +68,22 @@ class GetBulkUpsertDocsResponse(BaseModel):
     object_key: Annotated[str, pydantic.Field(alias="objectKey")]
     r"""Object key that must be specified when uploading documents."""
 
-    type: Optional[GetBulkUpsertDocsType] = GetBulkUpsertDocsType.APPLICATION_JSON
+    type: GetBulkUpsertDocsType
     r"""Content type that must be specified when uploading documents."""
 
-    http_method: Annotated[Optional[HTTPMethod], pydantic.Field(alias="httpMethod")] = (
-        HTTPMethod.PUT
-    )
+    http_method: Annotated[HTTPMethod, pydantic.Field(alias="httpMethod")]
     r"""HTTP method that must be specified when uploading documents."""
 
     size_limit_bytes: Annotated[
-        Optional[int], pydantic.Field(alias="sizeLimitBytes")
-    ] = 209715200
+        int, pydantic.Field(alias="sizeLimitBytes")
+    ]
     r"""Object size limit in bytes."""
+
+    headers: Dict[str, str]
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["type", "httpMethod", "sizeLimitBytes"])
+        optional_fields = set()
         serialized = handler(self)
         m = {}
 

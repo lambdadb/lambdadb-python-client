@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-export POETRY_PYPI_TOKEN_PYPI=${PYPI_TOKEN}
+set -euo pipefail
 
-poetry run python scripts/prepare_readme.py
-
-poetry publish --build --skip-existing
+echo "Direct publication is disabled. Follow RELEASING.md and publish through a reviewed GitHub Release." >&2
+exit 1

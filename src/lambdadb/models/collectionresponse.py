@@ -4,11 +4,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from .indexconfigs_union import IndexConfigsUnion, IndexConfigsUnionTypedDict
 from .partitionconfig import PartitionConfig, PartitionConfigTypedDict
-from .status import Status
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 import pydantic
 from pydantic import model_serializer
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
 
@@ -22,21 +21,17 @@ class CollectionResponseTypedDict(TypedDict):
     r"""Total number of partitions including the default partition."""
     num_docs: int
     r"""Total number of documents."""
-    collection_status: Status
-    r"""Status"""
+    description: str
+    tags: Dict[str, str]
+    default_branch_name: Literal["main"]
+    snapshot_retention_in_days: int
     created_at: int
-    r"""Collection creation time in seconds since the Unix epoch."""
+    r"""Collection creation time in milliseconds since the Unix epoch."""
     updated_at: int
-    r"""Collection last update time in seconds since the Unix epoch."""
-    data_updated_at: int
-    r"""Collection data last update time in seconds since the Unix epoch."""
+    r"""Collection last update time in milliseconds since the Unix epoch."""
+    data_updated_at: NotRequired[int]
+    r"""Collection data last update time in milliseconds since the Unix epoch."""
     partition_config: NotRequired[PartitionConfigTypedDict]
-    source_project_name: NotRequired[str]
-    r"""Source project name."""
-    source_collection_name: NotRequired[str]
-    r"""Source collection name."""
-    source_collection_version_id: NotRequired[str]
-    r"""Source collection version."""
 
 
 class CollectionResponse(BaseModel):
@@ -56,60 +51,54 @@ class CollectionResponse(BaseModel):
     num_docs: Annotated[int, pydantic.Field(alias="numDocs")]
     r"""Total number of documents."""
 
-    collection_status: Annotated[Status, pydantic.Field(alias="collectionStatus")]
-    r"""Status"""
+    description: str
+
+    tags: Dict[str, str]
+
+    default_branch_name: Annotated[
+        Literal["main"], pydantic.Field(alias="defaultBranchName")
+    ]
+
+    snapshot_retention_in_days: Annotated[
+        int, pydantic.Field(alias="snapshotRetentionInDays", ge=1, le=31)
+    ]
 
     created_at: Annotated[int, pydantic.Field(alias="createdAt")]
-    r"""Collection creation time in seconds since the Unix epoch."""
+    r"""Collection creation time in milliseconds since the Unix epoch."""
 
     updated_at: Annotated[int, pydantic.Field(alias="updatedAt")]
-    r"""Collection last update time in seconds since the Unix epoch."""
+    r"""Collection last update time in milliseconds since the Unix epoch."""
 
-    data_updated_at: Annotated[int, pydantic.Field(alias="dataUpdatedAt")]
-    r"""Collection data last update time in seconds since the Unix epoch."""
+    data_updated_at: Annotated[Optional[int], pydantic.Field(alias="dataUpdatedAt")] = None
+    r"""Collection data last update time in milliseconds since the Unix epoch."""
 
     @property
     def created_at_dt(self) -> datetime:
         """Collection creation time as a timezone-aware UTC datetime."""
-        return datetime.fromtimestamp(self.created_at, tz=timezone.utc)
+        return datetime.fromtimestamp(self.created_at / 1000, tz=timezone.utc)
 
     @property
     def updated_at_dt(self) -> datetime:
         """Collection last update time as a timezone-aware UTC datetime."""
-        return datetime.fromtimestamp(self.updated_at, tz=timezone.utc)
+        return datetime.fromtimestamp(self.updated_at / 1000, tz=timezone.utc)
 
     @property
-    def data_updated_at_dt(self) -> datetime:
+    def data_updated_at_dt(self) -> Optional[datetime]:
         """Collection data last update time as a timezone-aware UTC datetime."""
-        return datetime.fromtimestamp(self.data_updated_at, tz=timezone.utc)
+        if self.data_updated_at is None:
+            return None
+        return datetime.fromtimestamp(self.data_updated_at / 1000, tz=timezone.utc)
 
     partition_config: Annotated[
         Optional[PartitionConfig], pydantic.Field(alias="partitionConfig")
     ] = None
-
-    source_project_name: Annotated[
-        Optional[str], pydantic.Field(alias="sourceProjectName")
-    ] = None
-    r"""Source project name."""
-
-    source_collection_name: Annotated[
-        Optional[str], pydantic.Field(alias="sourceCollectionName")
-    ] = None
-    r"""Source collection name."""
-
-    source_collection_version_id: Annotated[
-        Optional[str], pydantic.Field(alias="sourceCollectionVersionId")
-    ] = None
-    r"""Source collection version."""
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
         optional_fields = set(
             [
                 "partitionConfig",
-                "sourceProjectName",
-                "sourceCollectionName",
-                "sourceCollectionVersionId",
+                "dataUpdatedAt",
             ]
         )
         serialized = handler(self)

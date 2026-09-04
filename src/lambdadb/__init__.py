@@ -4,12 +4,25 @@ from .version import (
     GEN_VERSION as _GEN_VERSION,
     OPENAPI_DOC_VERSION as _OPENAPI_DOC_VERSION,
     TITLE as _TITLE,
+    API_CONTRACT_REVISION,
     get_user_agent,
     get_version,
 )
 from .sdk import *
 from .sdkconfiguration import *
-from .collection import RequestOptions
+from .requestoptions import RequestOptions
+from .models.versioning import (
+    AliasDetails,
+    AliasResolvedTargetKind,
+    AliasTarget,
+    AliasTargetKind,
+    Ref,
+    RefDetails,
+    RefKind,
+    RefSource,
+    RefSourceKind,
+)
+from .versioning import Aliases, Branches, CollectionVersioning, Tags
 from .models import (
     FetchDocsResponse,
     ListDocsResponse,

@@ -4,6 +4,7 @@ from __future__ import annotations
 import warnings
 from .fieldsselector_union import FieldsSelectorUnion, FieldsSelectorUnionTypedDict
 from .partitionfilter import PartitionFilter, PartitionFilterTypedDict
+from .versioning import Ref, RefKind, RefName
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, QueryParamMetadata, RequestMetadata
 import pydantic
@@ -21,6 +22,8 @@ class ListDocsRequestTypedDict(TypedDict):
     r"""Next page token."""
     include_vectors: NotRequired[bool]
     r"""Set to true to include vector values in the response. Defaults to false."""
+    ref_kind: NotRequired[RefKind]
+    ref_name: NotRequired[str]
 
 
 class ListDocsRequest(BaseModel):
@@ -51,9 +54,21 @@ class ListDocsRequest(BaseModel):
     ] = False
     r"""Set to true to include vector values in the response. Defaults to false."""
 
+    ref_kind: Annotated[
+        Optional[RefKind],
+        pydantic.Field(alias="refKind"),
+        FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
+    ] = None
+
+    ref_name: Annotated[
+        Optional[RefName],
+        pydantic.Field(alias="refName"),
+        FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
+    ] = None
+
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["size", "pageToken", "includeVectors"])
+        optional_fields = set(["size", "pageToken", "includeVectors", "refKind", "refName"])
         serialized = handler(self)
         m = {}
 
@@ -80,6 +95,7 @@ class ListDocsExtendedRequestBodyTypedDict(TypedDict):
     r"""An object to specify a list of field names to include and/or exclude in the result."""
     include_vectors: NotRequired[bool]
     r"""Set to true to include vector values in the response. Defaults to false."""
+    ref: NotRequired[dict]
 
 
 class ListDocsExtendedRequestBody(BaseModel):
@@ -104,10 +120,12 @@ class ListDocsExtendedRequestBody(BaseModel):
     ] = False
     r"""Set to true to include vector values in the response. Defaults to false."""
 
+    ref: Optional[Ref] = None
+
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
         optional_fields = set(
-            ["size", "pageToken", "filter", "partitionFilter", "fields", "includeVectors"]
+            ["size", "pageToken", "filter", "partitionFilter", "fields", "includeVectors", "ref"]
         )
         serialized = handler(self)
         m = {}

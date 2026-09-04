@@ -17,6 +17,7 @@ class Docs(BaseSDK):
         size: Optional[int] = None,
         page_token: Optional[str] = None,
         include_vectors: Optional[bool] = False,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -48,6 +49,8 @@ class Docs(BaseSDK):
             size=size,
             page_token=page_token,
             include_vectors=include_vectors,
+            ref_kind=None if ref is None else models.Ref.model_validate(ref).kind,
+            ref_name=None if ref is None else models.Ref.model_validate(ref).name,
         )
 
         req = self._build_request(
@@ -138,6 +141,7 @@ class Docs(BaseSDK):
         size: Optional[int] = None,
         page_token: Optional[str] = None,
         include_vectors: Optional[bool] = False,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -169,6 +173,8 @@ class Docs(BaseSDK):
             size=size,
             page_token=page_token,
             include_vectors=include_vectors,
+            ref_kind=None if ref is None else models.Ref.model_validate(ref).kind,
+            ref_name=None if ref is None else models.Ref.model_validate(ref).name,
         )
 
         req = self._build_request_async(
@@ -266,6 +272,7 @@ class Docs(BaseSDK):
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -308,6 +315,7 @@ class Docs(BaseSDK):
                     fields, Optional[models.FieldsSelectorUnion]
                 ),
                 include_vectors=include_vectors,
+                ref=None if ref is None else models.Ref.model_validate(ref),
             ),
         )
 
@@ -403,6 +411,7 @@ class Docs(BaseSDK):
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -445,6 +454,7 @@ class Docs(BaseSDK):
                     fields, Optional[models.FieldsSelectorUnion]
                 ),
                 include_vectors=include_vectors,
+                ref=None if ref is None else models.Ref.model_validate(ref),
             ),
         )
 
@@ -531,6 +541,7 @@ class Docs(BaseSDK):
         *,
         collection_name: str,
         docs: List[Dict[str, Any]],
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -559,6 +570,7 @@ class Docs(BaseSDK):
             collection_name=collection_name,
             request_body=models.UpsertDocsRequestBody(
                 docs=docs,
+                branch=branch,
             ),
         )
 
@@ -651,6 +663,7 @@ class Docs(BaseSDK):
         *,
         collection_name: str,
         docs: List[Dict[str, Any]],
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -679,6 +692,7 @@ class Docs(BaseSDK):
             collection_name=collection_name,
             request_body=models.UpsertDocsRequestBody(
                 docs=docs,
+                branch=branch,
             ),
         )
 
@@ -770,6 +784,7 @@ class Docs(BaseSDK):
         self,
         *,
         collection_name: str,
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -795,6 +810,7 @@ class Docs(BaseSDK):
 
         request = models.GetBulkUpsertDocsRequest(
             collection_name=collection_name,
+            branch=branch,
         )
 
         req = self._build_request(
@@ -877,6 +893,7 @@ class Docs(BaseSDK):
         self,
         *,
         collection_name: str,
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -902,6 +919,7 @@ class Docs(BaseSDK):
 
         request = models.GetBulkUpsertDocsRequest(
             collection_name=collection_name,
+            branch=branch,
         )
 
         req = self._build_request_async(
@@ -985,6 +1003,7 @@ class Docs(BaseSDK):
         *,
         collection_name: str,
         object_key: str,
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1013,6 +1032,7 @@ class Docs(BaseSDK):
             collection_name=collection_name,
             request_body=models.BulkUpsertDocsRequestBody(
                 object_key=object_key,
+                branch=branch,
             ),
         )
 
@@ -1109,6 +1129,7 @@ class Docs(BaseSDK):
         *,
         collection_name: str,
         object_key: str,
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1137,6 +1158,7 @@ class Docs(BaseSDK):
             collection_name=collection_name,
             request_body=models.BulkUpsertDocsRequestBody(
                 object_key=object_key,
+                branch=branch,
             ),
         )
 
@@ -1233,6 +1255,7 @@ class Docs(BaseSDK):
         *,
         collection_name: str,
         docs: List[Dict[str, Any]],
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1261,6 +1284,7 @@ class Docs(BaseSDK):
             collection_name=collection_name,
             request_body=models.UpdateDocsRequestBody(
                 docs=docs,
+                branch=branch,
             ),
         )
 
@@ -1353,6 +1377,7 @@ class Docs(BaseSDK):
         *,
         collection_name: str,
         docs: List[Dict[str, Any]],
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1381,6 +1406,7 @@ class Docs(BaseSDK):
             collection_name=collection_name,
             request_body=models.UpdateDocsRequestBody(
                 docs=docs,
+                branch=branch,
             ),
         )
 
@@ -1477,6 +1503,7 @@ class Docs(BaseSDK):
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1511,6 +1538,7 @@ class Docs(BaseSDK):
                 partition_filter=utils.get_pydantic_model(
                     partition_filter, Optional[models.PartitionFilter]
                 ),
+                branch=branch,
             ),
         )
 
@@ -1607,6 +1635,7 @@ class Docs(BaseSDK):
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        branch: Optional[str] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1641,6 +1670,7 @@ class Docs(BaseSDK):
                 partition_filter=utils.get_pydantic_model(
                     partition_filter, Optional[models.PartitionFilter]
                 ),
+                branch=branch,
             ),
         )
 
@@ -1741,6 +1771,7 @@ class Docs(BaseSDK):
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1759,6 +1790,10 @@ class Docs(BaseSDK):
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
         :param http_headers: Additional headers to set or replace on requests.
         """
+        ref_model = None if ref is None else models.Ref.model_validate(ref)
+        if consistent_read and ref_model is not None and ref_model.kind is not models.RefKind.BRANCH:
+            raise ValueError("consistent_read=True requires a direct branch ref")
+
         base_url = None
         url_variables = None
         if timeout_ms is None:
@@ -1781,6 +1816,7 @@ class Docs(BaseSDK):
                 partition_filter=utils.get_pydantic_model(
                     partition_filter, Optional[models.PartitionFilter]
                 ),
+                ref=ref_model,
             ),
         )
 
@@ -1881,6 +1917,7 @@ class Docs(BaseSDK):
         partition_filter: Optional[
             Union[models.PartitionFilter, models.PartitionFilterTypedDict]
         ] = None,
+        ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1899,6 +1936,10 @@ class Docs(BaseSDK):
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
         :param http_headers: Additional headers to set or replace on requests.
         """
+        ref_model = None if ref is None else models.Ref.model_validate(ref)
+        if consistent_read and ref_model is not None and ref_model.kind is not models.RefKind.BRANCH:
+            raise ValueError("consistent_read=True requires a direct branch ref")
+
         base_url = None
         url_variables = None
         if timeout_ms is None:
@@ -1921,6 +1962,7 @@ class Docs(BaseSDK):
                 partition_filter=utils.get_pydantic_model(
                     partition_filter, Optional[models.PartitionFilter]
                 ),
+                ref=ref_model,
             ),
         )
 
