@@ -2,20 +2,23 @@
 
 from __future__ import annotations
 from lambdadb.types import BaseModel
+from .versioning import RefName
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
-from typing import Any, Dict, List
-from typing_extensions import Annotated, TypedDict
+from typing import Any, Dict, List, Optional
+from typing_extensions import Annotated, NotRequired, TypedDict
 
 
 class UpdateDocsRequestBodyTypedDict(TypedDict):
     docs: List[Dict[str, Any]]
     r"""A list of documents to update. Each document must contain 'id' field to be updated."""
+    branch: NotRequired[str]
 
 
 class UpdateDocsRequestBody(BaseModel):
     docs: List[Dict[str, Any]]
     r"""A list of documents to update. Each document must contain 'id' field to be updated."""
+    branch: Optional[RefName] = None
 
 
 class UpdateDocsRequestTypedDict(TypedDict):

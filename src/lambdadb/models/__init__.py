@@ -18,6 +18,8 @@ if TYPE_CHECKING:
         CreateCollectionRequestTypedDict,
         CreateCollectionResponse,
         CreateCollectionResponseTypedDict,
+        CreatedCollection,
+        CreatedCollectionTypedDict,
     )
     from .deletecollectionop import (
         DeleteCollectionRequest,
@@ -133,6 +135,24 @@ if TYPE_CHECKING:
         UpsertDocsRequestBodyTypedDict,
         UpsertDocsRequestTypedDict,
     )
+    from .versioning import (
+        AliasDetails,
+        AliasListResponse,
+        AliasResolvedTargetKind,
+        AliasResponse,
+        AliasTarget,
+        AliasTargetKind,
+        BranchListResponse,
+        BranchResponse,
+        Ref,
+        RefContext,
+        RefDetails,
+        RefKind,
+        RefSource,
+        RefSourceKind,
+        TagListResponse,
+        TagResponse,
+    )
 
 __all__ = [
     "Analyzer",
@@ -146,6 +166,8 @@ __all__ = [
     "CreateCollectionRequestTypedDict",
     "CreateCollectionResponse",
     "CreateCollectionResponseTypedDict",
+    "CreatedCollection",
+    "CreatedCollectionTypedDict",
     "DataType",
     "DeleteCollectionRequest",
     "DeleteCollectionRequestTypedDict",
@@ -238,6 +260,22 @@ __all__ = [
     "UpsertDocsRequestBody",
     "UpsertDocsRequestBodyTypedDict",
     "UpsertDocsRequestTypedDict",
+    "AliasDetails",
+    "AliasListResponse",
+    "AliasResolvedTargetKind",
+    "AliasResponse",
+    "AliasTarget",
+    "AliasTargetKind",
+    "BranchListResponse",
+    "BranchResponse",
+    "Ref",
+    "RefContext",
+    "RefDetails",
+    "RefKind",
+    "RefSource",
+    "RefSourceKind",
+    "TagListResponse",
+    "TagResponse",
 ]
 
 _dynamic_imports: dict[str, str] = {
@@ -251,6 +289,8 @@ _dynamic_imports: dict[str, str] = {
     "CreateCollectionRequestTypedDict": ".createcollectionop",
     "CreateCollectionResponse": ".createcollectionop",
     "CreateCollectionResponseTypedDict": ".createcollectionop",
+    "CreatedCollection": ".createcollectionop",
+    "CreatedCollectionTypedDict": ".createcollectionop",
     "DeleteCollectionRequest": ".deletecollectionop",
     "DeleteCollectionRequestTypedDict": ".deletecollectionop",
     "DeleteDocsRequest": ".deletedocsop",
@@ -344,6 +384,22 @@ _dynamic_imports: dict[str, str] = {
     "UpsertDocsRequestBody": ".upsertdocsop",
     "UpsertDocsRequestBodyTypedDict": ".upsertdocsop",
     "UpsertDocsRequestTypedDict": ".upsertdocsop",
+    "AliasDetails": ".versioning",
+    "AliasListResponse": ".versioning",
+    "AliasResolvedTargetKind": ".versioning",
+    "AliasResponse": ".versioning",
+    "AliasTarget": ".versioning",
+    "AliasTargetKind": ".versioning",
+    "BranchListResponse": ".versioning",
+    "BranchResponse": ".versioning",
+    "Ref": ".versioning",
+    "RefContext": ".versioning",
+    "RefDetails": ".versioning",
+    "RefKind": ".versioning",
+    "RefSource": ".versioning",
+    "RefSourceKind": ".versioning",
+    "TagListResponse": ".versioning",
+    "TagResponse": ".versioning",
 }
 
 

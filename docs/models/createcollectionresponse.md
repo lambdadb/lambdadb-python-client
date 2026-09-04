@@ -1,10 +1,9 @@
 # CreateCollectionResponse
 
-Created collection
-
+Created collection response returned with HTTP 201.
 
 ## Fields
 
-| Field                                                        | Type                                                         | Required                                                     | Description                                                  |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| `collection`                                                 | [models.CollectionResponse](../models/collectionresponse.md) | :heavy_check_mark:                                           | N/A                                                          |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `collection` | [models.CreatedCollection](createdcollection.md) | Yes | Newly created collection summary. |

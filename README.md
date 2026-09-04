@@ -160,6 +160,29 @@ with LambdaDB(
     coll.docs.upsert(docs=[{"id": "1", "text": "hello"}])
 ```
 
+### Data Versioning
+
+Use typed helpers to scope reads, writes, and collection-local snapshots:
+
+```python
+from lambdadb import AliasTarget, Ref, RefSource
+
+coll.branches.create("experiment", source=RefSource.branch("main"))
+coll.tags.create("validated-2026-09", source=RefSource.branch("experiment"))
+coll.aliases.create(
+    "production-read", target=AliasTarget.tag("validated-2026-09")
+)
+
+results = coll.query(
+    query={"queryString": {"query": "text:hello"}},
+    ref=Ref.alias("production-read"),
+)
+coll.docs.upsert(docs=[{"id": "2", "text": "draft"}], branch="experiment")
+```
+
+See the [Data Versioning SDK guide](docs/sdks/versioning/README.md) for sync and
+async lifecycle, pagination, and signed bulk-upload examples.
+
 ### Create a collection with managed embeddings
 
 Managed embedding vector fields set `managedEmbedding=True` and put provider/model/source
@@ -258,7 +281,7 @@ with LambdaDB(
 **Recommended:** Use the collection-scoped API: `client.collection("name").docs.list()`, `.docs.fetch()`, `.docs.upsert()`, etc., and `client.collection("name").query()` for search. This matches the REST API structure and avoids repeating the collection name.
 
 * **Response access:** List, query, and fetch responses expose `.results` (full result items, with score/metadata when applicable) and `.documents` (document bodies only). When the API returns `is_docs_inline: false` with a presigned `docs_url`, the SDK automatically fetches from that URL so `response.results` and `response.documents` are always populated when using `coll.query()` and `coll.docs.fetch()`.
-* **Pagination:** Use `coll.docs.list_pages(size=10)` to iterate pages of up to `size` documents, or `coll.docs.iter_all(page_size=100)` to iterate over all documents.
+* **Pagination:** Use `coll.docs.list_pages(size=10, ref=...)` to iterate pages of up to `size` documents, or `coll.docs.iter_all(page_size=100, ref=...)` to iterate over all documents. Async variants preserve the same ref on every request.
 * **Advanced options:** Pass `options=RequestOptions(timeout_ms=..., http_headers=...)` to any docs or query call; import with `from lambdadb import RequestOptions`. For delete by filter, prefer `query_filter=...` over `filter_=...`. Response types such as `ListDocsResponse`, `QueryCollectionResponse`, and `FetchDocsResponse` are also exported from `lambdadb` for type hints.
 
 <details open>
@@ -285,6 +308,12 @@ with LambdaDB(
 * [update](docs/sdks/docs/README.md#update) - Update documents in a collection. Note that the maximum supported payload size is 6MB.
 * [delete](docs/sdks/docs/README.md#delete) - Delete documents by document IDs or query filter from a collection.
 * [fetch](docs/sdks/docs/README.md#fetch) - Lookup and return documents by document IDs from a collection.
+
+#### [Data Versioning](docs/sdks/versioning/README.md)
+
+* Collection-scoped Branch, Tag, and Alias lifecycle operations.
+* Ref-scoped Query, Fetch, List, and pagination helpers.
+* Branch-scoped document writes and signed bulk uploads.
 
 </details>
 <!-- End Available Resources and Operations [operations] -->
