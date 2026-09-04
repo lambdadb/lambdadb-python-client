@@ -10,6 +10,7 @@ import os
 import time
 import uuid
 from typing import Callable, Dict, Union
+from urllib.parse import urlparse
 
 import pytest
 
@@ -22,6 +23,14 @@ def _required_env(name: str) -> str:
     value = os.getenv(name)
     if not value:
         pytest.fail(f"required environment variable {name} is not set")
+    return value
+
+
+def _required_base_url() -> str:
+    value = _required_env("LAMBDADB_BASE_URL").rstrip("/")
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        pytest.fail("LAMBDADB_BASE_URL must be an absolute http:// or https:// URL")
     return value
 
 
@@ -63,17 +72,19 @@ def test_data_versioning_live_smoke() -> None:
     seed_id = f"seed-{suffix}"
     branch_id = f"branch-{suffix}"
     bulk_id = f"bulk-{suffix}"
+    create_attempted = False
     cleanup_complete = False
 
     client = LambdaDB(
         project_api_key=_required_env("LAMBDADB_PROJECT_API_KEY"),
-        base_url=_required_env("LAMBDADB_BASE_URL").rstrip("/"),
+        base_url=_required_base_url(),
         project_name=_required_env("LAMBDADB_PROJECT_NAME"),
         timeout_ms=30_000,
     )
     collection = client.collection(collection_name)
 
     try:
+        create_attempted = True
         created = client.collections.create(
             collection_name=collection_name,
             index_configs=_text_index(),
@@ -192,7 +203,7 @@ def test_data_versioning_live_smoke() -> None:
         client.collections.delete(collection_name=collection_name)
         cleanup_complete = True
     finally:
-        if not cleanup_complete:
+        if create_attempted and not cleanup_complete:
             try:
                 client.collections.delete(collection_name=collection_name)
                 cleanup_complete = True

@@ -75,7 +75,8 @@ Required configuration:
 
 - `LAMBDADB_PROJECT_API_KEY`
 - `LAMBDADB_PROJECT_NAME`
-- `LAMBDADB_BASE_URL` when the default API URL is not the test target
+- `LAMBDADB_BASE_URL` as an absolute `http://` or `https://` URL when the
+  default API URL is not the test target
 
 Do not expose credentials in command output, logs, artifacts, or review notes.
 
