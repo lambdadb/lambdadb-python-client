@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.9.0rc1
 
 This change implements the Data Versioning API contract pinned to LambdaDB
 docs revision
