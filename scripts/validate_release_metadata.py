@@ -11,6 +11,29 @@ import runpy
 from packaging.version import Version
 
 ROOT = Path(__file__).resolve().parents[1]
+DEVELOPMENT_VERSION_PATTERN = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+\.dev[0-9]+")
+
+
+def validate_development_metadata(
+    *, project_version_text: str, runtime_version_text: str
+) -> str:
+    """Validate the exact package version permitted for development artifacts."""
+    project_version = Version(project_version_text)
+    if str(project_version) != project_version_text:
+        raise ValueError(
+            "Project version must use canonical PEP 440 syntax: "
+            f"{project_version_text!r} normalizes to {str(project_version)!r}"
+        )
+    if project_version_text != runtime_version_text:
+        raise ValueError(
+            "Project and runtime versions must match: "
+            f"project={project_version_text!r}, runtime={runtime_version_text!r}"
+        )
+    if DEVELOPMENT_VERSION_PATTERN.fullmatch(project_version_text) is None:
+        raise ValueError(
+            "Development artifacts require exactly an X.Y.Z.devN package version"
+        )
+    return project_version_text
 
 
 def validate_release_metadata(

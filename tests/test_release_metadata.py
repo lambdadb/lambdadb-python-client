@@ -18,6 +18,46 @@ MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
 
+@pytest.mark.parametrize("version", ["0.9.0.dev1", "10.20.30.dev40"])
+def test_development_validator_accepts_exact_channel(version: str) -> None:
+    assert (
+        MODULE.validate_development_metadata(
+            project_version_text=version,
+            runtime_version_text=version,
+        )
+        == version
+    )
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "1.2.dev3",
+        "1!1.2.3.dev4",
+        "1.2.3rc1.dev4",
+        "1.2.3.dev4+local",
+        "1.2.3",
+        "1.2.3rc1",
+    ],
+)
+def test_development_validator_rejects_versions_outside_exact_channel(
+    version: str,
+) -> None:
+    with pytest.raises(ValueError, match=r"exactly an X\.Y\.Z\.devN"):
+        MODULE.validate_development_metadata(
+            project_version_text=version,
+            runtime_version_text=version,
+        )
+
+
+def test_development_validator_rejects_runtime_version_mismatch() -> None:
+    with pytest.raises(ValueError, match="Project and runtime versions must match"):
+        MODULE.validate_development_metadata(
+            project_version_text="0.9.0.dev1",
+            runtime_version_text="0.9.0.dev2",
+        )
+
+
 def _project_requirements() -> dict[str, Requirement]:
     pyproject = (SCRIPT.parents[1] / "pyproject.toml").read_text(encoding="utf-8")
     match = re.search(r"(?ms)^dependencies\s*=\s*\[(?P<body>.*?)^\]", pyproject)

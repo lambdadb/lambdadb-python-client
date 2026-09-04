@@ -36,7 +36,8 @@ jobs:
           import runpy
           import subprocess
           import tomllib
-          from packaging.version import Version
+
+          from scripts.validate_release_metadata import validate_development_metadata
 
           with open("pyproject.toml", "rb") as file:
               project_version_text = tomllib.load(file)["project"]["version"]
@@ -44,23 +45,13 @@ jobs:
               "src/lambdadb/version.py"
           )["SDK_VERSION"]
 
-          project_version = Version(project_version_text)
-          if str(project_version) != project_version_text:
-              raise SystemExit(
-                  "Project version must use canonical PEP 440 syntax: "
-                  f"{project_version_text!r} normalizes to "
-                  f"{str(project_version)!r}"
+          try:
+              project_version = validate_development_metadata(
+                  project_version_text=project_version_text,
+                  runtime_version_text=runtime_version_text,
               )
-          if project_version_text != runtime_version_text:
-              raise SystemExit(
-                  "Project and runtime versions must match: "
-                  f"project={project_version_text!r}, "
-                  f"runtime={runtime_version_text!r}"
-              )
-          if not project_version.is_devrelease:
-              raise SystemExit(
-                  "Development artifacts require an X.Y.Z.devN package version"
-              )
+          except ValueError as error:
+              raise SystemExit(str(error)) from error
 
           short_sha = subprocess.check_output(
               ["git", "rev-parse", "--short=12", "HEAD"], text=True
