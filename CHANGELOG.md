@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.9.0rc2
 
 Aligned the SDK with the final Cloud SaaS user contract pinned to LambdaDB docs
 revision
