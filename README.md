@@ -401,9 +401,12 @@ with LambdaDB(
   * [`UnauthenticatedError`](./src/lambdadb/errors/unauthenticatederror.py): Unauthenticated. Status code `401`.
   * [`TooManyRequestsError`](./src/lambdadb/errors/toomanyrequestserror.py): Too many requests. Status code `429`.
   * [`InternalServerError`](./src/lambdadb/errors/internalservererror.py): Internal server error. Status code `500`.
+  * [`BadGatewayError`](./src/lambdadb/errors/contract_errors.py): Unexpected downstream failure. Status code `502`.
+  * [`ServiceUnavailableError`](./src/lambdadb/errors/contract_errors.py): Transient catalog or storage dependency failure. Status code `503`.
+  * [`GatewayTimeoutError`](./src/lambdadb/errors/contract_errors.py): Gateway deadline exceeded; write outcome may be uncertain. Status code `504`.
   * [`ResourceNotFoundError`](./src/lambdadb/errors/resourcenotfounderror.py): Resource not found. Status code `404`. *
 
-<details><summary>Less common errors (7)</summary>
+<details><summary>Less common errors</summary>
 
 <br />
 
@@ -416,6 +419,8 @@ with LambdaDB(
 **Inherit from [`LambdaDBError`](./src/lambdadb/errors/lambdadberror.py)**:
 * [`BadRequestError`](./src/lambdadb/errors/badrequesterror.py): Bad request. Status code `400`. Applicable to 9 of 13 methods.*
 * [`ResourceAlreadyExistsError`](./src/lambdadb/errors/resourcealreadyexistserror.py): Resource already exists. Status code `409`. Applicable to 1 of 13 methods.*
+* [`CatalogConflictError`](./src/lambdadb/errors/contract_errors.py): Conditional catalog conflict. Status code `409`.
+* [`PayloadTooLargeError`](./src/lambdadb/errors/contract_errors.py): Request exceeds the Gateway transport limit. Status code `413`.
 * [`ResponseValidationError`](./src/lambdadb/errors/responsevalidationerror.py): Type mismatch between the response data and the expected Pydantic model. Provides access to the Pydantic validation error via the `cause` attribute.
 
 </details>

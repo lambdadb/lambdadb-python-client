@@ -6,6 +6,7 @@ from .versioning import RefName
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
+from pydantic import ConfigDict
 from pydantic import model_serializer
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
@@ -21,6 +22,8 @@ class DeleteDocsRequestBodyTypedDict(TypedDict):
 
 
 class DeleteDocsRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     ids: Optional[List[str]] = None
     r"""A list of document IDs."""
 

@@ -3,6 +3,7 @@
 from .sdkconfiguration import SDKConfiguration
 import httpx
 from lambdadb import errors, models, utils
+from lambdadb.errors.contract_errors import raise_for_contract_status
 from lambdadb._hooks import AfterErrorContext, AfterSuccessContext, BeforeRequestContext
 from lambdadb.utils import (
     RetryConfig,
@@ -296,6 +297,8 @@ class BaseSDK:
         else:
             http_res = do()
 
+        raise_for_contract_status(http_res)
+
         if not utils.match_status_codes(error_status_codes, http_res.status_code):
             http_res = hooks.after_success(AfterSuccessContext(hook_ctx), http_res)
 
@@ -376,6 +379,8 @@ class BaseSDK:
             )
         else:
             http_res = await do()
+
+        raise_for_contract_status(http_res)
 
         if not utils.match_status_codes(error_status_codes, http_res.status_code):
             http_res = await run_sync_in_thread(

@@ -1,4 +1,4 @@
-"""Data Versioning contract tests pinned to docs revision a52ce19f."""
+"""Data Versioning contract tests pinned to docs revision b171ff0."""
 
 from __future__ import annotations
 
@@ -56,7 +56,161 @@ def _text_index(analyzer: models.Analyzer) -> Dict[
 
 
 def test_contract_revision_is_pinned() -> None:
-    assert API_CONTRACT_REVISION == "a52ce19f5a1ce5ad3a30a55a5560e4591f0be9fa"
+    assert API_CONTRACT_REVISION == "b171ff0a408bbeb024535941b83b861d205a829f"
+
+
+def test_final_contract_collection_validation_and_null_patch_semantics() -> None:
+    with pytest.raises(ValidationError):
+        models.CreateCollectionRequest(
+            collection_name="catalog",
+            index_configs={},
+        )
+    with pytest.raises(ValidationError):
+        models.UpdateCollectionRequestBody(index_configs={})
+
+    for blank_value in (" ", "\t\n", "\u3000"):
+        with pytest.raises(ValidationError, match="contain non-whitespace"):
+            models.CreateCollectionRequest(
+                collection_name="catalog",
+                index_configs=_text_index(models.Analyzer.ENGLISH),
+                tags={"environment": blank_value},
+            )
+
+    request = models.UpdateCollectionRequestBody(
+        index_configs=None,
+        description=None,
+        tags={},
+        snapshot_retention_in_days=None,
+    )
+    assert request.model_dump(by_alias=True) == {"tags": {}}
+    with pytest.raises(ValidationError, match="at least one collection field"):
+        models.UpdateCollectionRequestBody(description=None)
+
+    response = models.CollectionResponse.model_validate(
+        {key: value for key, value in _collection_body().items() if key != "dataUpdatedAt"}
+    )
+    assert response.data_updated_at is None
+    assert response.data_updated_at_dt is None
+
+
+@pytest.mark.parametrize(
+    "body_type",
+    [
+        models.CreateCollectionRequest,
+        models.UpdateCollectionRequestBody,
+        models.ListDocsExtendedRequestBody,
+        models.QueryCollectionRequestBody,
+        models.FetchDocsRequestBody,
+        models.UpsertDocsRequestBody,
+        models.UpdateDocsRequestBody,
+        models.DeleteDocsRequestBody,
+        models.BulkUpsertDocsRequestBody,
+    ],
+)
+def test_final_contract_request_bodies_reject_unknown_fields(body_type: Any) -> None:
+    valid_bodies = {
+        models.CreateCollectionRequest: {
+            "collectionName": "catalog",
+            "indexConfigs": {"title": {"type": "keyword"}},
+        },
+        models.UpdateCollectionRequestBody: {"tags": {}},
+        models.ListDocsExtendedRequestBody: {},
+        models.QueryCollectionRequestBody: {"query": {}},
+        models.FetchDocsRequestBody: {"ids": ["doc-1"]},
+        models.UpsertDocsRequestBody: {"docs": [{"id": "doc-1"}]},
+        models.UpdateDocsRequestBody: {"docs": [{"id": "doc-1"}]},
+        models.DeleteDocsRequestBody: {"ids": ["doc-1"]},
+        models.BulkUpsertDocsRequestBody: {"objectKey": "upload.json"},
+    }
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        body_type.model_validate({**valid_bodies[body_type], "unsupported": True})
+
+
+@pytest.mark.parametrize(
+    ("status", "error_type"),
+    [
+        (413, errors.PayloadTooLargeError),
+        (502, errors.BadGatewayError),
+        (503, errors.ServiceUnavailableError),
+        (504, errors.GatewayTimeoutError),
+    ],
+)
+def test_final_contract_gateway_errors_are_typed_sync(
+    status: int, error_type: type[errors.LambdaDBError]
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return _response(request, status, {"message": f"status {status}"})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as transport:
+        client = LambdaDB(
+            project_api_key="secret",
+            base_url="https://api.example",
+            project_name="project",
+            client=transport,
+        )
+        with pytest.raises(error_type, match=f"status {status}") as raised:
+            client.collections.list(retries=None)
+    assert raised.value.status_code == status
+
+
+def test_final_contract_gateway_errors_are_typed_async() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "PATCH":
+            return _response(request, 409, {"message": "catalog changed"})
+        return _response(request, 504, {"message": "deadline exceeded"})
+
+    async def run() -> None:
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(handler)
+        ) as transport:
+            client = LambdaDB(
+                project_api_key="secret",
+                base_url="https://api.example",
+                project_name="project",
+                async_client=transport,
+            )
+            with pytest.raises(errors.GatewayTimeoutError, match="deadline exceeded"):
+                await client.collections.list_async(retries=None)
+            with pytest.raises(errors.CatalogConflictError, match="catalog changed"):
+                await client.collections.update_async(
+                    collection_name="catalog", tags={}, retries=None
+                )
+
+    asyncio.run(run())
+
+
+def test_final_contract_catalog_conflict_and_retry_after_mapping() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method in {"PATCH", "DELETE"}:
+            return _response(request, 409, {"message": "catalog changed"})
+        return httpx.Response(
+            429,
+            json={"message": "pending overlay too large"},
+            headers={"Retry-After": "3"},
+            request=request,
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as transport:
+        client = LambdaDB(
+            project_api_key="secret",
+            base_url="https://api.example",
+            project_name="project",
+            client=transport,
+        )
+        with pytest.raises(errors.CatalogConflictError):
+            client.collections.update(
+                collection_name="catalog", tags={}, retries=None
+            )
+        with pytest.raises(errors.CatalogConflictError):
+            client.collections.delete(collection_name="catalog", retries=None)
+        with pytest.raises(errors.CatalogConflictError):
+            client.collection("catalog").aliases.retarget(
+                "production-read",
+                target=AliasTarget.branch("main"),
+            )
+        with pytest.raises(errors.TooManyRequestsError) as raised:
+            client.collections.list(retries=None)
+    assert raised.value.headers["Retry-After"] == "3"
 
 
 def test_ref_validation_and_millisecond_round_trip() -> None:
@@ -148,7 +302,11 @@ def test_collection_metadata_and_create_delete_status_contract() -> None:
             snapshot_retention_in_days=14,
         )
         updated = client.collections.update(
-            collection_name="catalog", tags={}, snapshot_retention_in_days=14
+            collection_name="catalog",
+            index_configs=None,
+            description=None,
+            tags={},
+            snapshot_retention_in_days=14,
         )
         deleted = client.collections.delete(collection_name="catalog")
 
@@ -226,7 +384,11 @@ def test_collection_metadata_and_status_contract_async() -> None:
                 snapshot_retention_in_days=14,
             )
             updated = await client.collections.update_async(
-                collection_name="catalog", tags={}, snapshot_retention_in_days=14
+                collection_name="catalog",
+                index_configs=None,
+                description=None,
+                tags={},
+                snapshot_retention_in_days=14,
             )
             deleted = await client.collections.delete_async(collection_name="catalog")
             assert created.collection.default_branch_name == "main"
@@ -821,7 +983,9 @@ def test_bulk_upload_forwards_signed_headers_uses_transfer_client_and_same_branc
 
     assert len(api_requests) == 2
     assert api_requests[0].url.params["branch"] == "experiment"
-    assert json.loads(api_requests[1].content)["branch"] == "experiment"
+    completion = json.loads(api_requests[1].content)
+    assert completion["branch"] == "experiment"
+    assert completion["type"] == "application/json"
     assert len(transfer_requests) == 1
     assert transfer_requests[0].url.host == "storage.example"
     assert transfer_requests[0].headers["x-amz-checksum-sha256"] == "signed-value"

@@ -89,7 +89,7 @@ result = client.query_points(
 | `upsert()` | Supported | Dense vectors only. Qdrant IDs become LambdaDB document IDs. |
 | `upload_points()` | Supported | Batches points through `upsert()`. |
 | `upload_collection()` | Supported | Converts vectors, ids, and payload arrays into points. |
-| `retrieve()` | Supported | Uses strongly consistent LambdaDB fetches. Supports boolean and field-list payload/vector selectors. |
+| `retrieve()` | Supported | Uses LambdaDB's Branch-only pending-write overlay (`consistent_read=True`); pending bulk imports are excluded. Supports boolean and field-list payload/vector selectors. |
 | `query_points()` | Supported | Dense vector query plus simple payload filters. Supports boolean and field-list payload/vector selectors. |
 | `search()` | Supported | Wrapper around `query_points()`. |
 | `delete()` | Supported | Point IDs and supported Qdrant filters. Accepts `points_selector=[...]`, `points=[...]`, `ids=[...]`, `filter=...`, and `points_selector={"filter": ...}`. |
