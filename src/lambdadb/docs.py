@@ -27,7 +27,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once.
-        :param page_token: Next page token.
+        :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
         :param include_vectors: Set to true to include vector values in the response.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -151,7 +151,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once.
-        :param page_token: Next page token.
+        :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
         :param include_vectors: Set to true to include vector values in the response.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -282,7 +282,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once.
-        :param page_token: Next page token.
+        :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
         :param filter_: Filter applied before pagination.
         :param partition_filter:
         :param fields: Field selector.
@@ -421,7 +421,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once.
-        :param page_token: Next page token.
+        :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
         :param filter_: Filter applied before pagination.
         :param partition_filter:
         :param fields: Field selector.
@@ -1781,7 +1781,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 100.
-        :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
+        :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
         :param partition_filter:
@@ -1927,7 +1927,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 100.
-        :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
+        :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
         :param partition_filter:

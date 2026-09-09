@@ -5,6 +5,7 @@ from lambdadb.types import BaseModel
 from .versioning import RefName
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
+from pydantic import ConfigDict
 from typing import Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
@@ -17,9 +18,12 @@ class BulkUpsertDocsRequestBodyTypedDict(TypedDict):
 
 
 class BulkUpsertDocsRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     object_key: Annotated[str, pydantic.Field(alias="objectKey")]
     r"""Object key uploaded based on bulk upsert info."""
     type: str = "application/json"
+    r"""Sent explicitly on upload completion; callers should not rely on a server default."""
     branch: Optional[RefName] = None
 
 

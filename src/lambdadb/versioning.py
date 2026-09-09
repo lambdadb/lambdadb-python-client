@@ -7,6 +7,7 @@ from typing import Any, Dict, Generic, Mapping, Optional, Type, TypeVar, Union
 from urllib.parse import quote
 
 from lambdadb import errors, models, utils
+from lambdadb.errors.contract_errors import raise_catalog_conflict
 from lambdadb._hooks import HookContext
 from lambdadb.basesdk import BaseSDK
 from lambdadb.requestoptions import RequestOptions
@@ -67,7 +68,9 @@ class _VersioningTransport(BaseSDK):
         return None
 
     @staticmethod
-    def _raise_error(response: Any) -> None:
+    def _raise_error(response: Any, *, catalog_conflict: bool = False) -> None:
+        if response.status_code == 409 and catalog_conflict:
+            raise_catalog_conflict(response)
         mappings = {
             400: (errors.BadRequestErrorData, errors.BadRequestError),
             401: (errors.UnauthenticatedErrorData, errors.UnauthenticatedError),
@@ -131,7 +134,9 @@ class _VersioningTransport(BaseSDK):
             retry_config=self._retry_config(retries),
         )
         if response.status_code != expected_status:
-            self._raise_error(response)
+            self._raise_error(
+                response, catalog_conflict=method.upper() in {"PATCH", "DELETE"}
+            )
         return unmarshal_json_response(response_type, response)
 
     async def request_async(
@@ -176,7 +181,9 @@ class _VersioningTransport(BaseSDK):
             retry_config=self._retry_config(retries),
         )
         if response.status_code != expected_status:
-            self._raise_error(response)
+            self._raise_error(
+                response, catalog_conflict=method.upper() in {"PATCH", "DELETE"}
+            )
         return unmarshal_json_response(response_type, response)
 
 

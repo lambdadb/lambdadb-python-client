@@ -5,9 +5,9 @@
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `collection_name` | `str` | Yes | Collection name, 3-52 supported characters. |
-| `index_configs` | `Dict[str, models.IndexConfigsUnion]` | Yes | Collection index configuration. |
+| `index_configs` | `Dict[str, models.IndexConfigsUnion]` | Yes | Nonempty collection index configuration. |
 | `description` | `Optional[str]` | No | Collection description, up to 255 characters. |
-| `tags` | `Optional[Dict[str, str]]` | No | Up to five metadata tags. |
+| `tags` | `Optional[Dict[str, str]]` | No | Up to five metadata tags; values must contain a non-whitespace character. |
 | `partition_config` | `Optional[models.PartitionConfig]` | No | Partition configuration. |
 | `snapshot_retention_in_days` | `Optional[int]` | No | Snapshot retention, 1-31 days; API default is 30. |
 

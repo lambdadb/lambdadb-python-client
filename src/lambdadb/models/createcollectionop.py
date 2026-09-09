@@ -6,11 +6,12 @@ from datetime import datetime, timezone
 from typing import Dict, Literal, Optional
 
 import pydantic
-from pydantic import field_validator, model_serializer
+from pydantic import ConfigDict, field_validator, model_serializer
 from typing_extensions import Annotated, NotRequired, TypedDict
 
 from .indexconfigs_union import IndexConfigsUnion, IndexConfigsUnionTypedDict
 from .partitionconfig import PartitionConfig, PartitionConfigTypedDict
+from ._collection_validators import validate_metadata_tags
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 
 
@@ -24,9 +25,12 @@ class CreateCollectionRequestTypedDict(TypedDict):
 
 
 class CreateCollectionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     collection_name: Annotated[str, pydantic.Field(alias="collectionName")]
     index_configs: Annotated[
-        Dict[str, IndexConfigsUnion], pydantic.Field(alias="indexConfigs")
+        Dict[str, IndexConfigsUnion],
+        pydantic.Field(alias="indexConfigs", min_length=1),
     ]
     description: Annotated[Optional[str], pydantic.Field(max_length=255)] = None
     tags: Optional[Dict[str, str]] = None
@@ -40,22 +44,7 @@ class CreateCollectionRequest(BaseModel):
     @field_validator("tags")
     @classmethod
     def validate_tags(cls, value: Optional[Dict[str, str]]) -> Optional[Dict[str, str]]:
-        if value is None:
-            return value
-        if len(value) > 5:
-            raise ValueError("tags may contain at most five entries")
-        for key, item in value.items():
-            if not 1 <= len(key) <= 63 or any(
-                char
-                not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-"
-                for char in key
-            ):
-                raise ValueError("tag keys must match ^[A-Za-z0-9_.-]{1,63}$")
-            if not 1 <= len(item) <= 127 or any(char in item for char in ":#,"):
-                raise ValueError(
-                    "tag values must be 1-127 characters and exclude : # ,"
-                )
-        return value
+        return validate_metadata_tags(value)
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):

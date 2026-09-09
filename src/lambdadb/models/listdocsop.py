@@ -8,7 +8,7 @@ from .versioning import Ref, RefKind, RefName
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, QueryParamMetadata, RequestMetadata
 import pydantic
-from pydantic import model_serializer
+from pydantic import ConfigDict, model_serializer
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
@@ -19,7 +19,7 @@ class ListDocsRequestTypedDict(TypedDict):
     size: NotRequired[int]
     r"""Max number of documents to return at once."""
     page_token: NotRequired[str]
-    r"""Next page token."""
+    r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
     include_vectors: NotRequired[bool]
     r"""Set to true to include vector values in the response. Defaults to false."""
     ref_kind: NotRequired[RefKind]
@@ -45,7 +45,7 @@ class ListDocsRequest(BaseModel):
         pydantic.Field(alias="pageToken"),
         FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
     ] = None
-    r"""Next page token."""
+    r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
 
     include_vectors: Annotated[
         Optional[bool],
@@ -87,7 +87,7 @@ class ListDocsExtendedRequestBodyTypedDict(TypedDict):
     size: NotRequired[int]
     r"""Max number of documents to return at once."""
     page_token: NotRequired[str]
-    r"""Next page token."""
+    r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
     filter_: NotRequired[Dict[str, Any]]
     r"""Filter applied before pagination."""
     partition_filter: NotRequired[PartitionFilterTypedDict]
@@ -99,11 +99,13 @@ class ListDocsExtendedRequestBodyTypedDict(TypedDict):
 
 
 class ListDocsExtendedRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     size: Optional[int] = None
     r"""Max number of documents to return at once."""
 
     page_token: Annotated[Optional[str], pydantic.Field(alias="pageToken")] = None
-    r"""Next page token."""
+    r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
 
     filter_: Annotated[Optional[Dict[str, Any]], pydantic.Field(alias="filter")] = None
     r"""Filter applied before pagination."""

@@ -20,7 +20,7 @@ class CollectionResponseTypedDict(TypedDict):
     num_partitions: int
     r"""Total number of partitions including the default partition."""
     num_docs: int
-    r"""Total number of documents."""
+    r"""Document count in the default main branch's committed head."""
     description: str
     tags: Dict[str, str]
     default_branch_name: Literal["main"]
@@ -30,7 +30,7 @@ class CollectionResponseTypedDict(TypedDict):
     updated_at: int
     r"""Collection last update time in milliseconds since the Unix epoch."""
     data_updated_at: NotRequired[int]
-    r"""Collection data last update time in milliseconds since the Unix epoch."""
+    r"""Last data update in the default main branch's committed head, in Unix epoch milliseconds. Absent before a committed head exists."""
     partition_config: NotRequired[PartitionConfigTypedDict]
 
 
@@ -42,14 +42,15 @@ class CollectionResponse(BaseModel):
     r"""Collection name."""
 
     index_configs: Annotated[
-        Dict[str, IndexConfigsUnion], pydantic.Field(alias="indexConfigs")
+        Dict[str, IndexConfigsUnion],
+        pydantic.Field(alias="indexConfigs", min_length=1),
     ]
 
     num_partitions: Annotated[int, pydantic.Field(alias="numPartitions")]
     r"""Total number of partitions including the default partition."""
 
     num_docs: Annotated[int, pydantic.Field(alias="numDocs")]
-    r"""Total number of documents."""
+    r"""Document count in the default main branch's committed head, not a sum across branches or the count of a selected ref."""
 
     description: str
 
@@ -70,7 +71,7 @@ class CollectionResponse(BaseModel):
     r"""Collection last update time in milliseconds since the Unix epoch."""
 
     data_updated_at: Annotated[Optional[int], pydantic.Field(alias="dataUpdatedAt")] = None
-    r"""Collection data last update time in milliseconds since the Unix epoch."""
+    r"""Last data update in the default main branch's committed head, in Unix epoch milliseconds. Commits without data mutations retain the previous value. Absent before a committed head exists."""
 
     @property
     def created_at_dt(self) -> datetime:
@@ -84,7 +85,7 @@ class CollectionResponse(BaseModel):
 
     @property
     def data_updated_at_dt(self) -> Optional[datetime]:
-        """Collection data last update time as a timezone-aware UTC datetime."""
+        """Default-branch data update time as a timezone-aware UTC datetime."""
         if self.data_updated_at is None:
             return None
         return datetime.fromtimestamp(self.data_updated_at / 1000, tz=timezone.utc)

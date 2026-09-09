@@ -5,6 +5,7 @@ from lambdadb.types import BaseModel
 from .versioning import RefName
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
+from pydantic import ConfigDict
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
@@ -16,6 +17,8 @@ class UpsertDocsRequestBodyTypedDict(TypedDict):
 
 
 class UpsertDocsRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     docs: List[Dict[str, Any]]
     r"""A list of documents to upsert."""
     branch: Optional[RefName] = None
