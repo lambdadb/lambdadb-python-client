@@ -2,39 +2,43 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import pydantic
-from pydantic import model_serializer, model_validator
+from pydantic import ConfigDict, model_serializer, model_validator
 from typing_extensions import Annotated, NotRequired, TypedDict
 
 from .collectionresponse import CollectionResponse, CollectionResponseTypedDict
 from .indexconfigs_union import IndexConfigsUnion, IndexConfigsUnionTypedDict
+from ._collection_validators import validate_metadata_tags
 from lambdadb.types import BaseModel, UNSET, UNSET_SENTINEL, Unset
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 
 
 class UpdateCollectionRequestBodyTypedDict(TypedDict):
-    index_configs: NotRequired[Dict[str, IndexConfigsUnionTypedDict]]
-    description: NotRequired[str]
-    tags: NotRequired[Dict[str, str]]
-    snapshot_retention_in_days: NotRequired[int]
+    index_configs: NotRequired[Optional[Dict[str, IndexConfigsUnionTypedDict]]]
+    description: NotRequired[Optional[str]]
+    tags: NotRequired[Optional[Dict[str, str]]]
+    snapshot_retention_in_days: NotRequired[Optional[int]]
 
 
 class UpdateCollectionRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     index_configs: Annotated[
-        Union[Dict[str, IndexConfigsUnion], Unset], pydantic.Field(alias="indexConfigs")
+        Union[Optional[Dict[str, IndexConfigsUnion]], Unset],
+        pydantic.Field(alias="indexConfigs"),
     ] = UNSET
-    description: Union[str, Unset] = UNSET
-    tags: Union[Dict[str, str], Unset] = UNSET
+    description: Union[Optional[str], Unset] = UNSET
+    tags: Union[Optional[Dict[str, str]], Unset] = UNSET
     snapshot_retention_in_days: Annotated[
-        Union[int, Unset], pydantic.Field(alias="snapshotRetentionInDays")
+        Union[Optional[int], Unset], pydantic.Field(alias="snapshotRetentionInDays")
     ] = UNSET
 
     @model_validator(mode="after")
     def validate_non_empty(self) -> "UpdateCollectionRequestBody":
         if all(
-            isinstance(value, Unset)
+            isinstance(value, Unset) or value is None
             for value in (
                 self.index_configs,
                 self.description,
@@ -44,26 +48,25 @@ class UpdateCollectionRequestBody(BaseModel):
         ):
             raise ValueError("at least one collection field must be provided")
         if (
+            not isinstance(self.index_configs, Unset)
+            and self.index_configs is not None
+            and not self.index_configs
+        ):
+            raise ValueError("index_configs must contain at least one field")
+        if (
             not isinstance(self.snapshot_retention_in_days, Unset)
+            and self.snapshot_retention_in_days is not None
             and not 1 <= self.snapshot_retention_in_days <= 31
         ):
             raise ValueError("snapshot_retention_in_days must be between 1 and 31")
-        if not isinstance(self.description, Unset) and len(self.description) > 255:
+        if (
+            not isinstance(self.description, Unset)
+            and self.description is not None
+            and len(self.description) > 255
+        ):
             raise ValueError("description must be at most 255 characters")
         if not isinstance(self.tags, Unset):
-            if len(self.tags) > 5:
-                raise ValueError("tags may contain at most five entries")
-            for key, value in self.tags.items():
-                if not 1 <= len(key) <= 63 or any(
-                    char
-                    not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-"
-                    for char in key
-                ):
-                    raise ValueError("tag keys must match ^[A-Za-z0-9_.-]{1,63}$")
-                if not 1 <= len(value) <= 127 or any(char in value for char in ":#,"):
-                    raise ValueError(
-                        "tag values must be 1-127 characters and exclude : # ,"
-                    )
+            validate_metadata_tags(self.tags)
         return self
 
     @model_serializer(mode="wrap")
@@ -73,7 +76,7 @@ class UpdateCollectionRequestBody(BaseModel):
         for name, field in type(self).model_fields.items():
             key = field.alias or name
             value = self._get_serialized_value(serialized, name, field.alias)
-            if value != UNSET_SENTINEL:
+            if value != UNSET_SENTINEL and value is not None:
                 result[key] = value
         return result
 

@@ -2,7 +2,7 @@
 
 The Python SDK implements the collection-scoped Data Versioning contract from
 docs revision
-[`a52ce19f5a1ce5ad3a30a55a5560e4591f0be9fa`](https://github.com/lambdadb/docs/commit/a52ce19f5a1ce5ad3a30a55a5560e4591f0be9fa).
+[`b171ff0a408bbeb024535941b83b861d205a829f`](https://github.com/lambdadb/docs/commit/b171ff0a408bbeb024535941b83b861d205a829f).
 
 ## Branch, Tag, and Alias lifecycle
 
@@ -42,7 +42,9 @@ Lifecycle methods have matching async forms: `create_async`, `list_async`,
 Alias cannot target another Alias. Invalid kinds, names, and combinations raise
 a Pydantic `ValidationError` before any request is sent. Query and Fetch also
 raise `ValueError` locally when `consistent_read=True` is combined with a Tag
-or Alias ref; consistent reads require a directly selected Branch.
+or Alias ref. On a directly selected Branch, a consistent read overlays
+eligible pending writes on the committed head. It excludes pending bulk imports
+and can return HTTP 429 when the pending payload exceeds the overlay limit.
 
 Deleting a Branch or Tag can leave an Alias dangling. Such aliases remain in
 `aliases.list()` with `dangling=True` until they are retargeted or deleted.
@@ -75,6 +77,8 @@ async for document in collection.docs.iter_all_async(
 Query and Fetch send `ref` in the JSON body. The simple List endpoint sends the
 paired `refKind` and `refName` query parameters; filtered/extended List sends
 `ref` in the JSON body. Pagination helpers preserve the same ref on every page.
+Page tokens are opaque search positions, not Snapshot pins. For a stable export,
+use one immutable Tag and unchanged filter/projection options across all pages.
 
 ## Branch-scoped writes
 
@@ -110,3 +114,13 @@ with httpx.Client() as transfer_client:
 For manual upload, pass the same `branch` to `get_bulk_upsert()` and
 `bulk_upsert()`, use `info.http_method`, set `Content-Type` from `info.type`,
 and forward `info.headers` unchanged.
+
+## Error and retry semantics
+
+HTTP 413, 502, 503, and 504 responses raise `PayloadTooLargeError`,
+`BadGatewayError`, `ServiceUnavailableError`, and `GatewayTimeoutError`.
+Conditional metadata updates can raise `CatalogConflictError` (409). A 502 or
+504 from a write can leave its outcome uncertain, so verify resource state
+before retrying. For 429 responses, inspect `error.headers.get("Retry-After")`;
+the header is optional and `consistent_read=True` can also return 429 when the
+pending-write overlay is too large.

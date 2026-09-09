@@ -7,6 +7,7 @@ from .versioning import Ref
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
+from pydantic import ConfigDict
 from pydantic import model_serializer
 import warnings
 from typing import Any, Dict, List, Optional
@@ -17,7 +18,7 @@ class FetchDocsRequestBodyTypedDict(TypedDict):
     ids: List[str]
     r"""A list of document IDs to fetch. Note that the maximum number of document IDs is 100."""
     consistent_read: NotRequired[bool]
-    r"""If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value."""
+    r"""Overlay eligible pending writes on a directly selected branch. Tags and aliases reject true, and pending bulk imports are excluded."""
     include_vectors: NotRequired[bool]
     r"""If your application need to include vector values in the response, set includeVectors to true."""
     fields: NotRequired[FieldsSelectorUnionTypedDict]
@@ -27,13 +28,15 @@ class FetchDocsRequestBodyTypedDict(TypedDict):
 
 
 class FetchDocsRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     ids: List[str]
     r"""A list of document IDs to fetch. Note that the maximum number of document IDs is 100."""
 
     consistent_read: Annotated[
         Optional[bool], pydantic.Field(alias="consistentRead")
     ] = False
-    r"""If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value."""
+    r"""Overlay eligible pending writes on a directly selected branch. Tags and aliases reject true, and pending bulk imports are excluded."""
 
     include_vectors: Annotated[
         Optional[bool], pydantic.Field(alias="includeVectors")

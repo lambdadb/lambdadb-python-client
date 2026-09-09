@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.9.0rc2
+
+Aligned the SDK with the final Cloud SaaS user contract pinned to LambdaDB docs
+revision
+[`b171ff0a408bbeb024535941b83b861d205a829f`](https://github.com/lambdadb/docs/commit/b171ff0a408bbeb024535941b83b861d205a829f).
+The source revision is a contract pin, not evidence that an environment has
+deployed it.
+
+### Added
+
+- Typed `PayloadTooLargeError`, `BadGatewayError`,
+  `ServiceUnavailableError`, `GatewayTimeoutError`, and
+  `CatalogConflictError` mappings. Error response headers remain available on
+  `error.headers`, including optional `Retry-After` on HTTP 429.
+
+### Changed
+
+- Collection create, update, and response models reject empty `index_configs`.
+- Collection update treats omitted or `None` fields as unchanged, still
+  requires at least one non-null update, sends an empty description to clear it,
+  and sends `{}` to replace/clear all metadata tags.
+- Metadata tag values must contain a non-whitespace character in addition to
+  the existing length and character restrictions.
+- Collection create/update and document List, Query, Fetch, Upsert, Update,
+  Delete, and bulk-completion request models reject unknown fields instead of
+  silently dropping them.
+- Consistent-read documentation now describes the pending-write overlay,
+  including its exclusion of bulk imports and possible HTTP 429 response.
+- Document page tokens are documented as search positions rather than Snapshot
+  pins; stable multi-page exports require an immutable Tag.
+- `CollectionResponse.num_docs` and `data_updated_at` are explicitly documented
+  as default-Branch committed-head statistics; `data_updated_at` remains
+  optional before a committed head exists.
+
 ## 0.9.0rc1
 
 This change implements the Data Versioning API contract pinned to LambdaDB

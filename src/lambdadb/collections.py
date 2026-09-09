@@ -3,6 +3,7 @@
 from .basesdk import BaseSDK
 from .sdkconfiguration import SDKConfiguration
 from lambdadb import errors, models, utils
+from lambdadb.errors.contract_errors import raise_catalog_conflict
 from lambdadb._hooks import HookContext
 from lambdadb.docs import Docs
 from lambdadb.types import OptionalNullable, UNSET, Unset
@@ -692,6 +693,8 @@ class Collections(BaseSDK):
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
+        if utils.match_response(http_res, "409", "application/json"):
+            raise_catalog_conflict(http_res)
         if utils.match_response(http_res, "429", "application/json"):
             response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
@@ -799,6 +802,8 @@ class Collections(BaseSDK):
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
+        if utils.match_response(http_res, "409", "application/json"):
+            raise_catalog_conflict(http_res)
         if utils.match_response(http_res, "429", "application/json"):
             response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
@@ -1039,11 +1044,12 @@ class Collections(BaseSDK):
         index_configs: Union[
             Dict[str, models.IndexConfigsUnion],
             Dict[str, models.IndexConfigsUnionTypedDict],
+            None,
             Unset,
         ] = UNSET,
-        description: Union[str, Unset] = UNSET,
-        tags: Union[Dict[str, str], Unset] = UNSET,
-        snapshot_retention_in_days: Union[int, Unset] = UNSET,
+        description: Union[str, None, Unset] = UNSET,
+        tags: Union[Dict[str, str], None, Unset] = UNSET,
+        snapshot_retention_in_days: Union[int, None, Unset] = UNSET,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1052,10 +1058,10 @@ class Collections(BaseSDK):
         r"""Configure a collection.
 
         :param collection_name: Collection name.
-        :param index_configs:
-        :param description: Replacement collection description.
-        :param tags: Replacement metadata tags; pass an empty dict to clear them.
-        :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days.
+        :param index_configs: Complete nonempty replacement schema. None leaves it unchanged.
+        :param description: Replacement collection description. Empty clears it; None leaves it unchanged.
+        :param tags: Replacement metadata tags. An empty dict clears them; None leaves them unchanged.
+        :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days. None leaves it unchanged.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1076,7 +1082,7 @@ class Collections(BaseSDK):
             request_body=models.UpdateCollectionRequestBody(
                 index_configs=(
                     UNSET
-                    if index_configs is UNSET
+                    if index_configs is UNSET or index_configs is None
                     else utils.get_pydantic_model(
                         index_configs, Dict[str, models.IndexConfigsUnion]
                     )
@@ -1156,6 +1162,8 @@ class Collections(BaseSDK):
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
+        if utils.match_response(http_res, "409", "application/json"):
+            raise_catalog_conflict(http_res)
         if utils.match_response(http_res, "429", "application/json"):
             response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
@@ -1182,11 +1190,12 @@ class Collections(BaseSDK):
         index_configs: Union[
             Dict[str, models.IndexConfigsUnion],
             Dict[str, models.IndexConfigsUnionTypedDict],
+            None,
             Unset,
         ] = UNSET,
-        description: Union[str, Unset] = UNSET,
-        tags: Union[Dict[str, str], Unset] = UNSET,
-        snapshot_retention_in_days: Union[int, Unset] = UNSET,
+        description: Union[str, None, Unset] = UNSET,
+        tags: Union[Dict[str, str], None, Unset] = UNSET,
+        snapshot_retention_in_days: Union[int, None, Unset] = UNSET,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -1195,10 +1204,10 @@ class Collections(BaseSDK):
         r"""Configure a collection.
 
         :param collection_name: Collection name.
-        :param index_configs:
-        :param description: Replacement collection description.
-        :param tags: Replacement metadata tags; pass an empty dict to clear them.
-        :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days.
+        :param index_configs: Complete nonempty replacement schema. None leaves it unchanged.
+        :param description: Replacement collection description. Empty clears it; None leaves it unchanged.
+        :param tags: Replacement metadata tags. An empty dict clears them; None leaves them unchanged.
+        :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days. None leaves it unchanged.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -1219,7 +1228,7 @@ class Collections(BaseSDK):
             request_body=models.UpdateCollectionRequestBody(
                 index_configs=(
                     UNSET
-                    if index_configs is UNSET
+                    if index_configs is UNSET or index_configs is None
                     else utils.get_pydantic_model(
                         index_configs, Dict[str, models.IndexConfigsUnion]
                     )
@@ -1299,6 +1308,8 @@ class Collections(BaseSDK):
                 errors.ResourceNotFoundErrorData, http_res
             )
             raise errors.ResourceNotFoundError(response_data, http_res)
+        if utils.match_response(http_res, "409", "application/json"):
+            raise_catalog_conflict(http_res)
         if utils.match_response(http_res, "429", "application/json"):
             response_data = unmarshal_json_response(
                 errors.TooManyRequestsErrorData, http_res
@@ -1344,7 +1355,7 @@ class Collections(BaseSDK):
         :param collection_name: Collection name.
         :param query: Query object.
         :param size: Number of documents to return. Note that the maximum number of documents is 100.
-        :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
+        :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
@@ -1500,7 +1511,7 @@ class Collections(BaseSDK):
         :param collection_name: Collection name.
         :param query: Query object.
         :param size: Number of documents to return. Note that the maximum number of documents is 100.
-        :param consistent_read: If your application requires a strongly consistent read, set consistentRead to true. Although a strongly consistent read might take more time than an eventually consistent read, it always returns the last updated value.
+        :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
