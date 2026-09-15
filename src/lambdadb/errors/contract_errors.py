@@ -53,6 +53,10 @@ class CatalogConflictErrorData(_MessageErrorData):
     """Conditional catalog-conflict response body."""
 
 
+class RefDeleteConflictErrorData(_MessageErrorData):
+    """Response body for a Branch or Tag deletion conflict."""
+
+
 class PayloadTooLargeError(_MessageError):
     """The request exceeds the Gateway transport limit (HTTP 413)."""
 
@@ -71,6 +75,10 @@ class GatewayTimeoutError(_MessageError):
 
 class CatalogConflictError(_MessageError):
     """A conditional catalog update conflicted (HTTP 409)."""
+
+
+class RefDeleteConflictError(_MessageError):
+    """A Branch or Tag deletion had an in-use or catalog conflict (HTTP 409)."""
 
 
 _ERROR_TYPES: dict[int, tuple[Type[_MessageErrorData], Type[_MessageError]]] = {
@@ -106,3 +114,12 @@ def raise_catalog_conflict(response: httpx.Response) -> None:
     except (ValidationError, ValueError):
         raise APIError("API error occurred", response, response.text) from None
     raise CatalogConflictError(data, response)
+
+
+def raise_ref_delete_conflict(response: httpx.Response) -> None:
+    """Raise the typed Branch/Tag deletion-conflict error."""
+    try:
+        data = RefDeleteConflictErrorData.model_validate_json(response.content)
+    except (ValidationError, ValueError):
+        raise APIError("API error occurred", response, response.text) from None
+    raise RefDeleteConflictError(data, response)

@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased
+
+Aligned the SDK with LambdaDB docs contract revision
+[`a9374f3f15deb6205f259a5d9c7b73138136062f`](https://github.com/lambdadb/docs/commit/a9374f3f15deb6205f259a5d9c7b73138136062f).
+The source revision is a contract pin, not evidence that an environment has
+deployed it.
+
+### Added
+
+- `SnapshotDetails`, `BranchDetails`, and `TagDetails` expose snapshot commit
+  timestamps and distinguish a Branch's current head from its fixed fork
+  point. Millisecond values have timezone-aware UTC datetime helpers.
+- `RefDeleteConflictError` maps Branch/Tag deletion HTTP 409 responses,
+  including when an Alias references the target.
+
+### Changed
+
+- Branch create/list responses now use `BranchDetails` with `head_snapshot` and
+  `parent_snapshot`; the compatibility `snapshot_id` property returns the
+  current head ID. Tag create/list responses now use `TagDetails` and require
+  `snapshot_committed_at`. The legacy `RefDetails` model remains importable but
+  is no longer used for lifecycle responses.
+- Collection update documentation clarifies that `index_configs` must retain
+  the complete existing schema and settings while allowing additions at any
+  nested object depth.
+- Deleting a Branch or Tag referenced by an Alias is blocked with HTTP 409;
+  retarget or delete every referencing Alias before retrying.
+
 ## 0.9.0rc2
 
 Aligned the SDK with the final Cloud SaaS user contract pinned to LambdaDB docs

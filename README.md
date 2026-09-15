@@ -420,6 +420,7 @@ with LambdaDB(
 * [`BadRequestError`](./src/lambdadb/errors/badrequesterror.py): Bad request. Status code `400`. Applicable to 9 of 13 methods.*
 * [`ResourceAlreadyExistsError`](./src/lambdadb/errors/resourcealreadyexistserror.py): Resource already exists. Status code `409`. Applicable to 1 of 13 methods.*
 * [`CatalogConflictError`](./src/lambdadb/errors/contract_errors.py): Conditional catalog conflict. Status code `409`.
+* [`RefDeleteConflictError`](./src/lambdadb/errors/contract_errors.py): Branch or Tag deletion conflict, including a target referenced by an Alias. Status code `409`.
 * [`PayloadTooLargeError`](./src/lambdadb/errors/contract_errors.py): Request exceeds the Gateway transport limit. Status code `413`.
 * [`ResponseValidationError`](./src/lambdadb/errors/responsevalidationerror.py): Type mismatch between the response data and the expected Pydantic model. Provides access to the Pydantic validation error via the `cause` attribute.
 
