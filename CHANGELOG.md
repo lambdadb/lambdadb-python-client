@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.9.0rc3
 
 Aligned the SDK with LambdaDB docs contract revision
 [`c8495bf47cd8918cfd546b4742823fd4cf3d0814`](https://github.com/lambdadb/docs/commit/c8495bf47cd8918cfd546b4742823fd4cf3d0814).
