@@ -16,11 +16,14 @@ from .models.versioning import (
     AliasResolvedTargetKind,
     AliasTarget,
     AliasTargetKind,
+    BranchDetails,
     Ref,
     RefDetails,
     RefKind,
     RefSource,
     RefSourceKind,
+    SnapshotDetails,
+    TagDetails,
 )
 from .versioning import Aliases, Branches, CollectionVersioning, Tags
 from .models import (

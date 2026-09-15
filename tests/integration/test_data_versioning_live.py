@@ -179,30 +179,8 @@ def test_data_versioning_live_smoke() -> None:
         assert seed_id in listed_ids
         assert branch_id in listed_ids
 
-        collection.tags.delete(tag_name)
-        _wait_for(
-            "dangling alias",
-            lambda: any(
-                item.alias_name == alias_name and item.dangling
-                for item in collection.aliases.list().aliases
-            ),
-        )
-        dangling = next(
-            item
-            for item in collection.aliases.list().aliases
-            if item.alias_name == alias_name
-        )
-        assert dangling.dangling is True
-
-        with pytest.raises(errors.BadRequestError):
-            collection.docs.list(size=1, ref=Ref.alias(alias_name))
-        with pytest.raises(errors.BadRequestError):
-            collection.docs.fetch(ids=[seed_id], ref=Ref.alias(alias_name))
-        with pytest.raises(errors.BadRequestError):
-            collection.query(
-                query={"queryString": {"query": "title:seed"}},
-                ref=Ref.alias(alias_name),
-            )
+        with pytest.raises(errors.RefDeleteConflictError):
+            collection.tags.delete(tag_name)
 
         missing_ref = Ref.alias(f"missing-{suffix}")
         with pytest.raises(errors.ResourceNotFoundError):
@@ -221,7 +199,13 @@ def test_data_versioning_live_smoke() -> None:
         assert retargeted.target_name == branch_name
         assert retargeted.alias_revision > alias.alias_revision
 
+        collection.tags.delete(tag_name)
+        with pytest.raises(errors.RefDeleteConflictError):
+            collection.branches.delete(branch_name)
+
         collection.docs.delete(ids=[bulk_id], branch=branch_name)
+        collection.aliases.delete(alias_name)
+        collection.branches.delete(branch_name)
         client.collections.delete(collection_name=collection_name)
         cleanup_complete = True
     finally:

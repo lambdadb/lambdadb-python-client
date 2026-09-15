@@ -23,7 +23,7 @@ class BulkUpsertDocsRequestBody(BaseModel):
     object_key: Annotated[str, pydantic.Field(alias="objectKey")]
     r"""Object key uploaded based on bulk upsert info."""
     type: str = "application/json"
-    r"""Sent explicitly on upload completion; callers should not rely on a server default."""
+    r"""Optional completion field. The SDK sends application/json by default; the server validates the uploaded object's Content-Type."""
     branch: Optional[RefName] = None
 
 

@@ -7,7 +7,10 @@ from typing import Any, Dict, Generic, Mapping, Optional, Type, TypeVar, Union
 from urllib.parse import quote
 
 from lambdadb import errors, models, utils
-from lambdadb.errors.contract_errors import raise_catalog_conflict
+from lambdadb.errors.contract_errors import (
+    raise_catalog_conflict,
+    raise_ref_delete_conflict,
+)
 from lambdadb._hooks import HookContext
 from lambdadb.basesdk import BaseSDK
 from lambdadb.requestoptions import RequestOptions
@@ -68,7 +71,14 @@ class _VersioningTransport(BaseSDK):
         return None
 
     @staticmethod
-    def _raise_error(response: Any, *, catalog_conflict: bool = False) -> None:
+    def _raise_error(
+        response: Any,
+        *,
+        catalog_conflict: bool = False,
+        ref_delete_conflict: bool = False,
+    ) -> None:
+        if response.status_code == 409 and ref_delete_conflict:
+            raise_ref_delete_conflict(response)
         if response.status_code == 409 and catalog_conflict:
             raise_catalog_conflict(response)
         mappings = {
@@ -105,6 +115,7 @@ class _VersioningTransport(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
+        ref_delete_conflict: bool = False,
     ) -> ResponseT:
         client = self.sdk_configuration.client
         if client is None:
@@ -135,7 +146,9 @@ class _VersioningTransport(BaseSDK):
         )
         if response.status_code != expected_status:
             self._raise_error(
-                response, catalog_conflict=method.upper() in {"PATCH", "DELETE"}
+                response,
+                catalog_conflict=method.upper() in {"PATCH", "DELETE"},
+                ref_delete_conflict=ref_delete_conflict,
             )
         return unmarshal_json_response(response_type, response)
 
@@ -152,6 +165,7 @@ class _VersioningTransport(BaseSDK):
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
+        ref_delete_conflict: bool = False,
     ) -> ResponseT:
         client = self.sdk_configuration.async_client
         if client is None:
@@ -182,7 +196,9 @@ class _VersioningTransport(BaseSDK):
         )
         if response.status_code != expected_status:
             self._raise_error(
-                response, catalog_conflict=method.upper() in {"PATCH", "DELETE"}
+                response,
+                catalog_conflict=method.upper() in {"PATCH", "DELETE"},
+                ref_delete_conflict=ref_delete_conflict,
             )
         return unmarshal_json_response(response_type, response)
 
@@ -294,6 +310,7 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
             f"delete{self.kind.title()}",
             models.MessageResponse,
             200,
+            ref_delete_conflict=True,
             **_options(options),
         )
 
@@ -307,6 +324,7 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
             f"delete{self.kind.title()}",
             models.MessageResponse,
             200,
+            ref_delete_conflict=True,
             **_options(options),
         )
 

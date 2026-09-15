@@ -132,7 +132,11 @@ class AliasTarget(BaseModel):
 
 
 class RefDetails(BaseModel):
-    """Branch or tag details returned by the API."""
+    """Legacy flat ref details retained for source compatibility.
+
+    Branch and Tag lifecycle responses now use :class:`BranchDetails` and
+    :class:`TagDetails`, respectively.
+    """
 
     name: str
     snapshot_id: Annotated[Optional[str], pydantic.Field(alias="snapshotId")]
@@ -141,6 +145,68 @@ class RefDetails(BaseModel):
     @property
     def created_at_dt(self) -> datetime:
         """Creation time as a timezone-aware UTC datetime."""
+        return datetime.fromtimestamp(self.created_at / 1000, tz=timezone.utc)
+
+
+class SnapshotDetails(BaseModel):
+    """An immutable committed snapshot returned with Branch or Tag details."""
+
+    snapshot_id: Annotated[str, pydantic.Field(alias="snapshotId")]
+    snapshot_committed_at: Annotated[
+        int, pydantic.Field(alias="snapshotCommittedAt")
+    ]
+
+    @property
+    def snapshot_committed_at_dt(self) -> datetime:
+        """Snapshot commit time as a timezone-aware UTC datetime."""
+        return datetime.fromtimestamp(
+            self.snapshot_committed_at / 1000, tz=timezone.utc
+        )
+
+
+class BranchDetails(BaseModel):
+    """Branch details with its current head and fixed fork point."""
+
+    name: str
+    head_snapshot: Annotated[
+        Optional[SnapshotDetails], pydantic.Field(alias="headSnapshot")
+    ]
+    parent_snapshot: Annotated[
+        Optional[SnapshotDetails], pydantic.Field(alias="parentSnapshot")
+    ]
+    created_at: Annotated[int, pydantic.Field(alias="createdAt")]
+
+    @property
+    def snapshot_id(self) -> Optional[str]:
+        """Current head snapshot ID, retained for compatibility with RefDetails."""
+        return None if self.head_snapshot is None else self.head_snapshot.snapshot_id
+
+    @property
+    def created_at_dt(self) -> datetime:
+        """Branch creation time as a timezone-aware UTC datetime."""
+        return datetime.fromtimestamp(self.created_at / 1000, tz=timezone.utc)
+
+
+class TagDetails(BaseModel):
+    """Tag details for one immutable pinned snapshot."""
+
+    name: str
+    snapshot_id: Annotated[str, pydantic.Field(alias="snapshotId")]
+    snapshot_committed_at: Annotated[
+        int, pydantic.Field(alias="snapshotCommittedAt")
+    ]
+    created_at: Annotated[int, pydantic.Field(alias="createdAt")]
+
+    @property
+    def snapshot_committed_at_dt(self) -> datetime:
+        """Pinned snapshot commit time as a timezone-aware UTC datetime."""
+        return datetime.fromtimestamp(
+            self.snapshot_committed_at / 1000, tz=timezone.utc
+        )
+
+    @property
+    def created_at_dt(self) -> datetime:
+        """Tag creation time as a timezone-aware UTC datetime."""
         return datetime.fromtimestamp(self.created_at / 1000, tz=timezone.utc)
 
 
@@ -153,7 +219,12 @@ class AliasDetails(BaseModel):
     target_name: Annotated[str, pydantic.Field(alias="targetName")]
     target_id: Annotated[str, pydantic.Field(alias="targetId")]
     alias_revision: Annotated[int, pydantic.Field(alias="aliasRevision", ge=0)]
-    dangling: bool
+    dangling: Annotated[
+        bool,
+        pydantic.Field(
+            description="Whether the bound target identity is currently missing."
+        ),
+    ]
     created_at: Annotated[int, pydantic.Field(alias="createdAt")]
 
     @property
@@ -163,19 +234,19 @@ class AliasDetails(BaseModel):
 
 
 class BranchResponse(BaseModel):
-    branch: RefDetails
+    branch: BranchDetails
 
 
 class BranchListResponse(BaseModel):
-    branches: List[RefDetails]
+    branches: List[BranchDetails]
 
 
 class TagResponse(BaseModel):
-    tag: RefDetails
+    tag: TagDetails
 
 
 class TagListResponse(BaseModel):
-    tags: List[RefDetails]
+    tags: List[TagDetails]
 
 
 class AliasResponse(BaseModel):
