@@ -255,7 +255,7 @@ with LambdaDB(
         description="Updated product catalog",
         tags={"environment": "production"},
         snapshot_retention_in_days=14,
-        # Supply the complete existing schema, including unchanged fields.
+        # Preserve existing fields/settings; nested children may be added.
         index_configs={
             "example-field1": {"type": models.TypeText.TEXT, "analyzers": [models.Analyzer.ENGLISH]},
             "example-field2": {"type": models.TypeVector.VECTOR, "dimensions": 128, "similarity": models.Similarity.COSINE},
@@ -270,7 +270,7 @@ with LambdaDB(
 | Parameter                                                                | Type                                                                     | Required                                                                 | Description                                                              |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | `collection_name`                                                        | *str*                                                                    | :heavy_check_mark:                                                       | Collection name.                                                         |
-| `index_configs` | Dict[str, [models.IndexConfigsUnion](../../models/indexconfigsunion.md)], `None`, or `Unset` | :heavy_minus_sign: | Nonempty complete schema; preserve existing fields. `None` leaves it unchanged. |
+| `index_configs` | Dict[str, [models.IndexConfigsUnion](../../models/indexconfigsunion.md)], `None`, or `Unset` | :heavy_minus_sign: | Nonempty complete schema; preserve existing fields/settings. New fields may be added at any object depth. `None` leaves it unchanged. |
 | `description` | `str`, `None`, or `Unset` | :heavy_minus_sign: | Replacement description. Empty clears it; `None` leaves it unchanged. |
 | `tags` | `Dict[str, str]`, `None`, or `Unset` | :heavy_minus_sign: | Replaces all metadata tags. `{}` clears them; `None` leaves them unchanged. |
 | `snapshot_retention_in_days` | `int`, `None`, or `Unset` | :heavy_minus_sign: | Retention from 1 through 31 days. `None` leaves it unchanged. |

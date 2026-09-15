@@ -1,4 +1,4 @@
-"""Data Versioning contract tests pinned to docs revision b171ff0."""
+"""Data Versioning contract tests pinned to docs revision c8495bf."""
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ def _text_index(analyzer: models.Analyzer) -> Dict[
 
 
 def test_contract_revision_is_pinned() -> None:
-    assert API_CONTRACT_REVISION == "b171ff0a408bbeb024535941b83b861d205a829f"
+    assert API_CONTRACT_REVISION == "c8495bf47cd8918cfd546b4742823fd4cf3d0814"
 
 
 def test_final_contract_collection_validation_and_null_patch_semantics() -> None:
@@ -85,6 +85,28 @@ def test_final_contract_collection_validation_and_null_patch_semantics() -> None
     assert request.model_dump(by_alias=True) == {"tags": {}}
     with pytest.raises(ValidationError, match="at least one collection field"):
         models.UpdateCollectionRequestBody(description=None)
+
+    nested_addition = models.UpdateCollectionRequestBody(
+        index_configs={
+            "profile": models.IndexConfigsObject(
+                type=models.TypeObject.OBJECT,
+                object_index_configs={
+                    "name": {"type": "keyword"},
+                    "address": {
+                        "type": "object",
+                        "objectIndexConfigs": {
+                            "city": {"type": "keyword"},
+                            "postalCode": {"type": "keyword"},
+                        },
+                    },
+                },
+            )
+        }
+    )
+    nested = nested_addition.model_dump(mode="json", by_alias=True)["indexConfigs"]
+    assert nested["profile"]["objectIndexConfigs"]["address"][
+        "objectIndexConfigs"
+    ]["postalCode"] == {"type": "keyword"}
 
     response = models.CollectionResponse.model_validate(
         {key: value for key, value in _collection_body().items() if key != "dataUpdatedAt"}
@@ -226,13 +248,57 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
         == 1788336000123
     )
 
-    details = models.RefDetails.model_validate(
-        {"name": "main", "snapshotId": "snapshot-1", "createdAt": 1788336000123}
+    branch = models.BranchDetails.model_validate(
+        {
+            "name": "experiment",
+            "headSnapshot": {
+                "snapshotId": "snapshot-2",
+                "snapshotCommittedAt": 1788336000456,
+            },
+            "parentSnapshot": {
+                "snapshotId": "snapshot-1",
+                "snapshotCommittedAt": 1788336000123,
+            },
+            "createdAt": 1788336000234,
+        }
     )
-    assert details.model_dump(by_alias=True)["createdAt"] == 1788336000123
-    assert details.created_at_dt == datetime.fromtimestamp(
-        1788336000.123, tz=timezone.utc
+    assert branch.snapshot_id == "snapshot-2"
+    assert branch.parent_snapshot is not None
+    assert branch.parent_snapshot.snapshot_id == "snapshot-1"
+    assert branch.head_snapshot is not None
+    assert branch.head_snapshot.snapshot_committed_at_dt == datetime.fromtimestamp(
+        1788336000.456, tz=timezone.utc
     )
+    assert branch.created_at_dt == datetime.fromtimestamp(
+        1788336000.234, tz=timezone.utc
+    )
+    assert models.BranchListResponse(branches=[branch]).branches[0] == branch
+
+    empty_main = models.BranchDetails.model_validate(
+        {
+            "name": "main",
+            "headSnapshot": None,
+            "parentSnapshot": None,
+            "createdAt": 1788336000123,
+        }
+    )
+    assert empty_main.snapshot_id is None
+
+    tag = models.TagDetails.model_validate(
+        {
+            "name": "release-1",
+            "snapshotId": "snapshot-2",
+            "snapshotCommittedAt": 1788336000456,
+            "createdAt": 1788336000789,
+        }
+    )
+    assert tag.snapshot_committed_at_dt == datetime.fromtimestamp(
+        1788336000.456, tz=timezone.utc
+    )
+    assert tag.created_at_dt == datetime.fromtimestamp(
+        1788336000.789, tz=timezone.utc
+    )
+    assert models.TagListResponse(tags=[tag]).tags[0] == tag
 
     with pytest.raises(ValidationError, match="as_of is only valid"):
         models.RefSource.model_validate({"kind": "tag", "name": "release-1", "asOf": 1})
@@ -423,7 +489,8 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
                 {
                     "branch": {
                         "name": body["branchName"],
-                        "snapshotId": None,
+                        "headSnapshot": None,
+                        "parentSnapshot": None,
                         "createdAt": 1788336000001,
                     }
                 },
@@ -433,6 +500,10 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
         if "/branches/" in path:
             if path.endswith("/missing"):
                 return _response(request, 404, {"message": "not found"})
+            if path.endswith("/in-use"):
+                return _response(
+                    request, 409, {"message": "referenced by alias production-read"}
+                )
             return _response(request, 200, {"message": "Ref deleted"})
         if path.endswith("/tags") and request.method == "POST":
             body = json.loads(request.content)
@@ -443,6 +514,7 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
                     "tag": {
                         "name": body["tagName"],
                         "snapshotId": "s1",
+                        "snapshotCommittedAt": 1788335999999,
                         "createdAt": 1788336000002,
                     }
                 },
@@ -450,6 +522,10 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
         if path.endswith("/tags"):
             return _response(request, 200, {"tags": []})
         if "/tags/" in path:
+            if path.endswith("/in-use"):
+                return _response(
+                    request, 409, {"message": "referenced by alias production-read"}
+                )
             return _response(request, 200, {"message": "Ref deleted"})
         if path.endswith("/aliases") and request.method == "POST":
             body = json.loads(request.content)
@@ -507,6 +583,10 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
             collection.branches.create("duplicate")
         with pytest.raises(errors.ResourceNotFoundError):
             collection.branches.delete("missing")
+        with pytest.raises(
+            errors.RefDeleteConflictError, match="referenced by alias"
+        ) as raised:
+            collection.branches.delete("in-use")
 
     assert requests[0].url.path.endswith("/collections/catalog/branches")
     assert json.loads(requests[0].content)["source"]["asOf"] == 1788336000123
@@ -515,6 +595,7 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
     assert alias.alias.target_kind.value == "TAG"
     assert retargeted.alias.target_kind.value == "BRANCH"
     assert aliases.aliases[0].dangling is True
+    assert raised.value.status_code == 409
 
 
 def test_all_lifecycle_endpoints_work_async() -> None:
@@ -533,7 +614,14 @@ def test_all_lifecycle_endpoints_work_async() -> None:
                 {
                     "branch": {
                         "name": body["branchName"],
-                        "snapshotId": "snapshot-1",
+                        "headSnapshot": {
+                            "snapshotId": "snapshot-1",
+                            "snapshotCommittedAt": 1788335999999,
+                        },
+                        "parentSnapshot": {
+                            "snapshotId": "snapshot-1",
+                            "snapshotCommittedAt": 1788335999999,
+                        },
                         "createdAt": 1788336000001,
                     }
                 },
@@ -541,6 +629,10 @@ def test_all_lifecycle_endpoints_work_async() -> None:
         if path.endswith("/branches"):
             return _response(request, 200, {"branches": []})
         if "/branches/" in path:
+            if path.endswith("/in-use"):
+                return _response(
+                    request, 409, {"message": "referenced by alias production-read"}
+                )
             return _response(request, 200, {"message": "Ref deleted"})
         if path.endswith("/tags") and request.method == "POST":
             body = json.loads(request.content)
@@ -551,6 +643,7 @@ def test_all_lifecycle_endpoints_work_async() -> None:
                     "tag": {
                         "name": body["tagName"],
                         "snapshotId": "snapshot-1",
+                        "snapshotCommittedAt": 1788335999999,
                         "createdAt": 1788336000002,
                     }
                 },
@@ -558,6 +651,10 @@ def test_all_lifecycle_endpoints_work_async() -> None:
         if path.endswith("/tags"):
             return _response(request, 200, {"tags": []})
         if "/tags/" in path:
+            if path.endswith("/in-use"):
+                return _response(
+                    request, 409, {"message": "referenced by alias production-read"}
+                )
             return _response(request, 200, {"message": "Ref deleted"})
         if path.endswith("/aliases") and request.method == "POST":
             body = json.loads(request.content)
@@ -608,6 +705,8 @@ def test_all_lifecycle_endpoints_work_async() -> None:
             await collection.aliases.delete_async("production-read")
             with pytest.raises(errors.ResourceAlreadyExistsError):
                 await collection.branches.create_async("duplicate")
+            with pytest.raises(errors.RefDeleteConflictError, match="referenced"):
+                await collection.tags.delete_async("in-use")
 
     asyncio.run(run())
     assert [(request.method, request.url.path) for request in requests[:10]] == [
@@ -817,6 +916,55 @@ def test_consistent_read_rejects_tag_and_alias_before_network() -> None:
     assert not requests
 
 
+@pytest.mark.parametrize(
+    ("body_type", "required"),
+    [
+        (models.QueryCollectionRequestBody, {"query": {}}),
+        (models.FetchDocsRequestBody, {"ids": ["1"]}),
+    ],
+)
+@pytest.mark.parametrize("ref", [Ref.tag("release-1"), Ref.alias("production-read")])
+def test_consistent_read_request_models_require_branch_ref(
+    body_type: Any, required: Dict[str, Any], ref: Ref
+) -> None:
+    with pytest.raises(ValidationError, match="direct branch ref"):
+        body_type(**required, consistent_read=True, ref=ref)
+
+    assert body_type(
+        **required, consistent_read=False, ref=ref
+    ).ref == ref
+    assert body_type(
+        **required, consistent_read=True, ref=Ref.branch("main")
+    ).ref == Ref.branch("main")
+    assert body_type(**required, consistent_read=True).ref is None
+
+
+def test_consistent_read_async_methods_reject_non_branch_before_network() -> None:
+    requests: List[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        raise AssertionError("network should not be called")
+
+    async def run() -> None:
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(handler)
+        ) as transport:
+            client = LambdaDB(project_api_key="secret", async_client=transport)
+            collection = client.collection("catalog")
+            with pytest.raises(ValueError, match="direct branch ref"):
+                await collection.query_async(
+                    query={}, consistent_read=True, ref=Ref.alias("production-read")
+                )
+            with pytest.raises(ValueError, match="direct branch ref"):
+                await collection.docs.fetch_async(
+                    ids=["1"], consistent_read=True, ref=Ref.tag("release-1")
+                )
+
+    asyncio.run(run())
+    assert not requests
+
+
 def test_list_pages_and_iter_all_preserve_ref_on_every_page_sync_and_async() -> None:
     sync_requests: List[httpx.Request] = []
     async_requests: List[httpx.Request] = []
@@ -992,6 +1140,28 @@ def test_bulk_upload_forwards_signed_headers_uses_transfer_client_and_same_branc
     assert transfer_requests[0].headers["content-type"] == "application/json"
 
 
+def test_bulk_completion_type_is_not_a_required_user_input() -> None:
+    body = models.BulkUpsertDocsRequestBody(object_key="objects/data.json")
+    assert body.model_dump(mode="json", by_alias=True, exclude_none=True) == {
+        "objectKey": "objects/data.json",
+        "type": "application/json",
+    }
+
+    client = LambdaDB(project_api_key="secret")
+    try:
+        sync_parameters = inspect.signature(
+            client.collection("catalog").docs.bulk_upsert
+        ).parameters
+        async_parameters = inspect.signature(
+            client.collection("catalog").docs.bulk_upsert_async
+        ).parameters
+    finally:
+        client.close()
+
+    assert "type" not in sync_parameters
+    assert sync_parameters.keys() == async_parameters.keys()
+
+
 def test_bulk_upload_respects_zero_size_limit_without_transfer_or_completion() -> None:
     api_requests: List[httpx.Request] = []
     transfer_requests: List[httpx.Request] = []
@@ -1065,7 +1235,8 @@ def test_async_lifecycle_read_and_bulk_upload_match_sync_behavior() -> None:
                 {
                     "branch": {
                         "name": body["branchName"],
-                        "snapshotId": None,
+                        "headSnapshot": None,
+                        "parentSnapshot": None,
                         "createdAt": 1788336000001,
                     }
                 },

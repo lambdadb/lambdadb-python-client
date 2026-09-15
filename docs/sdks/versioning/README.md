@@ -2,7 +2,7 @@
 
 The Python SDK implements the collection-scoped Data Versioning contract from
 docs revision
-[`b171ff0a408bbeb024535941b83b861d205a829f`](https://github.com/lambdadb/docs/commit/b171ff0a408bbeb024535941b83b861d205a829f).
+[`c8495bf47cd8918cfd546b4742823fd4cf3d0814`](https://github.com/lambdadb/docs/commit/c8495bf47cd8918cfd546b4742823fd4cf3d0814).
 
 ## Branch, Tag, and Alias lifecycle
 
@@ -32,6 +32,11 @@ with LambdaDB(project_api_key="...") as client:
     branches = collection.branches.list().branches
     tags = collection.tags.list().tags
     aliases = collection.aliases.list().aliases
+
+    # Branches expose current-head and fixed fork-point snapshot metadata.
+    current_head = branch.branch.head_snapshot
+    fork_point = branch.branch.parent_snapshot
+    pinned_at = tag.tag.snapshot_committed_at_dt
 ```
 
 Lifecycle methods have matching async forms: `create_async`, `list_async`,
@@ -46,10 +51,12 @@ or Alias ref. On a directly selected Branch, a consistent read overlays
 eligible pending writes on the committed head. It excludes pending bulk imports
 and can return HTTP 429 when the pending payload exceeds the overlay limit.
 
-Deleting a Branch or Tag can leave an Alias dangling. Such aliases remain in
-`aliases.list()` with `dangling=True` until they are retargeted or deleted.
-Reading through a dangling Alias raises `BadRequestError`; selecting a ref that
-does not exist raises `ResourceNotFoundError`.
+Deleting a Branch or Tag referenced by an Alias is blocked with
+`RefDeleteConflictError` (409). Retarget or delete every referencing Alias
+before retrying. An Alias that is already dangling remains visible in
+`aliases.list()` with `dangling=True`; reading through it raises
+`BadRequestError`. Selecting a ref that does not exist raises
+`ResourceNotFoundError`.
 
 ## Ref-scoped reads
 
@@ -113,7 +120,9 @@ with httpx.Client() as transfer_client:
 
 For manual upload, pass the same `branch` to `get_bulk_upsert()` and
 `bulk_upsert()`, use `info.http_method`, set `Content-Type` from `info.type`,
-and forward `info.headers` unchanged.
+and forward `info.headers` unchanged. The completion `type` is not a required
+user argument; the SDK continues to send `application/json` by default. The
+server validates the uploaded object's `Content-Type`.
 
 ## Error and retry semantics
 
@@ -124,3 +133,8 @@ Conditional metadata updates can raise `CatalogConflictError` (409). A 502 or
 before retrying. For 429 responses, inspect `error.headers.get("Retry-After")`;
 the header is optional and `consistent_read=True` can also return 429 when the
 pending-write overlay is too large.
+
+Branch or Tag deletion raises `RefDeleteConflictError` (409) while an Alias
+references that target. This conflict should not be blindly retried; delete or
+retarget the referencing Aliases first. The same error can also represent a
+conditional catalog conflict; inspect the message and current ref state.
