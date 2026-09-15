@@ -1,4 +1,4 @@
-"""Data Versioning contract tests pinned to docs revision a9374f3."""
+"""Data Versioning contract tests pinned to docs revision c8495bf."""
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ def _text_index(analyzer: models.Analyzer) -> Dict[
 
 
 def test_contract_revision_is_pinned() -> None:
-    assert API_CONTRACT_REVISION == "a9374f3f15deb6205f259a5d9c7b73138136062f"
+    assert API_CONTRACT_REVISION == "c8495bf47cd8918cfd546b4742823fd4cf3d0814"
 
 
 def test_final_contract_collection_validation_and_null_patch_semantics() -> None:
@@ -916,6 +916,55 @@ def test_consistent_read_rejects_tag_and_alias_before_network() -> None:
     assert not requests
 
 
+@pytest.mark.parametrize(
+    ("body_type", "required"),
+    [
+        (models.QueryCollectionRequestBody, {"query": {}}),
+        (models.FetchDocsRequestBody, {"ids": ["1"]}),
+    ],
+)
+@pytest.mark.parametrize("ref", [Ref.tag("release-1"), Ref.alias("production-read")])
+def test_consistent_read_request_models_require_branch_ref(
+    body_type: Any, required: Dict[str, Any], ref: Ref
+) -> None:
+    with pytest.raises(ValidationError, match="direct branch ref"):
+        body_type(**required, consistent_read=True, ref=ref)
+
+    assert body_type(
+        **required, consistent_read=False, ref=ref
+    ).ref == ref
+    assert body_type(
+        **required, consistent_read=True, ref=Ref.branch("main")
+    ).ref == Ref.branch("main")
+    assert body_type(**required, consistent_read=True).ref is None
+
+
+def test_consistent_read_async_methods_reject_non_branch_before_network() -> None:
+    requests: List[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        raise AssertionError("network should not be called")
+
+    async def run() -> None:
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(handler)
+        ) as transport:
+            client = LambdaDB(project_api_key="secret", async_client=transport)
+            collection = client.collection("catalog")
+            with pytest.raises(ValueError, match="direct branch ref"):
+                await collection.query_async(
+                    query={}, consistent_read=True, ref=Ref.alias("production-read")
+                )
+            with pytest.raises(ValueError, match="direct branch ref"):
+                await collection.docs.fetch_async(
+                    ids=["1"], consistent_read=True, ref=Ref.tag("release-1")
+                )
+
+    asyncio.run(run())
+    assert not requests
+
+
 def test_list_pages_and_iter_all_preserve_ref_on_every_page_sync_and_async() -> None:
     sync_requests: List[httpx.Request] = []
     async_requests: List[httpx.Request] = []
@@ -1089,6 +1138,28 @@ def test_bulk_upload_forwards_signed_headers_uses_transfer_client_and_same_branc
     assert transfer_requests[0].url.host == "storage.example"
     assert transfer_requests[0].headers["x-amz-checksum-sha256"] == "signed-value"
     assert transfer_requests[0].headers["content-type"] == "application/json"
+
+
+def test_bulk_completion_type_is_not_a_required_user_input() -> None:
+    body = models.BulkUpsertDocsRequestBody(object_key="objects/data.json")
+    assert body.model_dump(mode="json", by_alias=True, exclude_none=True) == {
+        "objectKey": "objects/data.json",
+        "type": "application/json",
+    }
+
+    client = LambdaDB(project_api_key="secret")
+    try:
+        sync_parameters = inspect.signature(
+            client.collection("catalog").docs.bulk_upsert
+        ).parameters
+        async_parameters = inspect.signature(
+            client.collection("catalog").docs.bulk_upsert_async
+        ).parameters
+    finally:
+        client.close()
+
+    assert "type" not in sync_parameters
+    assert sync_parameters.keys() == async_parameters.keys()
 
 
 def test_bulk_upload_respects_zero_size_limit_without_transfer_or_completion() -> None:

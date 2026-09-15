@@ -2,7 +2,7 @@
 
 The Python SDK implements the collection-scoped Data Versioning contract from
 docs revision
-[`a9374f3f15deb6205f259a5d9c7b73138136062f`](https://github.com/lambdadb/docs/commit/a9374f3f15deb6205f259a5d9c7b73138136062f).
+[`c8495bf47cd8918cfd546b4742823fd4cf3d0814`](https://github.com/lambdadb/docs/commit/c8495bf47cd8918cfd546b4742823fd4cf3d0814).
 
 ## Branch, Tag, and Alias lifecycle
 
@@ -120,7 +120,9 @@ with httpx.Client() as transfer_client:
 
 For manual upload, pass the same `branch` to `get_bulk_upsert()` and
 `bulk_upsert()`, use `info.http_method`, set `Content-Type` from `info.type`,
-and forward `info.headers` unchanged.
+and forward `info.headers` unchanged. The completion `type` is not a required
+user argument; the SDK continues to send `application/json` by default. The
+server validates the uploaded object's `Content-Type`.
 
 ## Error and retry semantics
 

@@ -3,12 +3,12 @@
 from __future__ import annotations
 from .fieldsselector_union import FieldsSelectorUnion, FieldsSelectorUnionTypedDict
 from .partitionfilter import PartitionFilter, PartitionFilterTypedDict
-from .versioning import Ref
+from .versioning import Ref, RefKind
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
 from pydantic import ConfigDict
-from pydantic import model_serializer
+from pydantic import model_serializer, model_validator
 import warnings
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
@@ -51,6 +51,16 @@ class FetchDocsRequestBody(BaseModel):
     ] = None
 
     ref: Optional[Ref] = None
+
+    @model_validator(mode="after")
+    def validate_consistent_read_ref(self) -> "FetchDocsRequestBody":
+        if (
+            self.consistent_read
+            and self.ref is not None
+            and self.ref.kind is not RefKind.BRANCH
+        ):
+            raise ValueError("consistent_read=True requires a direct branch ref")
+        return self
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):

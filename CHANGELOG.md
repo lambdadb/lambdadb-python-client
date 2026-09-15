@@ -3,7 +3,7 @@
 ## Unreleased
 
 Aligned the SDK with LambdaDB docs contract revision
-[`a9374f3f15deb6205f259a5d9c7b73138136062f`](https://github.com/lambdadb/docs/commit/a9374f3f15deb6205f259a5d9c7b73138136062f).
+[`c8495bf47cd8918cfd546b4742823fd4cf3d0814`](https://github.com/lambdadb/docs/commit/c8495bf47cd8918cfd546b4742823fd4cf3d0814).
 The source revision is a contract pin, not evidence that an environment has
 deployed it.
 
@@ -27,6 +27,11 @@ deployed it.
   nested object depth.
 - Deleting a Branch or Tag referenced by an Alias is blocked with HTTP 409;
   retarget or delete every referencing Alias before retrying.
+- Fetch and Query request models reject `consistent_read=True` with Tag or
+  Alias refs. Omitting the ref still selects the default Branch.
+- Bulk completion does not require users to supply `type`; the SDK continues
+  to send `application/json` by default, while upload requests retain their
+  required `Content-Type` header.
 
 ## 0.9.0rc2
 
