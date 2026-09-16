@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from lambdadb import AliasTarget, LambdaDB, Ref, RefSource, errors, models
+from lambdadb import AliasTarget, BranchSource, LambdaDB, Ref, RefSource, errors, models
 
 pytestmark = pytest.mark.integration
 
@@ -67,6 +67,7 @@ def test_data_versioning_live_smoke() -> None:
     suffix = uuid.uuid4().hex[:10]
     collection_name = f"python-sdk-versioning-{suffix}"
     branch_name = f"candidate-{suffix}"
+    empty_branch_name = f"empty-{suffix}"
     tag_name = f"validated-{suffix}"
     alias_name = f"production-{suffix}"
     seed_id = f"seed-{suffix}"
@@ -103,6 +104,16 @@ def test_data_versioning_live_smoke() -> None:
         )
         assert updated.collection.snapshot_retention_in_days == 2
 
+        empty_branch = collection.branches.create(
+            empty_branch_name, source=BranchSource.branch("main")
+        ).branch
+        assert empty_branch.head_snapshot is None
+        assert empty_branch.parent_snapshot is None
+        assert empty_branch.parent_branch is not None
+        assert empty_branch.parent_branch.name == "main"
+        assert empty_branch.parent_branch.branch_id
+        collection.branches.delete(empty_branch_name)
+
         collection.docs.upsert(docs=[{"id": seed_id, "title": "seed"}])
 
         def main_contains_seed() -> bool:
@@ -120,10 +131,19 @@ def test_data_versioning_live_smoke() -> None:
         _wait_for("main branch snapshot", main_has_snapshot)
 
         branch = collection.branches.create(
-            branch_name, source=RefSource.branch("main")
+            branch_name, source=BranchSource.branch("main")
         ).branch
         assert branch.name == branch_name
         assert branch.created_at > 1_000_000_000_000
+        assert branch.parent_branch is not None
+        assert branch.parent_branch.name == "main"
+        assert branch.parent_branch.branch_id
+        listed_branch = next(
+            item
+            for item in collection.branches.list().branches
+            if item.name == branch_name
+        )
+        assert listed_branch.parent_branch == branch.parent_branch
 
         with pytest.raises(errors.ResourceAlreadyExistsError):
             collection.branches.create(branch_name)
