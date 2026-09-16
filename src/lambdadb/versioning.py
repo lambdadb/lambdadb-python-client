@@ -22,7 +22,7 @@ from lambdadb.utils.unmarshal_json_response import unmarshal_json_response
 ResponseT = TypeVar("ResponseT", bound=BaseModel)
 RefResponseT = TypeVar("RefResponseT", bound=BaseModel)
 RefListResponseT = TypeVar("RefListResponseT", bound=BaseModel)
-SourceInput = Union[models.RefSource, Mapping[str, Any]]
+SourceInput = Union[models.RefSource, models.BranchSource, Mapping[str, Any]]
 TargetInput = Union[models.AliasTarget, Mapping[str, Any]]
 
 
@@ -228,6 +228,18 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
         collection = quote(self._transport.collection_name, safe="")
         return f"/collections/{collection}/{self.plural}"
 
+    def _validate_source(
+        self, source: SourceInput
+    ) -> Union[models.BranchSource, models.RefSource]:
+        """Validate the source before either sync or async transport is used."""
+        if isinstance(source, BaseModel):
+            source = source.model_dump(mode="json", by_alias=True, exclude_none=True)
+        if self.kind == "branch":
+            if isinstance(source, Mapping) and source.get("kind") != "branch":
+                raise ValueError("Branch source must be a branch")
+            return models.BranchSource.model_validate(source)
+        return models.RefSource.model_validate(source)
+
     def create(
         self,
         name: str,
@@ -235,9 +247,7 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
         source: Optional[SourceInput] = None,
         options: Optional[RequestOptions] = None,
     ) -> RefResponseT:
-        source_model = (
-            None if source is None else models.RefSource.model_validate(source)
-        )
+        source_model = None if source is None else self._validate_source(source)
         body: Dict[str, Any] = {f"{self.kind}Name": models.Ref.branch(name).name}
         if source_model is not None:
             body["source"] = source_model.model_dump(
@@ -260,9 +270,7 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
         source: Optional[SourceInput] = None,
         options: Optional[RequestOptions] = None,
     ) -> RefResponseT:
-        source_model = (
-            None if source is None else models.RefSource.model_validate(source)
-        )
+        source_model = None if source is None else self._validate_source(source)
         body: Dict[str, Any] = {f"{self.kind}Name": models.Ref.branch(name).name}
         if source_model is not None:
             body["source"] = source_model.model_dump(

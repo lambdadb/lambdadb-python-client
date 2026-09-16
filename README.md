@@ -165,9 +165,10 @@ with LambdaDB(
 Use typed helpers to scope reads, writes, and collection-local snapshots:
 
 ```python
-from lambdadb import AliasTarget, Ref, RefSource
+from lambdadb import AliasTarget, BranchSource, Ref, RefSource
 
-coll.branches.create("experiment", source=RefSource.branch("main"))
+branch = coll.branches.create("experiment", source=BranchSource.branch("main"))
+direct_parent = branch.branch.parent_branch  # fixed branch_id/name, or None
 coll.tags.create("validated-2026-09", source=RefSource.branch("experiment"))
 coll.aliases.create(
     "production-read", target=AliasTarget.tag("validated-2026-09")

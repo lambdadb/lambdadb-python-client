@@ -36,6 +36,8 @@ def test_imports() -> None:
         FetchDocsResponse,
         Ref,
         RefSource,
+        BranchSource,
+        ParentBranchDetails,
         AliasTarget,
         CollectionVersioning,
     )
@@ -48,6 +50,8 @@ def test_imports() -> None:
     assert FetchDocsResponse is not None
     assert Ref is not None
     assert RefSource is not None
+    assert BranchSource is not None
+    assert ParentBranchDetails is not None
     assert AliasTarget is not None
     assert CollectionVersioning is not None
     assert Collection is not None

@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+Aligned the SDK with LambdaDB docs contract revision
+[`c44180406c05b1a9043d8516e7c7f60df91fc9a7`](https://github.com/lambdadb/docs/commit/c44180406c05b1a9043d8516e7c7f60df91fc9a7)
+and server [PR #405](https://github.com/lambdadb/lambdadb/pull/405).
+The source revision and merged server PR are not evidence that an API
+environment has deployed the change.
+
+### Added
+
+- `BranchSource` is a Branch-only helper for Branch creation, with optional
+  epoch-millisecond `as_of`. Existing `RefSource.branch(...)` calls still work.
+- Branch create/list responses expose nullable `parent_branch` containing the
+  direct source Branch's fixed `branch_id` and `name`. It can be present even
+  when both snapshot fields are null; `main` and Branches without recorded
+  parent metadata return `None`.
+
+### Changed
+
+- Branch creation now rejects Tag and Alias sources locally before sending a
+  request, matching server HTTP 400 behavior. Replace
+  `branches.create(..., source=RefSource.tag(name))` with a Branch source, or
+  create a Tag from that Tag when an immutable snapshot is intended. Omitted
+  Branch source still selects `main`, and Branch `as_of` remains supported.
+  Tag creation continues to accept Branch and Tag sources.
+- `BranchDetails` now requires the `parentBranch` response field, which may be
+  null. The parent is historical identity, not a live dependency or the Branch
+  where the selected snapshot was committed.
+
 ## 0.9.0rc3
 
 Aligned the SDK with LambdaDB docs contract revision

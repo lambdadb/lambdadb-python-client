@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 import pydantic
 from pydantic import ConfigDict, model_validator
@@ -29,7 +29,7 @@ class RefKind(str, Enum):
 
 
 class RefSourceKind(str, Enum):
-    """Kinds accepted as a new branch or tag source."""
+    """Kinds accepted as a new Tag source; Branches require Branch sources."""
 
     BRANCH = "branch"
     TAG = "tag"
@@ -81,7 +81,11 @@ RefContext = Ref
 
 
 class RefSource(BaseModel):
-    """Source for a new branch or tag; ``as_of`` is valid only for branches."""
+    """Source for a new tag; ``as_of`` is valid only for branch sources.
+
+    ``RefSource.branch(...)`` remains accepted by Branch creation for
+    compatibility. A Tag source cannot be used to create a Branch.
+    """
 
     kind: RefSourceKind
     name: RefName
@@ -108,6 +112,25 @@ class RefSource(BaseModel):
     def tag(cls, name: str) -> "RefSource":
         """Use a tag snapshot."""
         return cls(kind=RefSourceKind.TAG, name=name)
+
+
+class BranchSource(BaseModel):
+    """Branch-only source for a new Branch, optionally at an as-of cutoff."""
+
+    kind: Literal[RefSourceKind.BRANCH]
+    name: RefName
+    as_of: Annotated[Optional[int], pydantic.Field(alias="asOf")] = None
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        protected_namespaces=(),
+        extra="forbid",
+    )
+
+    @classmethod
+    def branch(cls, name: str, *, as_of: Optional[int] = None) -> "BranchSource":
+        """Use a Branch head, optionally at an epoch-millisecond cutoff."""
+        return cls(kind=RefSourceKind.BRANCH, name=name, as_of=as_of)
 
 
 class AliasTarget(BaseModel):
@@ -164,10 +187,20 @@ class SnapshotDetails(BaseModel):
         )
 
 
+class ParentBranchDetails(BaseModel):
+    """Fixed identity of the directly requested source Branch at creation."""
+
+    branch_id: Annotated[str, pydantic.Field(alias="branchId")]
+    name: str
+
+
 class BranchDetails(BaseModel):
-    """Branch details with its current head and fixed fork point."""
+    """Branch details with its current head and fixed source lineage."""
 
     name: str
+    parent_branch: Annotated[
+        Optional[ParentBranchDetails], pydantic.Field(alias="parentBranch")
+    ]
     head_snapshot: Annotated[
         Optional[SnapshotDetails], pydantic.Field(alias="headSnapshot")
     ]
