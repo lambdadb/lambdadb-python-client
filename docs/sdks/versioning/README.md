@@ -2,19 +2,19 @@
 
 The Python SDK implements the collection-scoped Data Versioning contract from
 docs revision
-[`c8495bf47cd8918cfd546b4742823fd4cf3d0814`](https://github.com/lambdadb/docs/commit/c8495bf47cd8918cfd546b4742823fd4cf3d0814).
+[`c44180406c05b1a9043d8516e7c7f60df91fc9a7`](https://github.com/lambdadb/docs/commit/c44180406c05b1a9043d8516e7c7f60df91fc9a7).
 
 ## Branch, Tag, and Alias lifecycle
 
 ```python
-from lambdadb import AliasTarget, LambdaDB, RefSource
+from lambdadb import AliasTarget, BranchSource, LambdaDB, RefSource
 
 with LambdaDB(project_api_key="...") as client:
     collection = client.collection("catalog")
 
     branch = collection.branches.create(
         "experiment",
-        source=RefSource.branch("main", as_of=1788336000123),
+        source=BranchSource.branch("main", as_of=1788336000123),
     )
     tag = collection.tags.create(
         "validated-2026-09",
@@ -33,23 +33,35 @@ with LambdaDB(project_api_key="...") as client:
     tags = collection.tags.list().tags
     aliases = collection.aliases.list().aliases
 
-    # Branches expose current-head and fixed fork-point snapshot metadata.
+    # Branches expose current-head and fixed source-lineage metadata.
     current_head = branch.branch.head_snapshot
     fork_point = branch.branch.parent_snapshot
+    direct_parent = branch.branch.parent_branch  # branch_id and name, or None
     pinned_at = tag.tag.snapshot_committed_at_dt
 ```
 
 Lifecycle methods have matching async forms: `create_async`, `list_async`,
 `delete_async`, and `retarget_async`.
 
-`RefSource` accepts a Branch or Tag. Only a Branch source accepts the optional
-`as_of` epoch-millisecond cutoff. `AliasTarget` accepts a Branch or Tag; an
+Branch creation accepts only a Branch source. Use `BranchSource.branch(...)`,
+or omit `source` to use `main`; existing `RefSource.branch(...)` calls remain
+valid. A Tag or Alias source is rejected before a request is sent. Tag creation
+accepts `RefSource.branch(...)` or `RefSource.tag(...)`; a Tag source pins the
+same snapshot. Only a Branch source accepts the optional `as_of`
+epoch-millisecond cutoff. `AliasTarget` accepts a Branch or Tag; an
 Alias cannot target another Alias. Invalid kinds, names, and combinations raise
-a Pydantic `ValidationError` before any request is sent. Query and Fetch also
-raise `ValueError` locally when `consistent_read=True` is combined with a Tag
-or Alias ref. On a directly selected Branch, a consistent read overlays
-eligible pending writes on the committed head. It excludes pending bulk imports
-and can return HTTP 429 when the pending payload exceeds the overlay limit.
+a Pydantic `ValidationError` or `ValueError` before any request is sent. Query
+and Fetch also raise `ValueError` locally when `consistent_read=True` is
+combined with a Tag or Alias ref. On a directly selected Branch, a consistent
+read overlays eligible pending writes on the committed head. It excludes
+pending bulk imports and can return HTTP 429 when the pending payload exceeds
+the overlay limit.
+
+`parent_branch` is the direct source Branch's fixed identity and name, not the
+Branch that committed the selected snapshot. It is present even when both
+snapshot fields are `None` for an empty source. `main` and older Branches with
+no recorded parent return `None`. This is historical metadata: deleting or
+recreating the parent does not change it and does not block deletion.
 
 Deleting a Branch or Tag referenced by an Alias is blocked with
 `RefDeleteConflictError` (409). Retarget or delete every referencing Alias

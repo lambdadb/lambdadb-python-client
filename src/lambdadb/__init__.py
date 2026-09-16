@@ -17,6 +17,8 @@ from .models.versioning import (
     AliasTarget,
     AliasTargetKind,
     BranchDetails,
+    BranchSource,
+    ParentBranchDetails,
     Ref,
     RefDetails,
     RefKind,

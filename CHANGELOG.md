@@ -1,5 +1,69 @@
 # Changelog
 
+## 0.9.0
+
+First stable Data Versioning release. This includes the changes described
+under `0.9.0rc1` through `0.9.0rc3` below, plus the Branch source and parent
+metadata alignment in this entry. The implemented contract is pinned to docs
+revision
+[`c44180406c05b1a9043d8516e7c7f60df91fc9a7`](https://github.com/lambdadb/docs/commit/c44180406c05b1a9043d8516e7c7f60df91fc9a7)
+and server [PR #405](https://github.com/lambdadb/lambdadb/pull/405).
+A source revision or merged server PR is not by itself evidence of deployment
+in a particular API environment.
+
+### Upgrade from stable `0.8.2`
+
+- Collection creation requires `index_configs`; cross-collection
+  `source_*` creation arguments and response fields are removed. Branches and
+  Tags are collection-scoped and are **not** a direct replacement for
+  cross-collection source creation. Use an explicit copy/import workflow.
+- Collection create responses now contain `CreatedCollection` rather than a
+  full `CollectionResponse`. Collection creation/deletion use HTTP 201/200;
+  document writes remain HTTP 202. Collection and ref timestamp integers are
+  Unix epoch **milliseconds**, so update any direct timestamp conversions.
+- Collection response fields, update semantics, metadata-tag validation, and
+  strict request-field validation changed. In particular, omitted/`None`
+  update fields are unchanged, `description=""` clears the description, and
+  `tags={}` replaces/clears tags. Empty `index_configs` are rejected.
+- Branch create/list now return `BranchDetails`, Tag create/list return
+  `TagDetails`, and Branch responses require nullable `parentBranch`.
+  `RefDetails` remains importable but is no longer the lifecycle response type.
+  Branch creation permits only a Branch source; Tag creation still permits
+  Branch or Tag sources. Replace any Tag-sourced Branch creation with an
+  appropriate Branch source or an immutable Tag workflow.
+- Query, Fetch, and List may select a Branch, Tag, or Alias. Writes select only
+  a Branch. `consistent_read=True` requires a directly selected Branch;
+  Tag/Alias refs are rejected locally. List page iterators retain the ref.
+- Manual bulk uploads must forward the signed upload headers; the upload
+  information response has additional required fields. The one-step helper
+  supports a separate transfer client. Branch/Tag deletion can return HTTP 409
+  when an Alias refers to the target.
+
+See the detailed `0.9.0rc1` breaking-change and migration sections below for
+individual removed fields and arguments, and the `0.9.0rc2`/`0.9.0rc3`
+sections for later validation and response-model changes.
+
+### Added
+
+- `BranchSource` is a Branch-only helper for Branch creation, with optional
+  epoch-millisecond `as_of`. Existing `RefSource.branch(...)` calls still work.
+- Branch create/list responses expose nullable `parent_branch` containing the
+  direct source Branch's fixed `branch_id` and `name`. It can be present even
+  when both snapshot fields are null; `main` and Branches without recorded
+  parent metadata return `None`.
+
+### Changed
+
+- Branch creation now rejects Tag and Alias sources locally before sending a
+  request, matching server HTTP 400 behavior. Replace
+  `branches.create(..., source=RefSource.tag(name))` with a Branch source, or
+  create a Tag from that Tag when an immutable snapshot is intended. Omitted
+  Branch source still selects `main`, and Branch `as_of` remains supported.
+  Tag creation continues to accept Branch and Tag sources.
+- `BranchDetails` now requires the `parentBranch` response field, which may be
+  null. The parent is historical identity, not a live dependency or the Branch
+  where the selected snapshot was committed.
+
 ## 0.9.0rc3
 
 Aligned the SDK with LambdaDB docs contract revision

@@ -1,4 +1,4 @@
-"""Data Versioning contract tests pinned to docs revision c8495bf."""
+"""Data Versioning contract tests pinned to docs revision c441804."""
 
 from __future__ import annotations
 
@@ -12,7 +12,15 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
-from lambdadb import API_CONTRACT_REVISION, AliasTarget, LambdaDB, Ref, RefSource
+from lambdadb import (
+    API_CONTRACT_REVISION,
+    AliasTarget,
+    BranchSource,
+    LambdaDB,
+    ParentBranchDetails,
+    Ref,
+    RefSource,
+)
 from lambdadb import errors, models
 
 
@@ -56,7 +64,7 @@ def _text_index(analyzer: models.Analyzer) -> Dict[
 
 
 def test_contract_revision_is_pinned() -> None:
-    assert API_CONTRACT_REVISION == "c8495bf47cd8918cfd546b4742823fd4cf3d0814"
+    assert API_CONTRACT_REVISION == "c44180406c05b1a9043d8516e7c7f60df91fc9a7"
 
 
 def test_final_contract_collection_validation_and_null_patch_semantics() -> None:
@@ -247,10 +255,18 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
         source.model_dump(mode="json", by_alias=True, exclude_none=True)["asOf"]
         == 1788336000123
     )
+    assert BranchSource.branch("main", as_of=1788336000123).model_dump(
+        mode="json", by_alias=True, exclude_none=True
+    ) == {"kind": "branch", "name": "main", "asOf": 1788336000123}
+    with pytest.raises(ValidationError):
+        BranchSource.model_validate({"kind": "tag", "name": "release-1"})
+    with pytest.raises(ValidationError):
+        BranchSource.model_validate({"name": "main"})
 
     branch = models.BranchDetails.model_validate(
         {
             "name": "experiment",
+            "parentBranch": {"branchId": "main-id", "name": "main"},
             "headSnapshot": {
                 "snapshotId": "snapshot-2",
                 "snapshotCommittedAt": 1788336000456,
@@ -263,6 +279,7 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
         }
     )
     assert branch.snapshot_id == "snapshot-2"
+    assert branch.parent_branch == ParentBranchDetails(branch_id="main-id", name="main")
     assert branch.parent_snapshot is not None
     assert branch.parent_snapshot.snapshot_id == "snapshot-1"
     assert branch.head_snapshot is not None
@@ -277,12 +294,41 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
     empty_main = models.BranchDetails.model_validate(
         {
             "name": "main",
+            "parentBranch": None,
             "headSnapshot": None,
             "parentSnapshot": None,
             "createdAt": 1788336000123,
         }
     )
     assert empty_main.snapshot_id is None
+    assert empty_main.parent_branch is None
+
+    empty_child = models.BranchDetails.model_validate(
+        {
+            "name": "child",
+            "parentBranch": {"branchId": "empty-id", "name": "empty"},
+            "headSnapshot": None,
+            "parentSnapshot": None,
+            "createdAt": 1788336000124,
+        }
+    )
+    assert empty_child.parent_branch is not None
+    assert empty_child.parent_branch.branch_id == "empty-id"
+    assert empty_child.parent_snapshot is None
+    assert (
+        models.BranchListResponse(branches=[empty_main, empty_child])
+        .branches[1]
+        .parent_branch
+        == empty_child.parent_branch
+    )
+    with pytest.raises(ValidationError, match="parentBranch"):
+        models.BranchDetails.model_validate(
+            {
+                key: value
+                for key, value in empty_child.model_dump(by_alias=True).items()
+                if key != "parentBranch"
+            }
+        )
 
     tag = models.TagDetails.model_validate(
         {
@@ -309,6 +355,148 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
         models.AliasTarget.model_validate({"kind": "alias", "name": "other-alias"})
     with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
         Ref.model_validate({"kind": "branch", "name": "main", "asOf": 1})
+
+
+def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
+    requests: List[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        path = request.url.path
+        if path.endswith("/branches") and request.method == "GET":
+            return _response(
+                request,
+                200,
+                {
+                    "branches": [
+                        {
+                            "name": "main",
+                            "parentBranch": None,
+                            "headSnapshot": None,
+                            "parentSnapshot": None,
+                            "createdAt": 1788336000000,
+                        },
+                        {
+                            "name": "empty-child",
+                            "parentBranch": {"branchId": "main-id", "name": "main"},
+                            "headSnapshot": None,
+                            "parentSnapshot": None,
+                            "createdAt": 1788336000001,
+                        },
+                    ]
+                },
+            )
+        body = json.loads(request.content)
+        if path.endswith("/branches"):
+            return _response(
+                request,
+                201,
+                {
+                    "branch": {
+                        "name": body["branchName"],
+                        "parentBranch": {"branchId": "dev-id", "name": "dev"},
+                        "headSnapshot": None,
+                        "parentSnapshot": None,
+                        "createdAt": 1788336000002,
+                    }
+                },
+            )
+        return _response(
+            request,
+            201,
+            {
+                "tag": {
+                    "name": body["tagName"],
+                    "snapshotId": "snapshot-1",
+                    "snapshotCommittedAt": 1788336000000,
+                    "createdAt": 1788336000003,
+                }
+            },
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as transport:
+        client = LambdaDB(project_api_key="secret", client=transport)
+        collection = client.collection("catalog")
+        for invalid in (
+            RefSource.tag("release-1"),
+            {"kind": "tag", "name": "release-1"},
+            {"kind": "alias", "name": "production-read"},
+        ):
+            with pytest.raises(ValueError, match="Branch source must be a branch"):
+                collection.branches.create("candidate", source=invalid)
+        assert not requests
+
+        created = collection.branches.create(
+            "candidate", source=BranchSource.branch("dev", as_of=1788336000123)
+        )
+        assert created.branch.parent_branch == ParentBranchDetails(
+            branch_id="dev-id", name="dev"
+        )
+        assert created.branch.head_snapshot is None
+        assert created.branch.parent_snapshot is None
+        collection.branches.create("default-source")
+        listed = collection.branches.list().branches
+        assert listed[0].parent_branch is None
+        assert listed[1].parent_branch == ParentBranchDetails(
+            branch_id="main-id", name="main"
+        )
+        collection.tags.create("from-branch", source=RefSource.branch("dev"))
+        collection.tags.create("from-tag", source=RefSource.tag("release-1"))
+
+    assert json.loads(requests[0].content)["source"] == {
+        "kind": "branch",
+        "name": "dev",
+        "asOf": 1788336000123,
+    }
+    assert "source" not in json.loads(requests[1].content)
+    assert json.loads(requests[3].content)["source"] == {
+        "kind": "branch",
+        "name": "dev",
+    }
+    assert json.loads(requests[4].content)["source"] == {
+        "kind": "tag",
+        "name": "release-1",
+    }
+
+    requests.clear()
+
+    async def run() -> None:
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(handler)
+        ) as transport:
+            client = LambdaDB(project_api_key="secret", async_client=transport)
+            collection = client.collection("catalog")
+            for invalid in (
+                RefSource.tag("release-1"),
+                {"kind": "tag", "name": "release-1"},
+                {"kind": "alias", "name": "production-read"},
+            ):
+                with pytest.raises(ValueError, match="Branch source must be a branch"):
+                    await collection.branches.create_async("candidate", source=invalid)
+            assert not requests
+            created = await collection.branches.create_async(
+                "candidate", source=RefSource.branch("dev", as_of=1788336000123)
+            )
+            assert created.branch.parent_branch is not None
+            assert created.branch.parent_branch.branch_id == "dev-id"
+            listed = (await collection.branches.list_async()).branches
+            assert listed[0].parent_branch is None
+            assert listed[1].parent_branch is not None
+            assert listed[1].parent_branch.name == "main"
+            await collection.tags.create_async(
+                "from-tag", source=RefSource.tag("release-1")
+            )
+
+    asyncio.run(run())
+    assert json.loads(requests[0].content)["source"] == {
+        "kind": "branch",
+        "name": "dev",
+        "asOf": 1788336000123,
+    }
+    assert json.loads(requests[2].content)["source"] == {
+        "kind": "tag",
+        "name": "release-1",
+    }
 
 
 def test_list_page_token_stays_opaque_while_ref_name_is_validated() -> None:
@@ -489,6 +677,7 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
                 {
                     "branch": {
                         "name": body["branchName"],
+                        "parentBranch": {"branchId": "main-id", "name": "main"},
                         "headSnapshot": None,
                         "parentSnapshot": None,
                         "createdAt": 1788336000001,
@@ -591,6 +780,8 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
     assert requests[0].url.path.endswith("/collections/catalog/branches")
     assert json.loads(requests[0].content)["source"]["asOf"] == 1788336000123
     assert branch.branch.created_at == 1788336000001
+    assert branch.branch.parent_branch is not None
+    assert branch.branch.parent_branch.name == "main"
     assert tag.tag.snapshot_id == "s1"
     assert alias.alias.target_kind.value == "TAG"
     assert retargeted.alias.target_kind.value == "BRANCH"
@@ -614,6 +805,7 @@ def test_all_lifecycle_endpoints_work_async() -> None:
                 {
                     "branch": {
                         "name": body["branchName"],
+                        "parentBranch": {"branchId": "main-id", "name": "main"},
                         "headSnapshot": {
                             "snapshotId": "snapshot-1",
                             "snapshotCommittedAt": 1788335999999,
@@ -686,7 +878,7 @@ def test_all_lifecycle_endpoints_work_async() -> None:
             )
             collection = client.collection("catalog")
             await collection.branches.create_async(
-                "experiment", source=RefSource.tag("release-1")
+                "experiment", source=RefSource.branch("main")
             )
             await collection.branches.list_async()
             await collection.branches.delete_async("experiment")
@@ -722,8 +914,8 @@ def test_all_lifecycle_endpoints_work_async() -> None:
         ("DELETE", "/projects/project/collections/catalog/aliases/production-read"),
     ]
     assert json.loads(requests[0].content)["source"] == {
-        "kind": "tag",
-        "name": "release-1",
+        "kind": "branch",
+        "name": "main",
     }
 
 
@@ -1235,6 +1427,7 @@ def test_async_lifecycle_read_and_bulk_upload_match_sync_behavior() -> None:
                 {
                     "branch": {
                         "name": body["branchName"],
+                        "parentBranch": {"branchId": "main-id", "name": "main"},
                         "headSnapshot": None,
                         "parentSnapshot": None,
                         "createdAt": 1788336000001,

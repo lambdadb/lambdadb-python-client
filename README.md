@@ -165,9 +165,10 @@ with LambdaDB(
 Use typed helpers to scope reads, writes, and collection-local snapshots:
 
 ```python
-from lambdadb import AliasTarget, Ref, RefSource
+from lambdadb import AliasTarget, BranchSource, Ref, RefSource
 
-coll.branches.create("experiment", source=RefSource.branch("main"))
+branch = coll.branches.create("experiment", source=BranchSource.branch("main"))
+direct_parent = branch.branch.parent_branch  # fixed branch_id/name, or None
 coll.tags.create("validated-2026-09", source=RefSource.branch("experiment"))
 coll.aliases.create(
     "production-read", target=AliasTarget.tag("validated-2026-09")
@@ -182,6 +183,9 @@ coll.docs.upsert(docs=[{"id": "2", "text": "draft"}], branch="experiment")
 
 See the [Data Versioning SDK guide](docs/sdks/versioning/README.md) for sync and
 async lifecycle, pagination, and signed bulk-upload examples.
+If upgrading from stable `0.8.2`, review the
+[0.9.0 migration notes](CHANGELOG.md#090) for changed Collection models,
+timestamp units, HTTP statuses, and Branch source rules before upgrading.
 
 ### Create a collection with managed embeddings
 
