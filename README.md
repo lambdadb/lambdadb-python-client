@@ -183,6 +183,9 @@ coll.docs.upsert(docs=[{"id": "2", "text": "draft"}], branch="experiment")
 
 See the [Data Versioning SDK guide](docs/sdks/versioning/README.md) for sync and
 async lifecycle, pagination, and signed bulk-upload examples.
+If upgrading from stable `0.8.2`, review the
+[0.9.0 migration notes](CHANGELOG.md#090) for changed Collection models,
+timestamp units, HTTP statuses, and Branch source rules before upgrading.
 
 ### Create a collection with managed embeddings
 
