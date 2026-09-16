@@ -11,9 +11,8 @@ Install the locked development environment:
 poetry install --no-interaction
 ```
 
-The lock uses pytest 9.0.3 or newer on Python 3.10 through 3.13. Python 3.9
-uses the latest compatible pytest 8.x release because pytest 9 requires Python
-3.10 or newer.
+The lock uses pytest 9.0.3 or newer on supported Python 3.10 through 3.13.
+Python 3.9 is no longer supported by the SDK development line.
 
 ## Non-integration tests
 
@@ -36,10 +35,7 @@ poetry run mypy src/lambdadb --ignore-missing-imports
 poetry run pylint src/lambdadb
 ```
 
-The normal CI workflow currently reports mypy and pylint findings without
-blocking the build. Release readiness must be decided from the reviewed
-findings; do not describe those checks as passing when they were allowed to
-fail.
+The normal CI workflow requires both checks to pass.
 
 ## Distribution checks
 
@@ -88,6 +84,10 @@ LAMBDADB_RUN_VERSIONING_SMOKE=1 \
 poetry run pytest tests/integration/test_data_versioning_live.py -v
 ```
 
+The smoke test allows up to three minutes for the main Branch's committed
+snapshot to appear after an upsert; a consistent read may show the document
+earlier through the pending-write overlay.
+
 If `.env.local` exists, load it without printing its values before running the
 command. If cleanup fails, report only the temporary collection name; never
 include request headers or credentials.
@@ -113,7 +113,7 @@ results.
   non-integration tests, checks distributions, and uploads a commit-specific
   wheel artifact without publishing to PyPI.
 - `.github/workflows/publish.yaml` validates a published GitHub Release, tests
-  Python 3.9 through 3.13, checks the built distributions, verifies wheel
+  Python 3.10 through 3.13, checks the built distributions, verifies wheel
   installation, and publishes through PyPI Trusted Publishing only after all
   required jobs succeed.
 

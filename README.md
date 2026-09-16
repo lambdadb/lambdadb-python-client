@@ -45,7 +45,8 @@ LambdaDB API: LambdaDB Open API Spec
 >
 > Once a Python version reaches its [official end of life date](https://devguide.python.org/versions/), a 3-month grace period is provided for users to upgrade. Following this grace period, the minimum python version supported in the SDK will be updated.
 
-The SDK currently supports Python `>=3.9.2,<3.14`.
+The SDK currently supports Python `>=3.10,<3.14`. Python 3.9 users can remain
+on the stable `0.9.0` release until they upgrade their interpreter.
 
 The SDK can be installed with *uv*, *pip*, or *poetry* package managers.
 
@@ -86,7 +87,7 @@ It's also possible to write a standalone Python script without needing to set up
 ```python
 #!/usr/bin/env -S uv run --script
 # /// script
-# requires-python = ">=3.9"
+# requires-python = ">=3.10,<3.14"
 # dependencies = [
 #     "lambdadb",
 # ]

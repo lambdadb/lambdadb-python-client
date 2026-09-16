@@ -173,8 +173,7 @@ class Collections(BaseSDK):
             timeout_ms=timeout_ms,
             http_headers=http_headers,
         ):
-            for coll in page:
-                yield coll
+            yield from page
 
     async def list_async(
         self,

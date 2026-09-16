@@ -28,10 +28,10 @@ jobs:
         run: poetry run python -c "from lambdadb import LambdaDB; from lambdadb.collection import Collection, CollectionDocs; print('OK')"
 
       - name: Run mypy
-        run: poetry run mypy src/lambdadb --ignore-missing-imports || true
+        run: poetry run mypy src/lambdadb --ignore-missing-imports
 
       - name: Run pylint
-        run: poetry run pylint src/lambdadb --exit-zero || true
+        run: poetry run pylint src/lambdadb
 
       - name: Run tests
         run: poetry run pytest tests/ -v

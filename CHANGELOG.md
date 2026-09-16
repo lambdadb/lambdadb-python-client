@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes planned for the next release
+
+- The minimum supported Python version is now 3.10. Python 3.9 reached end of
+  life, and the SDK's three-month upgrade grace period has elapsed. Python 3.9
+  users should remain on `lambdadb==0.9.0` until they can upgrade Python.
+
+### Development
+
+- Advance the development package to `0.10.0.dev1`; this is an artifact-only
+  version and is not published to PyPI.
+- Require pytest 9.0.3 or newer for development tests, removing the vulnerable
+  Python 3.9-only pytest 8.x lock entry. Runtime dependencies are unchanged.
+- Resolve the existing Pylint findings and make mypy and Pylint blocking CI
+  checks. Qdrant-compatible optional arguments retain their signatures.
+- Allow up to three minutes for an asynchronous main Branch snapshot to appear
+  in the Data Versioning live smoke test.
+
 ## 0.9.0
 
 First stable Data Versioning release. This includes the changes described

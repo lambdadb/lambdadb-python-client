@@ -331,8 +331,7 @@ class CollectionDocs:
     ) -> Iterator[Dict[str, Any]]:
         """Iterate all documents while retaining the selected ``ref``."""
         for page in self.list_pages(size=page_size, options=options, ref=ref):
-            for doc in page:
-                yield doc
+            yield from page
 
     async def list_async(
         self,

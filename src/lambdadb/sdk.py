@@ -166,7 +166,8 @@ class LambdaDB(BaseSDK):
         """Return a Collection handle for the given collection name.
         Use this for a better DX: client.collection('my_coll').docs.list(), .query(), etc.
         """
-        from lambdadb.collection import Collection  # lazy to avoid circular import
+        # Lazy import avoids the Collection/LambdaDB initialization cycle.
+        from lambdadb.collection import Collection  # pylint: disable=import-outside-toplevel
         return Collection(self.sdk_configuration, name, parent_ref=self)
 
     def dynamic_import(self, modname, retries=3):
