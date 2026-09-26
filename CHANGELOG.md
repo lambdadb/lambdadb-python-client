@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added
+
+- Support 12 additional text analyzers: `chinese`, `cjk`, `arabic`, `french`,
+  `german`, `hindi`, `indonesian`, `italian`, `portuguese`, `russian`, `spanish`,
+  and `turkish`. The existing four names and omitted `analyzers` behavior are
+  unchanged; empty and duplicate lists remain pass-through values.
+- Pin the analyzer extension to [docs revision 3bda642](https://github.com/lambdadb/docs/blob/3bda642f2e7f4f26432f1dfdcb076f656d50f873/reference/api/openapi.json)
+  and [backend PR #417](https://github.com/lambdadb/lambdadb/pull/417).
+  The [scoped schema and generation procedure](schemas/README.md) cover this
+  extension only. Source revisions do not establish API deployment.
+
 ### Breaking changes planned for the next release
 
 - The minimum supported Python version is now 3.10. Python 3.9 reached end of

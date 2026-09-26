@@ -17,6 +17,12 @@ If you encounter any bugs or have suggestions for improvements, please open an i
 
 We will review and triage issues as quickly as possible. Our goal is to address bugs and incorporate improvements in the upstream source code. Fixes will be included in the next generation of the generated code.
 
+## Maintaining text analyzer models
+
+For the scoped analyzer contract, maintain the pinned schema and regenerate its
+model and documentation with the [analyzer maintenance procedure](schemas/README.md).
+The original Speakeasy configuration is no longer present in this repository.
+
 ## Releasing
 
 Maintainers must follow [RELEASING.md](RELEASING.md). Development packages are
