@@ -1332,7 +1332,8 @@ class Collections(BaseSDK):
         self,
         *,
         collection_name: str,
-        query: Dict[str, Any],
+        query: Optional[Dict[str, Any]] = None,
+        facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
         size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
@@ -1352,7 +1353,8 @@ class Collections(BaseSDK):
         r"""Search a collection with a query and return the most similar documents.
 
         :param collection_name: Collection name.
-        :param query: Query object.
+        :param query: Query object; omit to match all documents.
+        :param facets: Up to five keyword fields and their bucket limits (default 10, maximum 100).
         :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
@@ -1383,6 +1385,9 @@ class Collections(BaseSDK):
             request_body=models.QueryCollectionRequestBody(
                 size=size,
                 query=query,
+                facets=None if facets is None else {
+                    field: models.FacetRequest.model_validate(spec) for field, spec in facets.items()
+                },
                 consistent_read=consistent_read,
                 include_vectors=include_vectors,
                 sort=sort,
@@ -1488,7 +1493,8 @@ class Collections(BaseSDK):
         self,
         *,
         collection_name: str,
-        query: Dict[str, Any],
+        query: Optional[Dict[str, Any]] = None,
+        facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
         size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
@@ -1508,7 +1514,8 @@ class Collections(BaseSDK):
         r"""Search a collection with a query and return the most similar documents.
 
         :param collection_name: Collection name.
-        :param query: Query object.
+        :param query: Query object; omit to match all documents.
+        :param facets: Up to five keyword fields and their bucket limits (default 10, maximum 100).
         :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
@@ -1539,6 +1546,9 @@ class Collections(BaseSDK):
             request_body=models.QueryCollectionRequestBody(
                 size=size,
                 query=query,
+                facets=None if facets is None else {
+                    field: models.FacetRequest.model_validate(spec) for field, spec in facets.items()
+                },
                 consistent_read=consistent_read,
                 include_vectors=include_vectors,
                 sort=sort,

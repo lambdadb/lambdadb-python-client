@@ -4,6 +4,7 @@ from __future__ import annotations
 from .fieldsselector_union import FieldsSelectorUnion, FieldsSelectorUnionTypedDict
 from .partitionfilter import PartitionFilter, PartitionFilterTypedDict
 from .versioning import Ref, RefKind
+from .facets import FacetRequest, FacetRequestTypedDict, FacetResult, FacetResultTypedDict
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 import pydantic
@@ -15,8 +16,9 @@ from typing_extensions import Annotated, NotRequired, TypedDict
 
 
 class QueryCollectionRequestBodyTypedDict(TypedDict):
-    query: Dict[str, Any]
+    query: NotRequired[Dict[str, Any]]
     r"""Query object."""
+    facets: NotRequired[Dict[str, FacetRequestTypedDict]]
     size: NotRequired[int]
     r"""Number of documents to return. Note that the maximum number of documents is 100."""
     consistent_read: NotRequired[bool]
@@ -34,9 +36,10 @@ class QueryCollectionRequestBodyTypedDict(TypedDict):
 class QueryCollectionRequestBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    query: Dict[str, Any]
+    query: Optional[Dict[str, Any]] = None
     r"""Query object."""
 
+    facets: Optional[Dict[str, FacetRequest]] = None
     size: Optional[int] = None
     r"""Number of documents to return. Note that the maximum number of documents is 100."""
 
@@ -77,6 +80,8 @@ class QueryCollectionRequestBody(BaseModel):
         optional_fields = set(
             [
                 "size",
+                "query",
+                "facets",
                 "consistentRead",
                 "includeVectors",
                 "sort",
@@ -156,6 +161,7 @@ class QueryCollectionDoc(BaseModel):
 class QueryCollectionResponseTypedDict(TypedDict):
     r"""Documents selected by query."""
 
+    facets: NotRequired[Dict[str, FacetResultTypedDict]]
     took: int
     r"""Elapsed time in milliseconds."""
     total: int
@@ -173,6 +179,7 @@ class QueryCollectionResponseTypedDict(TypedDict):
 class QueryCollectionResponse(BaseModel):
     r"""Documents selected by query."""
 
+    facets: Optional[Dict[str, FacetResult]] = None
     took: int
     r"""Elapsed time in milliseconds."""
 
@@ -211,7 +218,7 @@ class QueryCollectionResponse(BaseModel):
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["maxScore", "docsUrl"])
+        optional_fields = set(["maxScore", "docsUrl", "facets"])
         serialized = handler(self)
         m = {}
 

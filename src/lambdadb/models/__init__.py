@@ -103,6 +103,14 @@ if TYPE_CHECKING:
     from .messageresponse import MessageResponse, MessageResponseTypedDict
     from .partitionconfig import DataType, PartitionConfig, PartitionConfigTypedDict
     from .partitionfilter import PartitionFilter, PartitionFilterTypedDict
+    from .facets import (
+        FacetRequest,
+        FacetRequestTypedDict,
+        FacetBucket,
+        FacetBucketTypedDict,
+        FacetResult,
+        FacetResultTypedDict,
+    )
     from .querycollectionop import (
         QueryCollectionDoc,
         QueryCollectionDocTypedDict,
@@ -235,6 +243,12 @@ __all__ = [
     "PartitionFilter",
     "PartitionFilterTypedDict",
     "Provider",
+    "FacetRequest",
+    "FacetRequestTypedDict",
+    "FacetBucket",
+    "FacetBucketTypedDict",
+    "FacetResult",
+    "FacetResultTypedDict",
     "QueryCollectionDoc",
     "QueryCollectionDocTypedDict",
     "QueryCollectionRequest",
@@ -369,6 +383,12 @@ _dynamic_imports: dict[str, str] = {
     "PartitionConfigTypedDict": ".partitionconfig",
     "PartitionFilter": ".partitionfilter",
     "PartitionFilterTypedDict": ".partitionfilter",
+    "FacetRequest": ".facets",
+    "FacetRequestTypedDict": ".facets",
+    "FacetBucket": ".facets",
+    "FacetBucketTypedDict": ".facets",
+    "FacetResult": ".facets",
+    "FacetResultTypedDict": ".facets",
     "QueryCollectionDoc": ".querycollectionop",
     "QueryCollectionDocTypedDict": ".querycollectionop",
     "QueryCollectionRequest": ".querycollectionop",
