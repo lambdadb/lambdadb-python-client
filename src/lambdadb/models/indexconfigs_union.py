@@ -214,22 +214,34 @@ class TypeText(str, Enum):
 
 class Analyzer(str, Enum):
     STANDARD = "standard"
+    ENGLISH = "english"
     KOREAN = "korean"
     JAPANESE = "japanese"
-    ENGLISH = "english"
+    CHINESE = "chinese"
+    CJK = "cjk"
+    ARABIC = "arabic"
+    FRENCH = "french"
+    GERMAN = "german"
+    HINDI = "hindi"
+    INDONESIAN = "indonesian"
+    ITALIAN = "italian"
+    PORTUGUESE = "portuguese"
+    RUSSIAN = "russian"
+    SPANISH = "spanish"
+    TURKISH = "turkish"
 
 
 class IndexConfigsTextTypedDict(TypedDict):
     type: TypeText
     analyzers: NotRequired[List[Analyzer]]
-    r"""Analyzers."""
+    r"""Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to ["standard"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs."""
 
 
 class IndexConfigsText(BaseModel):
     type: TypeText
 
     analyzers: Optional[List[Analyzer]] = None
-    r"""Analyzers."""
+    r"""Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to ["standard"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs."""
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):

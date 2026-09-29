@@ -353,6 +353,32 @@ def test_upsert_maps_points_to_documents() -> None:
     ]
 
 
+def test_upload_helpers_keep_qdrant_parallel_and_retry_arguments() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+
+    client.upload_points(
+        collection_name="docs",
+        points=[models.PointStruct(id=1, vector=[0.1, 0.2])],
+        parallel=2,
+        max_retries=3,
+    )
+    client.upload_collection(
+        collection_name="docs",
+        vectors=[[0.3, 0.4]],
+        ids=[2],
+        parallel=2,
+        max_retries=3,
+    )
+
+    uploaded_ids = [
+        batch[0]["_qdrant_id"] for batch in fake.collection("docs").docs.upserts
+    ]
+    assert uploaded_ids == [1, 2]
+
+
 def test_upsert_rejects_reserved_payload_fields() -> None:
     from lambdadb.compat.qdrant import QdrantCompatClient, models
     from lambdadb.compat.qdrant.errors import QdrantCompatValidationError

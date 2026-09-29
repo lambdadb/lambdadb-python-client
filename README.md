@@ -45,7 +45,8 @@ LambdaDB API: LambdaDB Open API Spec
 >
 > Once a Python version reaches its [official end of life date](https://devguide.python.org/versions/), a 3-month grace period is provided for users to upgrade. Following this grace period, the minimum python version supported in the SDK will be updated.
 
-The SDK currently supports Python `>=3.9.2,<3.14`.
+The SDK currently supports Python `>=3.10,<3.14`. Python 3.9 users can remain
+on the stable `0.9.0` release until they upgrade their interpreter.
 
 The SDK can be installed with *uv*, *pip*, or *poetry* package managers.
 
@@ -86,7 +87,7 @@ It's also possible to write a standalone Python script without needing to set up
 ```python
 #!/usr/bin/env -S uv run --script
 # /// script
-# requires-python = ">=3.9"
+# requires-python = ">=3.10,<3.14"
 # dependencies = [
 #     "lambdadb",
 # ]
@@ -220,6 +221,49 @@ with LambdaDB(
         },
     )
 ```
+
+### Choose text analyzers
+
+Text fields accept the 16 names in the [Analyzer reference](docs/models/analyzer.md).
+For example, select Chinese word segmentation when creating a collection:
+
+```python
+client.collections.create(
+    collection_name="chinese-articles",
+    index_configs={
+        "content": models.IndexConfigsText(
+            type=models.TypeText.TEXT,
+            analyzers=[models.Analyzer.CHINESE],
+        ),
+    },
+)
+```
+
+`CHINESE` uses Simplified Chinese word segmentation; `CJK` uses overlapping
+two-character tokens. Each selected analyzer processes the field independently;
+language detection is not automatic. Omit `analyzers` to use the server default
+`["standard"]`. An empty list is sent as-is and does not select that default;
+duplicates are also passed through, though selecting each name once is recommended.
+See [Choose text analyzers](https://github.com/lambdadb/docs/blob/3bda642f2e7f4f26432f1dfdcb076f656d50f873/guides/collections/choose-text-analyzers.mdx)
+for selection tradeoffs. These additional names are included in the `0.10.0`
+release and require server support; Python `0.9.0` exposes only the
+original four names.
+
+### Count keyword facets
+
+The `0.10.0` release supports keyword facets on a compatible server with
+newly built keyword indexes:
+
+```python
+result = client.collection("items").query(size=0, facets={"tags": {"size": 5}})
+for bucket in result.facets["tags"].buckets:
+    print(bucket.value, bucket.count)
+```
+
+Counts cover all matching documents; `total` remains the number of returned
+documents. `query_async()` accepts the same arguments. Existing data must be
+rebuilt into a new Collection before using this index format. See
+[keyword facets](docs/keyword-facets.md) for query support, limits, and migration.
 
 ### List all collections (sync / async)
 

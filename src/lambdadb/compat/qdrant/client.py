@@ -190,7 +190,8 @@ class QdrantCompatClient:
         self._client.collection(collection_name).docs.upsert(docs=points_to_docs(points))
         return models.UpdateResult(status=models.UpdateStatus.COMPLETED)
 
-    def upload_points(
+    # Qdrant-compatible options are intentionally accepted but unused.
+    def upload_points(  # pylint: disable=unused-argument
         self,
         collection_name: str,
         points: Iterable[Union[models.PointStruct, Mapping[str, Any]]],
@@ -215,7 +216,8 @@ class QdrantCompatClient:
         if batch:
             self.upsert(collection_name=collection_name, points=batch)
 
-    def upload_collection(
+    # Qdrant-compatible options are intentionally accepted but unused.
+    def upload_collection(  # pylint: disable=unused-argument
         self,
         collection_name: str,
         vectors: Iterable[Any],
@@ -230,7 +232,7 @@ class QdrantCompatClient:
         vector_list = list(vectors)
         id_list = list(ids) if ids is not None else list(range(len(vector_list)))
         payload_list = list(payload) if payload is not None else [None] * len(vector_list)
-        if not (len(vector_list) == len(id_list) == len(payload_list)):
+        if len(vector_list) != len(id_list) or len(id_list) != len(payload_list):
             raise QdrantCompatValidationError("vectors, ids, and payload must have the same length")
         points = [
             models.PointStruct(id=point_id, vector=vector, payload=point_payload)

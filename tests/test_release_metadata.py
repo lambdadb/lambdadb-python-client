@@ -9,7 +9,9 @@ from types import ModuleType
 
 import pytest
 from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
 from packaging.version import Version
+from lambdadb.version import SDK_VERSION
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts/validate_release_metadata.py"
 SPEC = importlib.util.spec_from_file_location("validate_release_metadata", SCRIPT)
@@ -56,6 +58,39 @@ def test_development_validator_rejects_runtime_version_mismatch() -> None:
             project_version_text="0.9.0.dev1",
             runtime_version_text="0.9.0.dev2",
         )
+
+
+def test_current_package_version_matches_runtime() -> None:
+    pyproject = (SCRIPT.parents[1] / "pyproject.toml").read_text(encoding="utf-8")
+    match = re.search(r'^version\s*=\s*"([^"]+)"$', pyproject, re.MULTILINE)
+    assert match is not None
+    assert match.group(1) == SDK_VERSION == str(Version(SDK_VERSION))
+
+
+def test_python_support_excludes_end_of_life_3_9() -> None:
+    pyproject = (SCRIPT.parents[1] / "pyproject.toml").read_text(encoding="utf-8")
+    match = re.search(r'^requires-python\s*=\s*"([^"]+)"$', pyproject, re.MULTILINE)
+    assert match is not None
+    supported = SpecifierSet(match.group(1))
+
+    assert not supported.contains(Version("3.9.99"))
+    assert all(
+        supported.contains(Version(f"3.{minor}.0")) for minor in range(10, 14)
+    )
+    assert not supported.contains(Version("3.14.0"))
+
+
+def test_locked_pytest_excludes_vulnerable_versions() -> None:
+    lock = (SCRIPT.parents[1] / "poetry.lock").read_text(encoding="utf-8")
+    versions = [
+        Version(version)
+        for version in re.findall(
+            r'\[\[package\]\]\nname = "pytest"\nversion = "([^"]+)"', lock
+        )
+    ]
+
+    # GHSA-6w46-j5rx-g56g is fixed in pytest 9.0.3.
+    assert versions and all(version >= Version("9.0.3") for version in versions)
 
 
 def _project_requirements() -> dict[str, Requirement]:

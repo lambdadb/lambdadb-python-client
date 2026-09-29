@@ -33,7 +33,7 @@ Development packages are for internal testing and must not be uploaded to
 production PyPI.
 
 1. Set both version sources to the next unused development version, such as
-   `0.9.0.dev1`.
+   `0.10.0.dev1`.
 2. Push the reviewed commit to an appropriate branch.
 3. Run the **Build development package** workflow with the exact branch, tag,
    or commit as its `ref` input.
@@ -42,7 +42,7 @@ production PyPI.
 5. Install that exact wheel in the target environment:
 
    ```bash
-   python -m pip install ./lambdadb-0.9.0.dev1-py3-none-any.whl
+   python -m pip install ./lambdadb-0.10.0.dev1-py3-none-any.whl
    ```
 
 6. Record the workflow run, commit SHA, package version, and test environment in
@@ -129,7 +129,7 @@ Before publishing an RC or stable release:
 - Confirm an exact RC install and a `--pre` RC install both import successfully,
   while an install without either opt-in still selects the stable release.
 - Confirm the release commit belongs to `main`.
-- Run non-integration tests on Python 3.9, 3.10, 3.11, 3.12, and 3.13.
+- Run non-integration tests on Python 3.10, 3.11, 3.12, and 3.13.
 - Build both the wheel and source distribution.
 - Run `twine check` on all distributions.
 - Install the built wheel and verify imports and the runtime version.

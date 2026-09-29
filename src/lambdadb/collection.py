@@ -70,6 +70,7 @@ def _resolve_query_response(
         is_docs_inline=response.is_docs_inline,
         max_score=response.max_score,
         docs_url=response.docs_url,
+        facets=response.facets,
     )
 
 
@@ -116,6 +117,7 @@ async def _resolve_query_response_async(
         is_docs_inline=response.is_docs_inline,
         max_score=response.max_score,
         docs_url=response.docs_url,
+        facets=response.facets,
     )
 
 
@@ -331,8 +333,7 @@ class CollectionDocs:
     ) -> Iterator[Dict[str, Any]]:
         """Iterate all documents while retaining the selected ``ref``."""
         for page in self.list_pages(size=page_size, options=options, ref=ref):
-            for doc in page:
-                yield doc
+            yield from page
 
     async def list_async(
         self,
@@ -939,7 +940,8 @@ class Collection:
     def query(
         self,
         *,
-        query: Dict[str, Any],
+        query: Optional[Dict[str, Any]] = None,
+        facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
         size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
@@ -961,11 +963,14 @@ class Collection:
 
         A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
         ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        ``facets`` counts all matching documents by keyword value. Use ``size=0``
+        with at least one facet for counts only; omit ``query`` to match all documents.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = self._collections.query(
             collection_name=self._collection_name,
             query=query,
+            facets=facets,
             size=size,
             consistent_read=consistent_read,
             include_vectors=include_vectors,
@@ -987,7 +992,8 @@ class Collection:
     async def query_async(
         self,
         *,
-        query: Dict[str, Any],
+        query: Optional[Dict[str, Any]] = None,
+        facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
         size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
@@ -1010,11 +1016,14 @@ class Collection:
         Presigned result payloads are fetched automatically.
         A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
         ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        ``facets`` counts all matching documents by keyword value. Use ``size=0``
+        with at least one facet for counts only; omit ``query`` to match all documents.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = await self._collections.query_async(
             collection_name=self._collection_name,
             query=query,
+            facets=facets,
             size=size,
             consistent_read=consistent_read,
             include_vectors=include_vectors,

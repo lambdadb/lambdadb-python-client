@@ -34,8 +34,10 @@ def _required_base_url() -> str:
     return value
 
 
-def _wait_for(description: str, condition: Callable[[], bool]) -> None:
-    deadline = time.monotonic() + 90
+def _wait_for(
+    description: str, condition: Callable[[], bool], *, timeout_seconds: int = 90
+) -> None:
+    deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
         if condition():
             return
@@ -128,7 +130,8 @@ def test_data_versioning_live_smoke() -> None:
                 for item in collection.branches.list().branches
             )
 
-        _wait_for("main branch snapshot", main_has_snapshot)
+        # Snapshot commits may lag the consistent-read pending-write overlay.
+        _wait_for("main branch snapshot", main_has_snapshot, timeout_seconds=180)
 
         branch = collection.branches.create(
             branch_name, source=BranchSource.branch("main")

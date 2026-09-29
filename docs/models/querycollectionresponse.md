@@ -7,6 +7,7 @@ Documents selected by query.
 
 | Field                                                              | Type                                                               | Required                                                           | Description                                                        |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `facets` | Dict[str, [models.FacetResult](facetresult.md)] | :heavy_minus_sign: | Optional facet results keyed by keyword field name. Counts cover all matching documents, independently of the number returned. |
 | `took`                                                             | *int*                                                              | :heavy_check_mark:                                                 | Elapsed time in milliseconds.                                      |
 | `max_score`                                                        | *Optional[float]*                                                  | :heavy_minus_sign:                                                 | Maximum score.                                                     |
 | `total`                                                            | *int*                                                              | :heavy_check_mark:                                                 | Total number of documents returned.                                |
@@ -23,3 +24,7 @@ Documents selected by query.
 **Response access:** Use `response.results` when you need score or per-item metadata; use `response.documents` when you only need the document bodies. The deprecated property `docs` still returns the same as `results` for backward compatibility.
 
 **When `is_docs_inline` is false:** The API returns a presigned `docs_url` instead of inline results. When using `coll.query()` or `coll.query_async()`, the SDK automatically fetches from that URL and populates `results`/`documents`, so you can always use `response.results` and `response.documents` without handling the URL yourself.
+
+Facet results remain available in `response.facets` after automatic `docs_url`
+downloads. Without a facet request, `facets` may be omitted and is parsed as
+`None`. See [keyword facets](../keyword-facets.md) for count semantics and limits.
