@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.10.0rc1
+## 0.10.0
 
-Release candidate for multilingual text analyzers and keyword facets. Requires
+Stable release for multilingual text analyzers and keyword facets. Requires
 Python 3.10 through 3.13 and a server deployment supporting these features.
 The base Data Versioning contract remains pinned to
 `c44180406c05b1a9043d8516e7c7f60df91fc9a7`; the scoped analyzer and facet
@@ -37,7 +37,7 @@ extensions are pinned separately below.
 
 ### Development
 
-- Promote the artifact-only `0.10.0.dev1` line to the `0.10.0rc1` release candidate.
+- Promote the artifact-only `0.10.0.dev1` line to the `0.10.0` stable release.
 - Require pytest 9.0.3 or newer for development tests, removing the vulnerable
   Python 3.9-only pytest 8.x lock entry. Runtime dependencies are unchanged.
 - Refresh the development lock to AnyIO 4.15.1 (past the 4.14.2 security fixes)

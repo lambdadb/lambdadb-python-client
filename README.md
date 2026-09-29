@@ -245,13 +245,13 @@ language detection is not automatic. Omit `analyzers` to use the server default
 `["standard"]`. An empty list is sent as-is and does not select that default;
 duplicates are also passed through, though selecting each name once is recommended.
 See [Choose text analyzers](https://github.com/lambdadb/docs/blob/3bda642f2e7f4f26432f1dfdcb076f656d50f873/guides/collections/choose-text-analyzers.mdx)
-for selection tradeoffs. These additional names are included in the `0.10.0rc1`
-candidate and require server support; Python `0.9.0` exposes only the
+for selection tradeoffs. These additional names are included in the `0.10.0`
+release and require server support; Python `0.9.0` exposes only the
 original four names.
 
 ### Count keyword facets
 
-The `0.10.0rc1` candidate supports keyword facets on a compatible server with
+The `0.10.0` release supports keyword facets on a compatible server with
 newly built keyword indexes:
 
 ```python

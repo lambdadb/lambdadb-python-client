@@ -1,6 +1,6 @@
 # Keyword facets
 
-The `0.10.0rc1` candidate supports the keyword facet contract in:
+The `0.10.0` release supports the keyword facet contract in:
 
 - `lambdadb/lambdadb` commit `8da50bcd0b5a3c781ffccd7f01fb07ed0510dd30`,
   `api/src/main/java/ai/lambdadb/dto/QueryRequest.java`,
