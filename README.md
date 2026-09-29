@@ -245,9 +245,25 @@ language detection is not automatic. Omit `analyzers` to use the server default
 `["standard"]`. An empty list is sent as-is and does not select that default;
 duplicates are also passed through, though selecting each name once is recommended.
 See [Choose text analyzers](https://github.com/lambdadb/docs/blob/3bda642f2e7f4f26432f1dfdcb076f656d50f873/guides/collections/choose-text-analyzers.mdx)
-for selection tradeoffs. These additional names are part of the unreleased SDK
-development line and require server support; Python `0.9.0` exposes only the
+for selection tradeoffs. These additional names are included in the `0.10.0rc1`
+candidate and require server support; Python `0.9.0` exposes only the
 original four names.
+
+### Count keyword facets
+
+The `0.10.0rc1` candidate supports keyword facets on a compatible server with
+newly built keyword indexes:
+
+```python
+result = client.collection("items").query(size=0, facets={"tags": {"size": 5}})
+for bucket in result.facets["tags"].buckets:
+    print(bucket.value, bucket.count)
+```
+
+Counts cover all matching documents; `total` remains the number of returned
+documents. `query_async()` accepts the same arguments. Existing data must be
+rebuilt into a new Collection before using this index format. See
+[keyword facets](docs/keyword-facets.md) for query support, limits, and migration.
 
 ### List all collections (sync / async)
 

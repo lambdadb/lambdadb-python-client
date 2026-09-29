@@ -1,9 +1,22 @@
 # Changelog
 
-## Unreleased
+## 0.10.0rc1
+
+Release candidate for multilingual text analyzers and keyword facets. Requires
+Python 3.10 through 3.13 and a server deployment supporting these features.
+The base Data Versioning contract remains pinned to
+`c44180406c05b1a9043d8516e7c7f60df91fc9a7`; the scoped analyzer and facet
+extensions are pinned separately below.
 
 ### Added
 
+- Keyword facets in `Collection.query()` / `query_async()` and their low-level
+  equivalents, with public `FacetRequest`, `FacetBucket`, `FacetResult`, and
+  TypedDict exports. Omit `query` to match all documents; use `size=0` with at
+  least one facet for counts only. Facets are preserved after `docsUrl` downloads.
+- Pin keyword facets to [docs revision 8990924](https://github.com/lambdadb/docs/blob/899092420ff801cfcb3b693b1ba273be7ac1f1ef/reference/api/openapi.json)
+  and backend commit `8da50bcd0b5a3c781ffccd7f01fb07ed0510dd30`.
+  See [keyword facet semantics and index requirements](docs/keyword-facets.md).
 - Support 12 additional text analyzers: `chinese`, `cjk`, `arabic`, `french`,
   `german`, `hindi`, `indonesian`, `italian`, `portuguese`, `russian`, `spanish`,
   and `turkish`. The existing four names and omitted `analyzers` behavior are
@@ -13,22 +26,29 @@
   The [scoped schema and generation procedure](schemas/README.md) cover this
   extension only. Source revisions do not establish API deployment.
 
-### Breaking changes planned for the next release
+### Upgrade requirements
 
 - The minimum supported Python version is now 3.10. Python 3.9 reached end of
   life, and the SDK's three-month upgrade grace period has elapsed. Python 3.9
   users should remain on `lambdadb==0.9.0` until they can upgrade Python.
+- Keyword facets require the new server keyword index format. Rebuild existing
+  data into a new Collection; partial updates or segment merging do not migrate
+  old indexes, and old immutable Tags retain the old format.
 
 ### Development
 
-- Advance the development package to `0.10.0.dev1`; this is an artifact-only
-  version and is not published to PyPI.
+- Promote the artifact-only `0.10.0.dev1` line to the `0.10.0rc1` release candidate.
 - Require pytest 9.0.3 or newer for development tests, removing the vulnerable
   Python 3.9-only pytest 8.x lock entry. Runtime dependencies are unchanged.
+- Refresh the development lock to AnyIO 4.15.1 (past the 4.14.2 security fixes)
+  and its required typing-extensions version. Published dependency ranges are
+  unchanged; the Poetry lock does not constrain downstream pip installations.
 - Resolve the existing Pylint findings and make mypy and Pylint blocking CI
   checks. Qdrant-compatible optional arguments retain their signatures.
 - Allow up to three minutes for an asynchronous main Branch snapshot to appear
   in the Data Versioning live smoke test.
+- Add opt-in score contract smoke tests covering raw JSON types and finite parsed
+  scores across sync/async, facets, omitted/empty queries, and `docsUrl` downloads.
 
 ## 0.9.0
 

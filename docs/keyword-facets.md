@@ -1,6 +1,6 @@
 # Keyword facets
 
-This branch supports the keyword facet contract in:
+The `0.10.0rc1` candidate supports the keyword facet contract in:
 
 - `lambdadb/lambdadb` commit `8da50bcd0b5a3c781ffccd7f01fb07ed0510dd30`,
   `api/src/main/java/ai/lambdadb/dto/QueryRequest.java`,
@@ -12,7 +12,7 @@ This branch supports the keyword facet contract in:
 These source commits do not establish deployment or package publication. Use a
 server build containing the feature and rebuild existing data into a new collection.
 Old keyword indexes and old Tags are unsupported; partial updates or segment merging
-do not migrate their format. No version, package, or release is published by this change.
+do not migrate their format. Candidate preparation does not establish package publication.
 
 ## Semantics
 
@@ -51,12 +51,16 @@ with LambdaDB(base_url="YOUR_BASE_URL", project_name="YOUR_PROJECT_NAME",
 `query_async` supports the same arguments. `FacetRequest`, `FacetBucket`, and
 `FacetResult`, plus their TypedDict counterparts, are exported from `lambdadb.models`.
 
-## Review and validation
+## Implementation review and validation
 
 - [Request/response models](../src/lambdadb/models/querycollectionop.py) and
   [facet models](../src/lambdadb/models/facets.py).
 - [Collection methods and hydration](../src/lambdadb/collection.py),
   [low-level methods](../src/lambdadb/collections.py), and [wire tests](../tests/test_facets.py).
-- Non-integration suite: 210 passed; focused sync/async facet tests also passed after
+- At implementation time, the non-integration suite had 210 passing tests;
+  focused sync/async facet tests also passed after
   the typed request conversion was added. mypy passed; pylint scored 10.00/10.
-- No live API call or package publication was performed.
+- The implementation PR did not perform a live API call or package publication.
+  Subsequent [score-contract validation in PR #44](https://github.com/lambdadb/lambdadb-python-client/pull/44)
+  passed all 30 valid dev API cases after the server score fix on 2026-09-29.
+  This does not establish production deployment or package publication.
