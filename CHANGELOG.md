@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.11.0rc1
 
 - Add optional per-query managed reranking with `RerankConfig` / TypedDict and
   `RerankResponse` / TypedDict exports across sync/async query APIs. Preserve
@@ -22,7 +22,7 @@
   No custom pipelines or analyzer options are added.
 - `keyword` remains a text analyzer, distinct from the keyword field type.
   Nepali/Tamil/Telugu are Lucene extensions. A compatible server is required;
-  this change is neither a package release nor deployment evidence.
+  source revisions do not establish deployment in an API environment.
 
 ## 0.10.0
 
