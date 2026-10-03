@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Add optional per-query managed reranking with `RerankConfig` / TypedDict and
+  `RerankResponse` / TypedDict exports across sync/async query APIs. Preserve
+  omitted/null behavior and leave defaults and `knn.k` to the server/caller.
+- Preserve envelope `retrievalScore`, final `score` precision and top-level
+  rerank metadata, including after automatic `docsUrl` downloads. No client
+  reordering, provider credentials, fallback execution or billing rates are added.
+- Pin the scoped reranking contract to backend develop
+  `55d888299fee44466326a9db8016af9811ade13b`; document default/custom criteria,
+  validation, score semantics and failure boundaries. This is source support,
+  not publication or deployment evidence.
+
 - Add 33 fixed text analyzer presets (49 total), pinned to backend PR #437
   merge `55d888299fee44466326a9db8016af9811ade13b`. Preserve the original 16
   values and ordering, lowercase SDK validation, omitted server default

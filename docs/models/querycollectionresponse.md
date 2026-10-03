@@ -7,9 +7,10 @@ Documents selected by query.
 
 | Field                                                              | Type                                                               | Required                                                           | Description                                                        |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `rerank` | Optional[[models.RerankResponse](rerankresponse.md)] | No | Applied/skipped/fallback metadata, preserved after automatic downloads. |
 | `facets` | Dict[str, [models.FacetResult](facetresult.md)] | :heavy_minus_sign: | Optional facet results keyed by keyword field name. Counts cover all matching documents, independently of the number returned. |
 | `took`                                                             | *int*                                                              | :heavy_check_mark:                                                 | Elapsed time in milliseconds.                                      |
-| `max_score`                                                        | *Optional[float]*                                                  | :heavy_minus_sign:                                                 | Maximum score.                                                     |
+| `max_score`                                                        | *Optional[float]*                                                  | :heavy_minus_sign:                                                 | Maximum final returned score; omitted for empty results. Zero is preserved.                                                     |
 | `total`                                                            | *int*                                                              | :heavy_check_mark:                                                 | Total number of documents returned.                                |
 | `results`                                                          | List[[models.QueryCollectionDoc](../models/querycollectiondoc.md)] | :heavy_check_mark:                                                 | List of result items (each has `.doc`, `.score`, etc.).            |
 | `is_docs_inline`                                                   | *bool*                                                             | :heavy_check_mark:                                                 | Whether the list of documents is included.                         |
@@ -28,3 +29,5 @@ Documents selected by query.
 Facet results remain available in `response.facets` after automatic `docs_url`
 downloads. Without a facet request, `facets` may be omitted and is parsed as
 `None`. See [keyword facets](../keyword-facets.md) for count semantics and limits.
+
+See [managed reranking](../managed-reranking.md) for score meaning, examples and failure semantics.

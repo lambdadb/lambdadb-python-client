@@ -4,6 +4,7 @@ from __future__ import annotations
 from .fieldsselector_union import FieldsSelectorUnion, FieldsSelectorUnionTypedDict
 from .partitionfilter import PartitionFilter, PartitionFilterTypedDict
 from .versioning import Ref, RefKind
+from .reranking import RerankConfig, RerankConfigTypedDict, RerankResponse, RerankResponseTypedDict
 from .facets import FacetRequest, FacetRequestTypedDict, FacetResult, FacetResultTypedDict
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
@@ -18,6 +19,7 @@ from typing_extensions import Annotated, NotRequired, TypedDict
 class QueryCollectionRequestBodyTypedDict(TypedDict):
     query: NotRequired[Dict[str, Any]]
     r"""Query object."""
+    rerank: NotRequired[Optional[RerankConfigTypedDict]]
     facets: NotRequired[Dict[str, FacetRequestTypedDict]]
     size: NotRequired[int]
     r"""Number of documents to return. Note that the maximum number of documents is 100."""
@@ -39,6 +41,7 @@ class QueryCollectionRequestBody(BaseModel):
     query: Optional[Dict[str, Any]] = None
     r"""Query object."""
 
+    rerank: Optional[RerankConfig] = None
     facets: Optional[Dict[str, FacetRequest]] = None
     size: Optional[int] = None
     r"""Number of documents to return. Note that the maximum number of documents is 100."""
@@ -75,6 +78,20 @@ class QueryCollectionRequestBody(BaseModel):
             raise ValueError("consistent_read=True requires a direct branch ref")
         return self
 
+    @model_validator(mode="after")
+    def validate_rerank_context(self) -> "QueryCollectionRequestBody":
+        if self.rerank is not None:
+            size = 10 if self.size is None else self.size
+            candidate_size = self.rerank.candidate_size
+            if not 1 <= size <= 100 or (candidate_size is not None and candidate_size < size):
+                raise ValueError("rerank requires 1 <= size <= candidate_size <= 100")
+            if self.sort is not None:
+                raise ValueError("rerank cannot be combined with sort")
+            if not self.query:
+                raise ValueError("rerank requires a scoring retrieval query")
+            # The server validates the opaque query DSL and collection-dependent fields.
+        return self
+
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
         optional_fields = set(
@@ -82,6 +99,7 @@ class QueryCollectionRequestBody(BaseModel):
                 "size",
                 "query",
                 "facets",
+                "rerank",
                 "consistentRead",
                 "includeVectors",
                 "sort",
@@ -128,8 +146,9 @@ class QueryCollectionDocTypedDict(TypedDict):
     collection: str
     r"""Collection name."""
     doc: Dict[str, Any]
+    retrieval_score: NotRequired[float]
     score: NotRequired[float]
-    r"""Document similarity score."""
+    r"""Final ordering score: an evaluation score in [0, 1] on applied reranking, otherwise the retrieval/fusion score. Not a relevance probability."""
 
 
 class QueryCollectionDoc(BaseModel):
@@ -138,12 +157,15 @@ class QueryCollectionDoc(BaseModel):
 
     doc: Dict[str, Any]
 
+    retrieval_score: Annotated[Optional[float], pydantic.Field(alias="retrievalScore")] = None
+    r"""Original retrieval/fusion score, present only when reranking is applied; outside the document body."""
+
     score: Optional[float] = None
-    r"""Document similarity score."""
+    r"""Final ordering score: an evaluation score in [0, 1] on applied reranking, otherwise the retrieval/fusion score. Not a relevance probability."""
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["score"])
+        optional_fields = set(["score", "retrievalScore"])
         serialized = handler(self)
         m = {}
 
@@ -161,6 +183,7 @@ class QueryCollectionDoc(BaseModel):
 class QueryCollectionResponseTypedDict(TypedDict):
     r"""Documents selected by query."""
 
+    rerank: NotRequired[RerankResponseTypedDict]
     facets: NotRequired[Dict[str, FacetResultTypedDict]]
     took: int
     r"""Elapsed time in milliseconds."""
@@ -171,7 +194,7 @@ class QueryCollectionResponseTypedDict(TypedDict):
     is_docs_inline: bool
     r"""Whether the list of documents is included."""
     max_score: NotRequired[float]
-    r"""Maximum score."""
+    r"""Maximum final returned score. Omitted for empty results; numeric zero is preserved."""
     docs_url: NotRequired[str]
     r"""Optional download URL for the list of documents."""
 
@@ -179,6 +202,7 @@ class QueryCollectionResponseTypedDict(TypedDict):
 class QueryCollectionResponse(BaseModel):
     r"""Documents selected by query."""
 
+    rerank: Optional[RerankResponse] = None
     facets: Optional[Dict[str, FacetResult]] = None
     took: int
     r"""Elapsed time in milliseconds."""
@@ -196,7 +220,7 @@ class QueryCollectionResponse(BaseModel):
     r"""Whether the list of documents is included."""
 
     max_score: Annotated[Optional[float], pydantic.Field(alias="maxScore")] = None
-    r"""Maximum score."""
+    r"""Maximum final returned score. Omitted for empty results; numeric zero is preserved."""
 
     docs_url: Annotated[Optional[str], pydantic.Field(alias="docsUrl")] = None
     r"""Optional download URL for the list of documents."""
@@ -218,7 +242,7 @@ class QueryCollectionResponse(BaseModel):
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["maxScore", "docsUrl", "facets"])
+        optional_fields = set(["maxScore", "docsUrl", "facets", "rerank"])
         serialized = handler(self)
         m = {}
 

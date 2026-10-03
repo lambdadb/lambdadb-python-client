@@ -5,6 +5,7 @@
 
 | Field                                                                                                                                                                                                                       | Type                                                                                                                                                                                                                        | Required                                                                                                                                                                                                                    | Description                                                                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `rerank` | Optional[[models.RerankConfig](rerankconfig.md)] | No | Per-query managed reranking; omitted/null preserves search behavior. Requires scoring retrieval, positive size and no sort. |
 | `size` | *Optional[int]* | :heavy_minus_sign: | Number of documents to return, up to 100. Use `0` with at least one facet to return counts without documents. |
 | `query` | *Optional[Dict[str, Any]]* | :heavy_minus_sign: | Query object. Omit it to match all documents. |
 | `facets` | Dict[str, [models.FacetRequest](facetrequest.md)] | :heavy_minus_sign: | Optional map of up to five keyword field names to facet requests. Dotted field paths are supported. |
@@ -16,3 +17,5 @@
 | `ref` | `Optional[models.Ref]` | :heavy_minus_sign: | Branch, Tag, or Alias used for the read. |
 
 See [keyword facets](../keyword-facets.md) for supported queries, limits, and index requirements.
+
+See [managed reranking](../managed-reranking.md) for score meaning, examples and failure semantics.

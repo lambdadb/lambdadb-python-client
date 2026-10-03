@@ -1,0 +1,155 @@
+{
+  "source": {
+    "repository": "lambdadb/lambdadb",
+    "revision": "55d888299fee44466326a9db8016af9811ade13b",
+    "inspected_local_revision": "a5e06d49be06d95dc5f4046aeecaf51f8a7733c0",
+    "files": {
+      "api/src/main/java/ai/lambdadb/dto/RerankConfig.java": "8c0c0efc2797f4fa6f6eb63c38d5362b190e42a1ba8b591dfd4161833e6bd104",
+      "api/src/main/java/ai/lambdadb/dto/RerankResponse.java": "ce767136204b41450e4d9e7a89e2ef1e47be04b61132107cfae914e70cde4b0c",
+      "api/src/main/java/ai/lambdadb/dto/QueryRequest.java": "665a5a303648b40e2c35fc4a8d3b4e5d2017830087b166ad3cebb0df0a76c4ae",
+      "api/src/main/java/ai/lambdadb/model/document/Document.java": "16bd2bab55327601f9add92fdf9d49e4dc68e09b37075620688870f219789507",
+      "core/src/main/java/ai/lambdadb/application/ManagedRerankService.java": "9eba288ec75604ca1f3c69ac653943c5c006d5f36cf1b05fb6d281744e4605b2",
+      "runtime-aws/src/test/java/ai/lambdadb/dto/RerankContractTest.java": "e929053fc68832941b65ce25ad697a50bffee447305840ab358b1766b394b233",
+      "docs/design/managed-reranking.md": "2601eeeb6ca41889408904d686a245301d14085e232bafa48288c785162b8a0b",
+      "api/src/main/java/ai/lambdadb/dto/QueryResponse.java": "6b0a93f9a214b914827a1633dcb14f7894d3c02936d1a3b6d2ea10a0c94d3335",
+      "api/src/main/java/ai/lambdadb/model/publiccontract/PublicContractConstants.java": "2da9bcb56bb5addd9b17d4ce878557fbe650c8ff5deda42432b4983b55db6d18",
+      "core/src/main/java/ai/lambdadb/port/RerankProvider.java": "3075d966460b37dcd167616df62fd9680f7e89a3ce951b03cbcf32652ac62593",
+      "core/src/test/java/ai/lambdadb/application/ManagedRerankServiceTest.java": "83b87f29a3f5895addba07cf394f0be87ba6ca4328db3bfb20b16f669f6176ec"
+    },
+    "note": "Scoped schema adapted from backend DTOs, service and tests; not an upstream OpenAPI extraction. Relevant files are unchanged between the inspected local revision and pinned develop revision."
+  },
+  "schemas": {
+    "RerankConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "model",
+        "queryText",
+        "fields"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": [
+            "typesafe"
+          ],
+          "description": "Server-managed reranking provider. No customer provider API key is required."
+        },
+        "model": {
+          "type": "string",
+          "enum": [
+            "jev-1.13.0"
+          ],
+          "description": "Explicit managed reranking model."
+        },
+        "queryText": {
+          "type": "string",
+          "minLength": 1,
+          "x-maxUtf8Bytes": 8192,
+          "description": "Nonblank query text, at most 8 KiB UTF-8; required even for raw-vector retrieval."
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Ordered unique stored scalar text paths (text or keyword). The server validates collection paths and candidate values."
+        },
+        "candidateSize": {
+          "type": "integer",
+          "nullable": true,
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Merged rerank candidate cap; defaults to max(50, size). Must be at least size; does not change knn.k."
+        },
+        "onFailure": {
+          "type": "string",
+          "nullable": true,
+          "enum": [
+            "error",
+            "returnOriginal"
+          ],
+          "description": "Defaults to error. returnOriginal applies only to whole-stage provider failures, not input, quota, admission, retrieval or authorization errors."
+        },
+        "criteria": {
+          "type": "array",
+          "nullable": true,
+          "minItems": 2,
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "x-maxUtf8Bytes": 2048
+          },
+          "x-maxUtf8Bytes": 8192,
+          "description": "Distinct nonblank descriptions ordered lowest to highest relevance. Omitted/null uses default criteria; at most 2 KiB each and 8 KiB total UTF-8."
+        }
+      }
+    },
+    "RerankResponse": {
+      "type": "object",
+      "required": [
+        "status",
+        "provider",
+        "model",
+        "candidateCount",
+        "scoredCount",
+        "took"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "applied",
+            "skipped",
+            "fallback"
+          ],
+          "description": "Check status before interpreting scores: fallback keeps search scores."
+        },
+        "provider": {
+          "type": "string",
+          "description": "Requested provider."
+        },
+        "model": {
+          "type": "string",
+          "description": "Requested model."
+        },
+        "resolvedModel": {
+          "type": "string",
+          "nullable": true,
+          "description": "Resolved model when reported by the provider."
+        },
+        "candidateCount": {
+          "type": "integer",
+          "description": "Actual unique candidates in the logical stage; not a guaranteed count or billing unit."
+        },
+        "scoredCount": {
+          "type": "integer",
+          "description": "Complete accepted scores; equals candidateCount on applied, zero on skipped/fallback."
+        },
+        "took": {
+          "type": "integer",
+          "description": "Rerank stage duration in milliseconds, excluding candidate hydration."
+        },
+        "criteriaVersion": {
+          "type": "string",
+          "nullable": true,
+          "enum": [
+            "default-relevance-v1",
+            "custom"
+          ],
+          "description": "Only on applied results when reported. custom identifies caller-supplied criteria, not a content hash or unique version."
+        },
+        "reason": {
+          "type": "string",
+          "nullable": true,
+          "description": "Skipped/fallback reason: noCandidates, timeout, rateLimit, unavailable, invalidResponse or credentials."
+        }
+      }
+    }
+  }
+}
