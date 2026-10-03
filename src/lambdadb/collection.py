@@ -71,6 +71,7 @@ def _resolve_query_response(
         max_score=response.max_score,
         docs_url=response.docs_url,
         facets=response.facets,
+        rerank=response.rerank,
     )
 
 
@@ -118,6 +119,7 @@ async def _resolve_query_response_async(
         max_score=response.max_score,
         docs_url=response.docs_url,
         facets=response.facets,
+        rerank=response.rerank,
     )
 
 
@@ -942,6 +944,7 @@ class Collection:
         *,
         query: Optional[Dict[str, Any]] = None,
         facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
+        rerank: Optional[Union[models.RerankConfig, models.RerankConfigTypedDict]] = None,
         size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
@@ -965,12 +968,15 @@ class Collection:
         ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
         ``facets`` counts all matching documents by keyword value. Use ``size=0``
         with at least one facet for counts only; omit ``query`` to match all documents.
+        Optional ``rerank`` requires a scoring query and positive size. Check
+        ``response.rerank.status`` before interpreting final scores.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = self._collections.query(
             collection_name=self._collection_name,
             query=query,
             facets=facets,
+            rerank=rerank,
             size=size,
             consistent_read=consistent_read,
             include_vectors=include_vectors,
@@ -994,6 +1000,7 @@ class Collection:
         *,
         query: Optional[Dict[str, Any]] = None,
         facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
+        rerank: Optional[Union[models.RerankConfig, models.RerankConfigTypedDict]] = None,
         size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
@@ -1018,12 +1025,15 @@ class Collection:
         ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
         ``facets`` counts all matching documents by keyword value. Use ``size=0``
         with at least one facet for counts only; omit ``query`` to match all documents.
+        Optional ``rerank`` requires a scoring query and positive size. Check
+        ``response.rerank.status`` before interpreting final scores.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = await self._collections.query_async(
             collection_name=self._collection_name,
             query=query,
             facets=facets,
+            rerank=rerank,
             size=size,
             consistent_read=consistent_read,
             include_vectors=include_vectors,

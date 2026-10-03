@@ -259,6 +259,31 @@ keeps the field type `text` and does not enable keyword-field sorting or facets.
 Custom pipelines and analyzer options are unsupported. `NEPALI`, `TAMIL`, and
 `TELUGU` are Lucene extensions, not common Elasticsearch/OpenSearch analyzers.
 
+### Managed reranking
+
+This source checkout supports optional server-managed reranking on each query:
+
+```python
+response = client.collection("articles").query(
+    query={"queryString": {"query": "body:restore"}},
+    size=10,
+    rerank=models.RerankConfig(
+        provider="typesafe",
+        model="jev-1.13.0",
+        query_text="How do I restore a previous collection version?",
+        fields=["title", "body"],
+    ),
+)
+for item in response.results:
+    print(item.score, item.retrieval_score, item.doc)
+```
+
+No Jev API key is required. Omitted/null reranking preserves existing search
+behavior. Check `response.rerank.status`: applied scores are evaluation values
+in `[0, 1]`, while fallback keeps search scores. This addition is unreleased and
+requires a compatible server. See [managed reranking](docs/managed-reranking.md)
+for custom criteria, candidate limits, response metadata and failure handling.
+
 ### Count keyword facets
 
 The `0.10.0` release supports keyword facets on a compatible server with
