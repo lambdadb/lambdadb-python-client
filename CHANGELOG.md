@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.11.0rc1
+## 0.11.0
 
 - Add optional per-query managed reranking with `RerankConfig` / TypedDict and
   `RerankResponse` / TypedDict exports across sync/async query APIs. Preserve

@@ -246,7 +246,7 @@ language detection is not automatic. Omit `analyzers` to use the server default
 duplicates are also passed through, though selecting each name once is recommended.
 See [Choose text analyzers](https://github.com/lambdadb/docs/blob/3bda642f2e7f4f26432f1dfdcb076f656d50f873/guides/collections/choose-text-analyzers.mdx)
 for selection tradeoffs for the original 16 names shipped in `0.10.0`.
-The `0.11.0rc1` preview adds 33 presets, pinned to
+The `0.11.0` release adds 33 presets, pinned to
 [backend PR #437](https://github.com/lambdadb/lambdadb/pull/437), merge
 `55d888299fee44466326a9db8016af9811ade13b`; using them requires a compatible
 server. This source revision does not establish deployment in any environment.
@@ -280,7 +280,7 @@ for item in response.results:
 
 No Jev API key is required. Omitted/null reranking preserves existing search
 behavior. Check `response.rerank.status`: applied scores are evaluation values
-in `[0, 1]`, while fallback keeps search scores. The `0.11.0rc1` preview requires a compatible server. See [managed reranking](docs/managed-reranking.md)
+in `[0, 1]`, while fallback keeps search scores. The `0.11.0` release requires a compatible server. See [managed reranking](docs/managed-reranking.md)
 for custom criteria, candidate limits, response metadata and failure handling.
 
 ### Count keyword facets
