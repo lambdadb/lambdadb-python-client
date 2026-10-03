@@ -229,19 +229,52 @@ class Analyzer(str, Enum):
     RUSSIAN = "russian"
     SPANISH = "spanish"
     TURKISH = "turkish"
+    ARMENIAN = "armenian"
+    BASQUE = "basque"
+    BENGALI = "bengali"
+    BRAZILIAN = "brazilian"
+    BULGARIAN = "bulgarian"
+    CATALAN = "catalan"
+    CZECH = "czech"
+    DANISH = "danish"
+    DUTCH = "dutch"
+    ESTONIAN = "estonian"
+    FINNISH = "finnish"
+    GALICIAN = "galician"
+    GREEK = "greek"
+    HUNGARIAN = "hungarian"
+    IRISH = "irish"
+    LATVIAN = "latvian"
+    LITHUANIAN = "lithuanian"
+    NORWEGIAN = "norwegian"
+    PERSIAN = "persian"
+    ROMANIAN = "romanian"
+    SERBIAN = "serbian"
+    SORANI = "sorani"
+    SWEDISH = "swedish"
+    THAI = "thai"
+    SIMPLE = "simple"
+    WHITESPACE = "whitespace"
+    STOP = "stop"
+    KEYWORD = "keyword"
+    PATTERN = "pattern"
+    FINGERPRINT = "fingerprint"
+    NEPALI = "nepali"
+    TAMIL = "tamil"
+    TELUGU = "telugu"
 
 
 class IndexConfigsTextTypedDict(TypedDict):
     type: TypeText
     analyzers: NotRequired[List[Analyzer]]
-    r"""Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to ["standard"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs."""
+    r"""Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to ["standard"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs. All names are fixed presets for text fields; keyword is an analyzer, not the keyword field type. Custom pipelines and analyzer options are not supported. Nepali, Tamil, and Telugu are Lucene extensions, not shared Elasticsearch/OpenSearch support."""
 
 
 class IndexConfigsText(BaseModel):
     type: TypeText
 
     analyzers: Optional[List[Analyzer]] = None
-    r"""Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to ["standard"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs."""
+    r"""Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to ["standard"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs. All names are fixed presets for text fields; keyword is an analyzer, not the keyword field type. Custom pipelines and analyzer options are not supported. Nepali, Tamil, and Telugu are Lucene extensions, not shared Elasticsearch/OpenSearch support."""
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):

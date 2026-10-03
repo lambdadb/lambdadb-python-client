@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Add 33 fixed text analyzer presets (49 total), pinned to backend PR #437
+  merge `55d888299fee44466326a9db8016af9811ade13b`. Preserve the original 16
+  values and ordering, lowercase SDK validation, omitted server default
+  `["standard"]`, and serialization of empty and duplicate lists.
+- Preserve explicit `analyzers` in Qdrant payload schema mappings; reject
+  unsupported schema options instead of silently losing configuration.
+  No custom pipelines or analyzer options are added.
+- `keyword` remains a text analyzer, distinct from the keyword field type.
+  Nepali/Tamil/Telugu are Lucene extensions. A compatible server is required;
+  this change is neither a package release nor deployment evidence.
+
 ## 0.10.0
 
 Stable release for multilingual text analyzers and keyword facets. Requires

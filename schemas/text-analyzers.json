@@ -7,7 +7,7 @@
   },
   "schema": {
     "type": "array",
-    "description": "Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to [\"standard\"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs.",
+    "description": "Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to [\"standard\"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs. All names are fixed presets for text fields; keyword is an analyzer, not the keyword field type. Custom pipelines and analyzer options are not supported. Nepali, Tamil, and Telugu are Lucene extensions, not shared Elasticsearch/OpenSearch support.",
     "items": {
       "type": "string",
       "enum": [
@@ -26,11 +26,51 @@
         "portuguese",
         "russian",
         "spanish",
-        "turkish"
+        "turkish",
+        "armenian",
+        "basque",
+        "bengali",
+        "brazilian",
+        "bulgarian",
+        "catalan",
+        "czech",
+        "danish",
+        "dutch",
+        "estonian",
+        "finnish",
+        "galician",
+        "greek",
+        "hungarian",
+        "irish",
+        "latvian",
+        "lithuanian",
+        "norwegian",
+        "persian",
+        "romanian",
+        "serbian",
+        "sorani",
+        "swedish",
+        "thai",
+        "simple",
+        "whitespace",
+        "stop",
+        "keyword",
+        "pattern",
+        "fingerprint",
+        "nepali",
+        "tamil",
+        "telugu"
       ]
     },
     "default": [
       "standard"
     ]
+  },
+  "extension": {
+    "repository": "lambdadb/lambdadb",
+    "revision": "55d888299fee44466326a9db8016af9811ade13b",
+    "path": "core/src/main/java/ai/lambdadb/core/IndexingConstants.java",
+    "symbol": "SUPPORTED_ANALYZERS",
+    "pull_request": 437
   }
 }

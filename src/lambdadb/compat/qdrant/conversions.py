@@ -196,7 +196,28 @@ def payload_schema_to_index_configs(payload_schema: Optional[Mapping[str, Any]])
     for field_name, raw_schema in payload_schema.items():
         validate_payload_field_name(field_name)
         schema_type = _payload_schema_type(raw_schema)
-        index_configs[field_name] = {"type": schema_type}
+        config: Dict[str, Any] = {"type": schema_type}
+        if isinstance(raw_schema, Mapping):
+            options = dict(raw_schema)
+        elif hasattr(raw_schema, "model_dump"):
+            options = raw_schema.model_dump(mode="json", exclude_none=True)
+        elif hasattr(raw_schema, "type"):
+            options = vars(raw_schema)
+        else:
+            options = {}
+        unsupported = set(options) - {"type", "analyzers"}
+        if unsupported:
+            raise UnsupportedQdrantFeatureError(
+                f"Unsupported payload schema options for {field_name!r}: "
+                f"{', '.join(sorted(unsupported))}"
+            )
+        if "analyzers" in options:
+            if schema_type != "text":
+                raise UnsupportedQdrantFeatureError("analyzers are supported only on text fields")
+            config = lambdadb_models.IndexConfigsText.model_validate(
+                {"type": "text", "analyzers": options["analyzers"]}
+            ).model_dump(mode="json")
+        index_configs[field_name] = config
     return index_configs
 
 
