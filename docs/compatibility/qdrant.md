@@ -239,3 +239,19 @@ credentials.
 ## Design Notes
 
 Internal design notes live in [qdrant-design.md](qdrant-design.md).
+
+## Text analyzer configuration
+
+For `payload_schema` during collection creation or `field_schema` in
+`create_payload_index`, explicit LambdaDB-style mappings can select fixed
+text presets, for example `{"type": "text", "analyzers": ["whitespace"]}`.
+The names and server requirements are listed in the
+[Analyzer reference](../models/analyzer.md) and [SDK README](../../README.md#choose-text-analyzers).
+Omitting `analyzers` keeps the server default `["standard"]`; values are not
+case-normalized. `{"type": "text", "analyzers": ["keyword"]}` remains a text
+field, distinct from `{"type": "keyword"}`.
+
+Qdrant tokenizer/lowercase settings and all other unsupported schema options
+raise an error instead of being silently dropped. They are not translated into
+analyzer presets, and custom pipelines are unsupported. Nepali/Tamil/Telugu
+are Lucene extensions, not common Elasticsearch/OpenSearch support.
