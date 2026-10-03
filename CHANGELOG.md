@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.11.0
+
+- Add optional per-query managed reranking with `RerankConfig` / TypedDict and
+  `RerankResponse` / TypedDict exports across sync/async query APIs. Preserve
+  omitted/null behavior and leave defaults and `knn.k` to the server/caller.
+- Preserve envelope `retrievalScore`, final `score` precision and top-level
+  rerank metadata, including after automatic `docsUrl` downloads. No client
+  reordering, provider credentials, fallback execution or billing rates are added.
+- Pin the scoped reranking contract to backend develop
+  `55d888299fee44466326a9db8016af9811ade13b`; document default/custom criteria,
+  validation, score semantics and failure boundaries. This is source support,
+  not publication or deployment evidence.
+
+- Add 33 fixed text analyzer presets (49 total), pinned to backend PR #437
+  merge `55d888299fee44466326a9db8016af9811ade13b`. Preserve the original 16
+  values and ordering, lowercase SDK validation, omitted server default
+  `["standard"]`, and serialization of empty and duplicate lists.
+- Preserve explicit `analyzers` in Qdrant payload schema mappings; reject
+  unsupported schema options instead of silently losing configuration.
+  No custom pipelines or analyzer options are added.
+- `keyword` remains a text analyzer, distinct from the keyword field type.
+  Nepali/Tamil/Telugu are Lucene extensions. A compatible server is required;
+  source revisions do not establish deployment in an API environment.
+
 ## 0.10.0
 
 Stable release for multilingual text analyzers and keyword facets. Requires

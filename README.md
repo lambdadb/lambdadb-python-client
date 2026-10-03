@@ -224,7 +224,7 @@ with LambdaDB(
 
 ### Choose text analyzers
 
-Text fields accept the 16 names in the [Analyzer reference](docs/models/analyzer.md).
+Text fields in this source checkout accept the 49 names in the [Analyzer reference](docs/models/analyzer.md).
 For example, select Chinese word segmentation when creating a collection:
 
 ```python
@@ -245,9 +245,43 @@ language detection is not automatic. Omit `analyzers` to use the server default
 `["standard"]`. An empty list is sent as-is and does not select that default;
 duplicates are also passed through, though selecting each name once is recommended.
 See [Choose text analyzers](https://github.com/lambdadb/docs/blob/3bda642f2e7f4f26432f1dfdcb076f656d50f873/guides/collections/choose-text-analyzers.mdx)
-for selection tradeoffs. These additional names are included in the `0.10.0`
-release and require server support; Python `0.9.0` exposes only the
-original four names.
+for selection tradeoffs for the original 16 names shipped in `0.10.0`.
+The `0.11.0` release adds 33 presets, pinned to
+[backend PR #437](https://github.com/lambdadb/lambdadb/pull/437), merge
+`55d888299fee44466326a9db8016af9811ade13b`; using them requires a compatible
+server. This source revision does not establish deployment in any environment.
+
+Use lowercase string values or uppercase enum members, for example
+`models.Analyzer.WHITESPACE` or `models.Analyzer.NEPALI`. The SDK's existing
+case-sensitive validation is unchanged; it does not rewrite configured names.
+All 49 names are fixed presets for **text** fields. `models.Analyzer.KEYWORD`
+keeps the field type `text` and does not enable keyword-field sorting or facets.
+Custom pipelines and analyzer options are unsupported. `NEPALI`, `TAMIL`, and
+`TELUGU` are Lucene extensions, not common Elasticsearch/OpenSearch analyzers.
+
+### Managed reranking
+
+This source checkout supports optional server-managed reranking on each query:
+
+```python
+response = client.collection("articles").query(
+    query={"queryString": {"query": "body:restore"}},
+    size=10,
+    rerank=models.RerankConfig(
+        provider="typesafe",
+        model="jev-1.13.0",
+        query_text="How do I restore a previous collection version?",
+        fields=["title", "body"],
+    ),
+)
+for item in response.results:
+    print(item.score, item.retrieval_score, item.doc)
+```
+
+No Jev API key is required. Omitted/null reranking preserves existing search
+behavior. Check `response.rerank.status`: applied scores are evaluation values
+in `[0, 1]`, while fallback keeps search scores. The `0.11.0` release requires a compatible server. See [managed reranking](docs/managed-reranking.md)
+for custom criteria, candidate limits, response metadata and failure handling.
 
 ### Count keyword facets
 

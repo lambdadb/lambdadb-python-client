@@ -111,6 +111,7 @@ if TYPE_CHECKING:
         FacetResult,
         FacetResultTypedDict,
     )
+    from .reranking import RerankConfig, RerankConfigTypedDict, RerankResponse, RerankResponseTypedDict
     from .querycollectionop import (
         QueryCollectionDoc,
         QueryCollectionDocTypedDict,
@@ -168,6 +169,10 @@ if TYPE_CHECKING:
     )
 
 __all__ = [
+    "RerankConfig",
+    "RerankConfigTypedDict",
+    "RerankResponse",
+    "RerankResponseTypedDict",
     "Analyzer",
     "BulkUpsertDocsRequest",
     "BulkUpsertDocsRequestBody",
@@ -389,6 +394,10 @@ _dynamic_imports: dict[str, str] = {
     "FacetBucketTypedDict": ".facets",
     "FacetResult": ".facets",
     "FacetResultTypedDict": ".facets",
+    "RerankConfig": ".reranking",
+    "RerankConfigTypedDict": ".reranking",
+    "RerankResponse": ".reranking",
+    "RerankResponseTypedDict": ".reranking",
     "QueryCollectionDoc": ".querycollectionop",
     "QueryCollectionDocTypedDict": ".querycollectionop",
     "QueryCollectionRequest": ".querycollectionop",

@@ -338,3 +338,10 @@ with LambdaDB(
 | errors.TooManyRequestsError  | 429                          | application/json             |
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
+
+### Managed reranking
+
+All sync/async query methods accept optional `rerank` as
+`models.RerankConfig` or `models.RerankConfigTypedDict`. Omitted/null preserves
+existing search behavior. See [managed reranking](../../managed-reranking.md)
+for default/custom examples, candidate limits and status-aware score handling.

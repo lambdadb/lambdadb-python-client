@@ -1,4 +1,4 @@
-"""Analyzer request/response contract pinned to docs PR #63 at 3bda642."""
+"""Analyzer contract: docs 3bda642 plus backend PR #437 merge 55d8882."""
 
 from __future__ import annotations
 
@@ -30,6 +30,39 @@ NAMES = [
     "russian",
     "spanish",
     "turkish",
+    "armenian",
+    "basque",
+    "bengali",
+    "brazilian",
+    "bulgarian",
+    "catalan",
+    "czech",
+    "danish",
+    "dutch",
+    "estonian",
+    "finnish",
+    "galician",
+    "greek",
+    "hungarian",
+    "irish",
+    "latvian",
+    "lithuanian",
+    "norwegian",
+    "persian",
+    "romanian",
+    "serbian",
+    "sorani",
+    "swedish",
+    "thai",
+    "simple",
+    "whitespace",
+    "stop",
+    "keyword",
+    "pattern",
+    "fingerprint",
+    "nepali",
+    "tamil",
+    "telugu",
 ]
 CASES = [[name] for name in NAMES] + [
     NAMES,
@@ -45,6 +78,8 @@ def test_analyzer_source_and_generated_outputs() -> None:
     root = Path(__file__).resolve().parents[1]
     source = json.loads((root / "schemas/text-analyzers.json").read_text())
     assert source["source"]["revision"] == "3bda642f2e7f4f26432f1dfdcb076f656d50f873"
+    assert source["extension"]["revision"] == "55d888299fee44466326a9db8016af9811ade13b"
+    assert len(NAMES) == len(set(NAMES)) == 49
     assert source["schema"]["items"]["enum"] == NAMES
     assert source["schema"]["default"] == ["standard"]
     assert "minItems" not in source["schema"]
@@ -163,3 +198,31 @@ def test_text_model_accepts_new_strings_and_keeps_none_omitted() -> None:
         type=models.TypeText.TEXT,
         analyzers=None,
     ).model_dump(mode="json") == {"type": "text"}
+
+
+@pytest.mark.parametrize("name", ["ENGLISH", "Simple", "KEYWORD", "unknown"])
+def test_analyzer_names_remain_case_sensitive_in_sdk(name) -> None:
+    from pydantic import ValidationError
+
+    with pytest.raises(ValueError):
+        models.Analyzer(name)
+    with pytest.raises(ValidationError):
+        models.IndexConfigsText.model_validate({"type": "text", "analyzers": [name]})
+
+
+def test_keyword_analyzer_is_a_text_preset() -> None:
+    field = models.IndexConfigsText(type=models.TypeText.TEXT, analyzers=[models.Analyzer.KEYWORD])
+    assert field.model_dump(mode="json") == {"type": "text", "analyzers": ["keyword"]}
+
+
+def test_nested_text_analyzers_in_create_and_update_models() -> None:
+    configs = {
+        "metadata": {
+            "type": "object",
+            "objectIndexConfigs": {"body": {"type": "text", "analyzers": NAMES}},
+        }
+    }
+    created = models.CreateCollectionRequest(collection_name="docs", index_configs=configs)
+    updated = models.UpdateCollectionRequestBody(index_configs=configs)
+    assert created.model_dump(mode="json", by_alias=True)["indexConfigs"] == configs
+    assert updated.model_dump(mode="json", by_alias=True) == {"indexConfigs": configs}

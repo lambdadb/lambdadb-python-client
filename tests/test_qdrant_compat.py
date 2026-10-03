@@ -668,3 +668,91 @@ def test_filtered_count_is_not_implemented() -> None:
 
     with pytest.raises(UnsupportedQdrantFeatureError):
         client.count(collection_name="docs", count_filter=filt)
+
+
+@pytest.mark.parametrize("use_object", [False, True], ids=["mapping", "object"])
+def test_payload_schema_preserves_all_text_presets(use_object) -> None:
+    from lambdadb import models as sdk_models
+    from lambdadb.compat.qdrant.conversions import payload_schema_to_index_configs
+
+    names = [name.value for name in sdk_models.Analyzer]
+    schema = {"type": "text", "analyzers": names}
+    raw = SimpleNamespace(**schema) if use_object else schema
+    assert payload_schema_to_index_configs({"body": raw}) == {"body": schema}
+    assert payload_schema_to_index_configs({"body": {"type": "text"}}) == {
+        "body": {"type": "text"}
+    }
+    assert payload_schema_to_index_configs({"tag": {"type": "keyword"}}) == {
+        "tag": {"type": "keyword"}
+    }
+
+
+@pytest.mark.parametrize("option", ["tokenizer", "lowercase", "stopwords", "pattern", "filters"])
+@pytest.mark.parametrize("use_object", [False, True], ids=["mapping", "object"])
+def test_payload_schema_rejects_unsupported_analyzer_options(option, use_object) -> None:
+    from lambdadb.compat.qdrant.conversions import payload_schema_to_index_configs
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    schema = {"type": "text", "analyzers": ["pattern"], option: "custom"}
+    raw = SimpleNamespace(**schema) if use_object else schema
+    with pytest.raises(UnsupportedQdrantFeatureError, match=option):
+        payload_schema_to_index_configs({"body": raw})
+
+
+@pytest.mark.parametrize("names", [["UNKNOWN"], ["Simple"], [{"type": "custom"}]])
+def test_payload_schema_rejects_invalid_analyzer_values(names) -> None:
+    from pydantic import ValidationError
+    from lambdadb.compat.qdrant.conversions import payload_schema_to_index_configs
+
+    with pytest.raises(ValidationError):
+        payload_schema_to_index_configs({"body": {"type": "text", "analyzers": names}})
+
+
+def test_payload_schema_rejects_analyzers_on_keyword_field() -> None:
+    from lambdadb.compat.qdrant.conversions import payload_schema_to_index_configs
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    with pytest.raises(UnsupportedQdrantFeatureError, match="only on text"):
+        payload_schema_to_index_configs({"tag": {"type": "keyword", "analyzers": ["keyword"]}})
+
+
+def test_create_collection_passes_text_analyzers() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+    client.create_collection(
+        collection_name="docs",
+        vectors_config=models.VectorParams(size=3, distance=models.Distance.COSINE),
+        payload_schema={"body": {"type": "text", "analyzers": ["keyword", "tamil"]}},
+    )
+    assert fake.collections.created[0]["index_configs"]["body"] == {
+        "type": "text", "analyzers": ["keyword", "tamil"]
+    }
+
+
+def test_create_payload_index_passes_text_analyzers() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+
+    fake = FakeLambdaDB()
+    fake.collections.num_docs = 0
+    client = QdrantCompatClient(fake)
+    schema = {"type": "text", "analyzers": ["keyword", "nepali"]}
+    assert client.create_payload_index(
+        collection_name="docs", field_name="body", field_schema=schema
+    )
+    assert fake.collections.updated[0]["index_configs"]["body"] == schema
+
+
+def test_payload_schema_validates_pydantic_options() -> None:
+    from pydantic import BaseModel
+    from lambdadb.compat.qdrant.conversions import payload_schema_to_index_configs
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    class TextSchema(BaseModel):
+        type: str = "text"
+        tokenizer: str = "word"
+        lowercase: bool = False
+
+    with pytest.raises(UnsupportedQdrantFeatureError, match="lowercase, tokenizer"):
+        payload_schema_to_index_configs({"body": TextSchema()})
