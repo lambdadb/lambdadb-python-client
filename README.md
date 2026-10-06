@@ -188,11 +188,13 @@ If upgrading from stable `0.8.2`, review the
 [0.9.0 migration notes](CHANGELOG.md#090) for changed Collection models,
 timestamp units, HTTP statuses, and Branch source rules before upgrading.
 
-### Create a collection with managed embeddings
+### Create a collection with native embeddings
 
-Managed embedding vector fields set `managedEmbedding=True` and put provider/model/source
-settings under `embedding`. Do not set top-level `dimensions` or `similarity` on managed
-embedding vector fields. For unmanaged vector fields, keep using top-level `dimensions`.
+Provide `embedding` to enable native embeddings on a compatible server. The legacy
+`managedEmbedding=True` flag remains supported. Put native dimensions/similarity
+inside `embedding`; caller-provided vectors keep top-level `dimensions`. See the
+[native embedding and Bayesian guide](docs/bayesian-native-embeddings.md) for the
+pinned contract, update examples, and server requirements.
 
 ```python
 from lambdadb import LambdaDB, models
@@ -211,7 +213,6 @@ with LambdaDB(
             },
             "bodyEmbedding": {
                 "type": models.TypeVector.VECTOR,
-                "managedEmbedding": True,
                 "embedding": {
                     "provider": models.Provider.OPENAI,
                     "model": "text-embedding-3-small",
@@ -221,6 +222,24 @@ with LambdaDB(
         },
     )
 ```
+
+### Bayesian hybrid search
+
+Use exactly two unboosted signals and an explicit candidate budget:
+
+```python
+response = client.collection("articles").query(
+    query={"bayesian": [
+        {"queryString": {"query": "body:restore"}},
+        {"knn": {"field": "bodyEmbedding", "queryText": "Restore a saved version", "k": 30}},
+    ]},
+    size=10,
+    candidate_size=30,
+)
+```
+
+With managed reranking, omit top-level `candidate_size` and use the rerank budget.
+See [Bayesian search](docs/bayesian-native-embeddings.md) for limits and examples.
 
 ### Choose text analyzers
 

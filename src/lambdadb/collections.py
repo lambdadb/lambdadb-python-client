@@ -1336,6 +1336,7 @@ class Collections(BaseSDK):
         facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
         rerank: Optional[Union[models.RerankConfig, models.RerankConfigTypedDict]] = None,
         size: Optional[int] = None,
+        candidate_size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
         sort: Optional[List[Dict[str, Any]]] = None,
@@ -1356,6 +1357,7 @@ class Collections(BaseSDK):
         :param collection_name: Collection name.
         :param query: Query object; omit to match all documents.
         :param facets: Up to five keyword fields and their bucket limits (default 10, maximum 100).
+        :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 100). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
         :param rerank: Optional server-managed per-query reranking. Omitted/null preserves search behavior; no provider API key is required.
         :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
@@ -1386,6 +1388,7 @@ class Collections(BaseSDK):
             collection_name=collection_name,
             request_body=models.QueryCollectionRequestBody(
                 size=size,
+                candidate_size=candidate_size,
                 query=query,
                 rerank=None if rerank is None else models.RerankConfig.model_validate(rerank),
                 facets=None if facets is None else {
@@ -1500,6 +1503,7 @@ class Collections(BaseSDK):
         facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
         rerank: Optional[Union[models.RerankConfig, models.RerankConfigTypedDict]] = None,
         size: Optional[int] = None,
+        candidate_size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
         sort: Optional[List[Dict[str, Any]]] = None,
@@ -1520,6 +1524,7 @@ class Collections(BaseSDK):
         :param collection_name: Collection name.
         :param query: Query object; omit to match all documents.
         :param facets: Up to five keyword fields and their bucket limits (default 10, maximum 100).
+        :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 100). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
         :param rerank: Optional server-managed per-query reranking. Omitted/null preserves search behavior; no provider API key is required.
         :param size: Number of documents to return. Note that the maximum number of documents is 100.
         :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
@@ -1550,6 +1555,7 @@ class Collections(BaseSDK):
             collection_name=collection_name,
             request_body=models.QueryCollectionRequestBody(
                 size=size,
+                candidate_size=candidate_size,
                 query=query,
                 rerank=None if rerank is None else models.RerankConfig.model_validate(rerank),
                 facets=None if facets is None else {
