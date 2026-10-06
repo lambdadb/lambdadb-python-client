@@ -114,6 +114,9 @@ class EmbeddingConfig(BaseModel):
             k = f.alias or n
             val = self._get_serialized_value(serialized, n, f.alias)
 
+            if n == "similarity" and n not in self.model_fields_set:
+                continue
+
             if val != UNSET_SENTINEL:
                 if val is not None or k not in optional_fields:
                     m[k] = val
@@ -124,7 +127,7 @@ class EmbeddingConfig(BaseModel):
 class IndexConfigsVectorTypedDict(TypedDict):
     type: TypeVector
     managed_embedding: NotRequired[bool]
-    r"""Set to true for managed embedding vector fields, or false/omit for unmanaged vector fields."""
+    r"""Omit with embedding for native embeddings; true remains supported. False forbids embedding."""
     dimensions: NotRequired[int]
     r"""Vector dimensions for unmanaged vector fields."""
     similarity: NotRequired[Similarity]
@@ -139,7 +142,7 @@ class IndexConfigsVector(BaseModel):
     managed_embedding: Annotated[
         Optional[bool], pydantic.Field(alias="managedEmbedding")
     ] = None
-    r"""Set to true for managed embedding vector fields, or false/omit for unmanaged vector fields."""
+    r"""Omit with embedding for native embeddings; true remains supported. False forbids embedding."""
 
     dimensions: Optional[int] = None
     r"""Vector dimensions for unmanaged vector fields."""
@@ -152,12 +155,9 @@ class IndexConfigsVector(BaseModel):
 
     @model_validator(mode="after")
     def validate_vector_type(self):
-        if self.managed_embedding is None and self.embedding is not None:
-            raise ValueError(
-                "managedEmbedding=true is required when embedding config is provided"
-            )
-
-        if self.managed_embedding is True:
+        if self.managed_embedding is True or (
+            self.managed_embedding is None and self.embedding is not None
+        ):
             if "dimensions" in self.model_fields_set and self.dimensions is not None:
                 raise ValueError(
                     "Top-level dimensions are not allowed for managed embedding field"
@@ -198,7 +198,7 @@ class IndexConfigsVector(BaseModel):
             k = f.alias or n
             val = self._get_serialized_value(serialized, n, f.alias)
 
-            if self.managed_embedding is True and k == "similarity":
+            if self.embedding is not None and k == "similarity":
                 continue
 
             if val != UNSET_SENTINEL:

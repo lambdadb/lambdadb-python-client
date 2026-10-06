@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Support Bayesian hybrid search with optional `candidate_size` across sync/async
+  query methods; preserve free-form queries, server validation, and rerank scores.
+- Accept native `embedding` configuration without `managedEmbedding` on create
+  and update; retain legacy true inputs and normalized response metadata. Omit
+  unspecified embedding options on the wire; retain caller-vector defaults.
+- Pin this scoped extension to backend `9072a1bc8925954369a887f558f1eaf387b7ea0e`.
+  See [contract and examples](docs/bayesian-native-embeddings.md).
+
 ## 0.11.0
 
 - Add optional per-query managed reranking with `RerankConfig` / TypedDict and

@@ -946,6 +946,7 @@ class Collection:
         facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
         rerank: Optional[Union[models.RerankConfig, models.RerankConfigTypedDict]] = None,
         size: Optional[int] = None,
+        candidate_size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
         sort: Optional[List[Dict[str, Any]]] = None,
@@ -970,6 +971,9 @@ class Collection:
         with at least one facet for counts only; omit ``query`` to match all documents.
         Optional ``rerank`` requires a scoring query and positive size. Check
         ``response.rerank.status`` before interpreting final scores.
+        Bayesian retrieval without rerank requires ``candidate_size`` with
+        ``1 <= size <= candidate_size <= 100``. With rerank, omit it and use
+        ``rerank.candidate_size``. Other query types do not support this field.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = self._collections.query(
@@ -978,6 +982,7 @@ class Collection:
             facets=facets,
             rerank=rerank,
             size=size,
+            candidate_size=candidate_size,
             consistent_read=consistent_read,
             include_vectors=include_vectors,
             sort=sort,
@@ -1002,6 +1007,7 @@ class Collection:
         facets: Optional[Dict[str, Union[models.FacetRequest, models.FacetRequestTypedDict]]] = None,
         rerank: Optional[Union[models.RerankConfig, models.RerankConfigTypedDict]] = None,
         size: Optional[int] = None,
+        candidate_size: Optional[int] = None,
         consistent_read: Optional[bool] = False,
         include_vectors: Optional[bool] = False,
         sort: Optional[List[Dict[str, Any]]] = None,
@@ -1027,6 +1033,9 @@ class Collection:
         with at least one facet for counts only; omit ``query`` to match all documents.
         Optional ``rerank`` requires a scoring query and positive size. Check
         ``response.rerank.status`` before interpreting final scores.
+        Bayesian retrieval without rerank requires ``candidate_size`` with
+        ``1 <= size <= candidate_size <= 100``. With rerank, omit it and use
+        ``rerank.candidate_size``. Other query types do not support this field.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         response = await self._collections.query_async(
@@ -1035,6 +1044,7 @@ class Collection:
             facets=facets,
             rerank=rerank,
             size=size,
+            candidate_size=candidate_size,
             consistent_read=consistent_read,
             include_vectors=include_vectors,
             sort=sort,

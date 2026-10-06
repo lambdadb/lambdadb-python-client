@@ -353,7 +353,6 @@ def test_managed_embedding_index_config_serializes_with_api_aliases() -> None:
             "provider": "openai",
             "model": "text-embedding-3-small",
             "sourceField": "body",
-            "similarity": "cosine",
         },
     }
 
@@ -390,7 +389,6 @@ def test_managed_embedding_index_config_accepts_plain_dict_input() -> None:
             "provider": "openai",
             "model": "text-embedding-3-small",
             "sourceField": "body",
-            "similarity": "cosine",
         },
     }
 
@@ -464,29 +462,6 @@ def test_unmanaged_vector_index_config_requires_dimensions_and_defaults_similari
     assert vector_config.managed_embedding is None
     assert vector_config.dimensions == 1536
     assert vector_config.similarity is Similarity.COSINE
-
-
-def test_vector_index_config_rejects_embedding_without_managed_embedding() -> None:
-    """embedding requires managedEmbedding=true."""
-    from pydantic import ValidationError
-    from lambdadb.models import CreateCollectionRequest
-
-    with pytest.raises(ValidationError, match="managedEmbedding=true is required"):
-        CreateCollectionRequest.model_validate(
-            {
-                "collectionName": "articles",
-                "indexConfigs": {
-                    "bodyEmbedding": {
-                        "type": "vector",
-                        "embedding": {
-                            "provider": "openai",
-                            "model": "text-embedding-3-small",
-                            "sourceField": "body",
-                        },
-                    }
-                },
-            }
-        )
 
 
 def test_vector_index_config_rejects_managed_embedding_without_embedding() -> None:

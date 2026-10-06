@@ -35,10 +35,12 @@ def test_schema_and_generated_outputs() -> None:
 @pytest.mark.parametrize("download", [False, True])
 @pytest.mark.parametrize("use_model", [False, True])
 @pytest.mark.parametrize("levels", [None, 2, 3, 10])
-@pytest.mark.parametrize("retrieval", ["lexical", "vector"])
+@pytest.mark.parametrize("retrieval", ["lexical", "vector", "bayesian"])
 def test_rerank_wire_round_trip(async_mode, high_level, download, use_model, levels, retrieval):
     query = QUERY if retrieval == "vector" else {"queryString": {"query": "body:restore"}}
-    facets = None if retrieval == "vector" else {"tags": {"size": 3}}
+    if retrieval == "bayesian":
+        query = {"bayesian": [{"queryString": {"query": "body:restore"}}, QUERY]}
+    facets = {"tags": {"size": 3}} if retrieval == "lexical" else None
     config = {**CONFIG, "candidateSize": 50, "onFailure": "returnOriginal"}
     if levels is not None:
         config["criteria"] = [f"Relevance level {i}" for i in range(levels)]

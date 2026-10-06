@@ -21,6 +21,8 @@ class QueryCollectionRequestBodyTypedDict(TypedDict):
     r"""Query object."""
     rerank: NotRequired[Optional[RerankConfigTypedDict]]
     facets: NotRequired[Dict[str, FacetRequestTypedDict]]
+    candidate_size: NotRequired[int]
+    r"""Bayesian candidate budget without rerank; use rerank.candidate_size with rerank."""
     size: NotRequired[int]
     r"""Number of documents to return. Note that the maximum number of documents is 100."""
     consistent_read: NotRequired[bool]
@@ -43,6 +45,8 @@ class QueryCollectionRequestBody(BaseModel):
 
     rerank: Optional[RerankConfig] = None
     facets: Optional[Dict[str, FacetRequest]] = None
+    candidate_size: Annotated[Optional[int], pydantic.Field(alias="candidateSize")] = None
+    r"""Bayesian candidate budget without rerank; validated by the server. No client default."""
     size: Optional[int] = None
     r"""Number of documents to return. Note that the maximum number of documents is 100."""
 
@@ -97,6 +101,7 @@ class QueryCollectionRequestBody(BaseModel):
         optional_fields = set(
             [
                 "size",
+                "candidateSize",
                 "query",
                 "facets",
                 "rerank",
