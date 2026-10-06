@@ -121,6 +121,21 @@ mock regression checks that run in the non-integration suite and prove invalid
 scores are detected even when SDK parsing succeeds. Live failures are not marked
 as expected failures and must be reported separately from local test results.
 
+## Bayesian search and native embedding smoke
+
+Verify the actual deployed backend revision first, then run the opt-in suite:
+
+```bash
+LAMBDADB_RUN_BAYESIAN_SMOKE=1 \
+poetry run pytest tests/integration/test_bayesian_native_live.py -m integration -v -s --tb=short
+```
+
+Use the same three connection environment variables as above. The suite creates
+unique collections, tests actual document/query embeddings and managed reranking,
+and verifies collection deletion with HTTP 404. See the
+[scoped contract guide](bayesian-native-embeddings.md) for limits and temporary
+project/key cleanup. This repository has no CLI to validate.
+
 ## Third-party compatibility smoke tests
 
 The external compatibility tests require their optional dependencies and an
