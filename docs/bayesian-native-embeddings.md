@@ -151,7 +151,7 @@ URLs; persistent CI projects/keys must remain untouched.
 Python development artifacts do **not** automatically track `develop` pushes.
 `.github/workflows/dev-package.yaml` is manually dispatched with `ref` defaulting
 to `develop`, requires matching `X.Y.Z.devN` versions, and only uploads GitHub
-Actions artifacts. The currently committed `0.11.0` version is not a development
+Actions artifacts. The API support PR used `0.11.0`, which is not a development
 artifact version. Automatic publishing is a separate change; this API support
 change does not modify versions, publishing workflows, tags, or releases.
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.12.0
 
 - Support Bayesian hybrid search with optional `candidate_size` across sync/async
   query methods; preserve free-form queries, server validation, and rerank scores.
