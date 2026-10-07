@@ -30,4 +30,4 @@ Facet results remain available in `response.facets` after automatic `docs_url`
 downloads. Without a facet request, `facets` may be omitted and is parsed as
 `None`. See [keyword facets](../keyword-facets.md) for count semantics and limits.
 
-See [managed reranking](../managed-reranking.md) for score meaning, examples and failure semantics.
+See [native reranking](../native-reranking.md) for score meaning, examples and failure semantics.

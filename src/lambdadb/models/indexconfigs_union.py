@@ -72,7 +72,7 @@ class Similarity(str, Enum):
 
 
 class EmbeddingConfigTypedDict(TypedDict):
-    r"""Managed embedding configuration for vector fields."""
+    r"""Native embedding configuration for vector fields."""
 
     provider: Provider
     r"""Embedding provider."""
@@ -87,7 +87,7 @@ class EmbeddingConfigTypedDict(TypedDict):
 
 
 class EmbeddingConfig(BaseModel):
-    r"""Managed embedding configuration for vector fields."""
+    r"""Native embedding configuration for vector fields."""
 
     provider: Provider
     r"""Embedding provider."""
@@ -129,11 +129,11 @@ class IndexConfigsVectorTypedDict(TypedDict):
     managed_embedding: NotRequired[bool]
     r"""Omit with embedding for native embeddings; true remains supported. False forbids embedding."""
     dimensions: NotRequired[int]
-    r"""Vector dimensions for unmanaged vector fields."""
+    r"""Vector dimensions for caller-provided vector fields."""
     similarity: NotRequired[Similarity]
-    r"""Vector similarity metric for unmanaged vector fields."""
+    r"""Vector similarity metric for caller-provided vector fields."""
     embedding: NotRequired[EmbeddingConfigTypedDict]
-    r"""Managed embedding configuration for vector fields."""
+    r"""Native embedding configuration for vector fields."""
 
 
 class IndexConfigsVector(BaseModel):
@@ -145,13 +145,13 @@ class IndexConfigsVector(BaseModel):
     r"""Omit with embedding for native embeddings; true remains supported. False forbids embedding."""
 
     dimensions: Optional[int] = None
-    r"""Vector dimensions for unmanaged vector fields."""
+    r"""Vector dimensions for caller-provided vector fields."""
 
     similarity: Optional[Similarity] = Similarity.COSINE
-    r"""Vector similarity metric for unmanaged vector fields."""
+    r"""Vector similarity metric for caller-provided vector fields."""
 
     embedding: Optional[EmbeddingConfig] = None
-    r"""Managed embedding configuration for vector fields."""
+    r"""Native embedding configuration for vector fields."""
 
     @model_validator(mode="after")
     def validate_vector_type(self):

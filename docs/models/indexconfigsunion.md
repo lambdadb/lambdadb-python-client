@@ -15,7 +15,7 @@ value: models.IndexConfigsText = /* values here */
 value: models.IndexConfigsVector = /* values here */
 ```
 
-Use this type for both unmanaged vector fields and managed embedding vector fields.
+Use this type for both caller-provided vector fields and native embedding vector fields.
 
 ### `models.IndexConfigs`
 

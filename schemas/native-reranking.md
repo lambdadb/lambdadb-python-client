@@ -1,7 +1,7 @@
-# Managed reranking contract maintenance
+# Native reranking contract maintenance
 
-`managed-reranking.json` is a scoped schema adapted from backend DTOs, service
-validation, tests and the managed reranking design. It is pinned to backend
+`native-reranking.json` is a scoped schema adapted from backend DTOs, service
+validation, tests and the native reranking design. It is pinned to backend
 `develop` revision
 [55d888299fee44466326a9db8016af9811ade13b](https://github.com/lambdadb/lambdadb/commit/55d888299fee44466326a9db8016af9811ade13b),
 which includes [PR #435](https://github.com/lambdadb/lambdadb/pull/435) and

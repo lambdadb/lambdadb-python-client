@@ -313,8 +313,8 @@ def test_collection_response_has_datetime_properties() -> None:
     assert resp.created_at_dt == datetime.fromtimestamp(1000, tz=timezone.utc)
 
 
-def test_managed_embedding_index_config_serializes_with_api_aliases() -> None:
-    """Managed embedding vector configs parse and dump using API field names."""
+def test_native_embedding_index_config_serializes_with_api_aliases() -> None:
+    """Native embedding vector configs parse and dump using API field names."""
     from lambdadb.models import (
         CreateCollectionRequest,
         EmbeddingConfig,
@@ -357,8 +357,8 @@ def test_managed_embedding_index_config_serializes_with_api_aliases() -> None:
     }
 
 
-def test_managed_embedding_index_config_accepts_plain_dict_input() -> None:
-    """Managed embedding vector configs also work as plain request dictionaries."""
+def test_native_embedding_index_config_accepts_plain_dict_input() -> None:
+    """Native embedding vector configs also work as plain request dictionaries."""
     from lambdadb.models import CreateCollectionRequest, IndexConfigsVector
 
     req = CreateCollectionRequest.model_validate(
@@ -393,8 +393,8 @@ def test_managed_embedding_index_config_accepts_plain_dict_input() -> None:
     }
 
 
-def test_collection_response_parses_managed_embedding_index_config() -> None:
-    """CollectionResponse accepts managed embedding metadata returned by the API."""
+def test_collection_response_parses_native_embedding_index_config() -> None:
+    """CollectionResponse accepts native embedding metadata returned by the API."""
     from lambdadb.models import CollectionResponse, IndexConfigsVector
 
     resp = CollectionResponse.model_validate(
@@ -440,8 +440,8 @@ def test_collection_response_parses_managed_embedding_index_config() -> None:
     )
 
 
-def test_unmanaged_vector_index_config_requires_dimensions_and_defaults_similarity() -> None:
-    """Unmanaged vector configs keep existing dimensions + default similarity behavior."""
+def test_caller_provided_vector_index_config_requires_dimensions_and_defaults_similarity() -> None:
+    """Caller-provided vector configs keep existing dimensions + default similarity behavior."""
     from lambdadb.models import CreateCollectionRequest, IndexConfigsVector, Similarity
 
     req = CreateCollectionRequest.model_validate(
@@ -464,7 +464,7 @@ def test_unmanaged_vector_index_config_requires_dimensions_and_defaults_similari
     assert vector_config.similarity is Similarity.COSINE
 
 
-def test_vector_index_config_rejects_managed_embedding_without_embedding() -> None:
+def test_vector_index_config_rejects_legacy_native_embedding_without_embedding() -> None:
     """embedding is required when managedEmbedding=true."""
     from pydantic import ValidationError
     from lambdadb.models import CreateCollectionRequest
@@ -483,8 +483,8 @@ def test_vector_index_config_rejects_managed_embedding_without_embedding() -> No
         )
 
 
-def test_vector_index_config_rejects_top_level_managed_vector_fields() -> None:
-    """Managed embedding vectors cannot use top-level vector parameters."""
+def test_vector_index_config_rejects_top_level_native_embedding_vector_fields() -> None:
+    """Native embedding vectors cannot use top-level vector parameters."""
     from pydantic import ValidationError
     from lambdadb.models import CreateCollectionRequest
 
@@ -527,8 +527,8 @@ def test_vector_index_config_rejects_top_level_managed_vector_fields() -> None:
         )
 
 
-def test_vector_index_config_rejects_unmanaged_embedding_fields() -> None:
-    """Unmanaged vectors require dimensions and cannot include embedding."""
+def test_vector_index_config_rejects_embedding_for_caller_provided_vectors() -> None:
+    """Caller-provided vectors require dimensions and cannot include embedding."""
     from pydantic import ValidationError
     from lambdadb.models import CreateCollectionRequest
 

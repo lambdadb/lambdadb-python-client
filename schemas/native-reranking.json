@@ -34,14 +34,14 @@
           "enum": [
             "typesafe"
           ],
-          "description": "Server-managed reranking provider. No customer provider API key is required."
+          "description": "Native reranking provider. The server handles provider credentials; no customer provider API key is required."
         },
         "model": {
           "type": "string",
           "enum": [
             "jev-1.13.0"
           ],
-          "description": "Explicit managed reranking model."
+          "description": "Explicit native reranking model."
         },
         "queryText": {
           "type": "string",

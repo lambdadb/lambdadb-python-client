@@ -1,6 +1,6 @@
 # EmbeddingConfig
 
-Native embedding configuration for vector fields. Existing managed embedding inputs remain supported.
+Native embedding configuration for vector fields. Legacy `managedEmbedding` / `managed_embedding` inputs remain supported.
 
 
 ## Fields

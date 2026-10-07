@@ -23,7 +23,7 @@ poetry run pytest tests/ -m "not integration" -v
 ```
 
 These tests cover the public SDK surface, request and response models, retry and
-client lifecycle behavior, managed embedding configuration, document helpers,
+client lifecycle behavior, native embedding configuration, document helpers,
 and the Qdrant compatibility layer.
 
 ## Static checks
@@ -131,7 +131,7 @@ poetry run pytest tests/integration/test_bayesian_native_live.py -m integration 
 ```
 
 Use the same three connection environment variables as above. The suite creates
-unique collections, tests actual document/query embeddings and managed reranking,
+unique collections, tests actual document/query embeddings and native reranking,
 and verifies collection deletion with HTTP 404. See the
 [scoped contract guide](bayesian-native-embeddings.md) for limits and temporary
 project/key cleanup. This repository has no CLI to validate.

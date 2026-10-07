@@ -1,6 +1,6 @@
 # RerankResponse
 
-Generated from the [pinned contract](../../schemas/managed-reranking.json).
+Generated from the [pinned contract](../../schemas/native-reranking.json).
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -14,4 +14,4 @@ Generated from the [pinned contract](../../schemas/managed-reranking.json).
 | `criteria_version` | `Optional[Literal['default-relevance-v1', 'custom']]` | No | Only on applied results when reported. custom identifies caller-supplied criteria, not a content hash or unique version. |
 | `reason` | `Optional[str]` | No | Skipped/fallback reason: noCandidates, timeout, rateLimit, unavailable, invalidResponse or credentials. |
 
-See [managed reranking](../managed-reranking.md) for examples and server validation.
+See [native reranking](../native-reranking.md) for examples and server validation.
