@@ -17,14 +17,14 @@ class RerankConfigTypedDict(TypedDict):
 
 
 class RerankConfig(BaseModel):
-    """Managed reranking request."""
+    """Native reranking request."""
     model_config = ConfigDict(extra="forbid")
 
     provider: Literal['typesafe']
-    """Server-managed reranking provider. No customer provider API key is required."""
+    """Native reranking provider. The server handles provider credentials; no customer provider API key is required."""
 
     model: Literal['jev-1.13.0']
-    """Explicit managed reranking model."""
+    """Explicit native reranking model."""
 
     query_text: StrictStr = Field(alias="queryText")
     """Nonblank query text, at most 8 KiB UTF-8; required even for raw-vector retrieval."""
@@ -92,7 +92,7 @@ class RerankResponseTypedDict(TypedDict):
 
 
 class RerankResponse(BaseModel):
-    """Managed reranking metadata."""
+    """Native reranking metadata."""
     status: Literal['applied', 'skipped', 'fallback']
     """Check status before interpreting scores: fallback keeps search scores."""
 

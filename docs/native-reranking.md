@@ -1,6 +1,6 @@
-# Managed reranking
+# Native reranking
 
-Managed reranking is an optional **per-query** stage after retrieval, global
+Native reranking is an optional **per-query** stage after retrieval, global
 merge, deduplication and hydration. It is not a collection setting. This source
 checkout supports `typesafe` / `jev-1.13.0` on a compatible server. LambdaDB
 manages provider credentials; supply your normal LambdaDB project API key, not

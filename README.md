@@ -238,7 +238,7 @@ response = client.collection("articles").query(
 )
 ```
 
-With managed reranking, omit top-level `candidate_size` and use the rerank budget.
+With native reranking, omit top-level `candidate_size` and use the rerank budget.
 See [Bayesian search](docs/bayesian-native-embeddings.md) for limits and examples.
 
 ### Choose text analyzers
@@ -278,9 +278,10 @@ keeps the field type `text` and does not enable keyword-field sorting or facets.
 Custom pipelines and analyzer options are unsupported. `NEPALI`, `TAMIL`, and
 `TELUGU` are Lucene extensions, not common Elasticsearch/OpenSearch analyzers.
 
-### Managed reranking
+### Native reranking
 
-This source checkout supports optional server-managed reranking on each query:
+This source checkout supports optional native reranking on each query. The server
+runs reranking and handles provider credentials:
 
 ```python
 response = client.collection("articles").query(
@@ -299,7 +300,7 @@ for item in response.results:
 
 No Jev API key is required. Omitted/null reranking preserves existing search
 behavior. Check `response.rerank.status`: applied scores are evaluation values
-in `[0, 1]`, while fallback keeps search scores. The `0.11.0` release requires a compatible server. See [managed reranking](docs/managed-reranking.md)
+in `[0, 1]`, while fallback keeps search scores. The `0.11.0` release requires a compatible server. See [native reranking](docs/native-reranking.md)
 for custom criteria, candidate limits, response metadata and failure handling.
 
 ### Count keyword facets

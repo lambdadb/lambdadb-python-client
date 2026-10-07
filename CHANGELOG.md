@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.12.1
+
+- Standardize feature terminology as native embedding and native reranking in
+  documentation, SDK descriptions, examples, and internal test names.
+- Rename the reranking guide and scoped schema files to `native-reranking` and
+  update repository references. Explain the server's reranking and provider
+  credential responsibilities directly.
+- Preserve public symbols, `managedEmbedding` / `managed_embedding`, error
+  strings, legacy behavior, and pinned external identifiers. No API behavior,
+  validation, serialization, defaults, limits, or dependencies change.
+
 ## 0.12.0
 
 - Support Bayesian hybrid search with optional `candidate_size` across sync/async
@@ -12,7 +23,7 @@
 
 ## 0.11.0
 
-- Add optional per-query managed reranking with `RerankConfig` / TypedDict and
+- Add optional per-query native reranking with `RerankConfig` / TypedDict and
   `RerankResponse` / TypedDict exports across sync/async query APIs. Preserve
   omitted/null behavior and leave defaults and `knn.k` to the server/caller.
 - Preserve envelope `retrievalScore`, final `score` precision and top-level

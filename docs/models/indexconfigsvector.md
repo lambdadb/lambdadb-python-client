@@ -7,9 +7,9 @@
 | ------------------------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------ |
 | `type`                                                 | [models.TypeVector](../models/typevector.md)           | :heavy_check_mark:                                     | N/A                                                    |
 | `managed_embedding`                                    | *Optional[bool]*                                       | :heavy_minus_sign:                                     | Omit with embedding for native embeddings; true remains supported. False forbids embedding. |
-| `dimensions`                                           | *Optional[int]*                                        | :heavy_minus_sign:                                     | Vector dimensions for unmanaged vector fields.         |
-| `similarity`                                           | [Optional[models.Similarity]](../models/similarity.md) | :heavy_minus_sign:                                     | Vector similarity metric for unmanaged vector fields.  |
-| `embedding`                                            | [Optional[models.EmbeddingConfig]](../models/embeddingconfig.md) | :heavy_minus_sign:                            | Managed embedding configuration for vector fields.     |
+| `dimensions`                                           | *Optional[int]*                                        | :heavy_minus_sign:                                     | Vector dimensions for caller-provided vector fields.         |
+| `similarity`                                           | [Optional[models.Similarity]](../models/similarity.md) | :heavy_minus_sign:                                     | Vector similarity metric for caller-provided vector fields.  |
+| `embedding`                                            | [Optional[models.EmbeddingConfig]](../models/embeddingconfig.md) | :heavy_minus_sign:                            | Native embedding configuration for vector fields.     |
 
 ## Validation
 

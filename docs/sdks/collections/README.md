@@ -340,11 +340,11 @@ with LambdaDB(
 | errors.InternalServerError   | 500                          | application/json             |
 | errors.APIError              | 4XX, 5XX                     | \*/\*                        |
 
-### Managed reranking
+### Native reranking
 
 All sync/async query methods accept optional `rerank` as
 `models.RerankConfig` or `models.RerankConfigTypedDict`. Omitted/null preserves
-existing search behavior. See [managed reranking](../../managed-reranking.md)
+existing search behavior. See [native reranking](../../native-reranking.md)
 for default/custom examples, candidate limits and status-aware score handling.
 
 See [Bayesian search and native embeddings](../../bayesian-native-embeddings.md) for the pinned contract and examples.
