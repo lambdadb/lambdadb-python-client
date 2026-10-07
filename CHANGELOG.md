@@ -12,7 +12,7 @@
 
 ## 0.11.0
 
-- Add optional per-query managed reranking with `RerankConfig` / TypedDict and
+- Add optional per-query native reranking with `RerankConfig` / TypedDict and
   `RerankResponse` / TypedDict exports across sync/async query APIs. Preserve
   omitted/null behavior and leave defaults and `knn.k` to the server/caller.
 - Preserve envelope `retrievalScore`, final `score` precision and top-level

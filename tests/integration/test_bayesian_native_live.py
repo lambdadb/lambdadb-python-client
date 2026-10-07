@@ -132,7 +132,7 @@ def test_bayesian_and_rerank(live_sdk):
             assert caught.value.status_code == 400
             time.sleep(0.15)
         print(f"Bayesian retrieval and {len(invalid)} server HTTP 400 checks passed")
-        stage = "Bayesian managed rerank"
+        stage = "Bayesian native reranking"
         scores = {hit.doc["id"]: hit.score for hit in baseline.results}
         for async_mode in (False, True):
             request = dict(query=query, size=2, consistent_read=True, rerank={**RERANK, "candidateSize": 30}, retries=None)

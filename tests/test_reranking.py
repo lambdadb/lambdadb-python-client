@@ -1,4 +1,4 @@
-"""Managed reranking wire contract, legacy compatibility and result hydration."""
+"""Native reranking wire contract, legacy compatibility and result hydration."""
 from __future__ import annotations
 
 import asyncio
@@ -21,7 +21,7 @@ OPTIONS = dict(base_url="https://api.example", project_name="project", project_a
 
 def test_schema_and_generated_outputs() -> None:
     root = Path(__file__).resolve().parents[1]
-    schema = json.loads((root / "schemas/managed-reranking.json").read_text())
+    schema = json.loads((root / "schemas/native-reranking.json").read_text())
     assert schema["source"]["revision"] == "55d888299fee44466326a9db8016af9811ade13b"
     assert schema["schemas"]["RerankConfig"]["required"] == ["provider", "model", "queryText", "fields"]
     subprocess.run([sys.executable, str(root / "scripts/generate_reranking.py"), "--check"], check=True)

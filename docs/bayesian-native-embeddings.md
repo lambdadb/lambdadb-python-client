@@ -57,7 +57,7 @@ added. The server validates signal counts, boosts, fusion placement, and budget
 combinations. Invalid requests remain `BadRequestError` with HTTP 400. Existing
 local ref/rerank validation still runs in its original order.
 
-## Managed reranking
+## Native reranking
 
 ```python
 from lambdadb import models
@@ -81,7 +81,7 @@ if response.rerank.status == "applied":
 Bayesian fusion runs before reranking. `retrieval_score` preserves the fusion
 score; `score` is the final rerank evaluation score when reranking is applied.
 Existing response parsing and automatic collection-handle `docsUrl` downloads
-remain unchanged. See [managed reranking](managed-reranking.md) for failure
+remain unchanged. See [native reranking](native-reranking.md) for failure
 semantics. These scores are not relevance probabilities.
 
 ## Native embedding configuration
@@ -143,7 +143,7 @@ Also set `LAMBDADB_BASE_URL`, `LAMBDADB_PROJECT_NAME`, and
 `LAMBDADB_PROJECT_API_KEY`. The test creates unique temporary collections and
 verifies their deletion with HTTP 404 even after failures. It covers caller
 vectors, native and legacy create/update, real document/query embeddings,
-ordinary KNN, Bayesian, managed rerank, and server error classification.
+ordinary KNN, Bayesian, native reranking, and server error classification.
 Create/revoke temporary project keys and delete temporary projects through the
 authorized test-stack admin API separately. Never print credentials or signed
 URLs; persistent CI projects/keys must remain untouched.

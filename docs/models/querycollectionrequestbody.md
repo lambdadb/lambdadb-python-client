@@ -5,7 +5,7 @@
 
 | Field                                                                                                                                                                                                                       | Type                                                                                                                                                                                                                        | Required                                                                                                                                                                                                                    | Description                                                                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `rerank` | Optional[[models.RerankConfig](rerankconfig.md)] | No | Per-query managed reranking; omitted/null preserves search behavior. Requires scoring retrieval, positive size and no sort. |
+| `rerank` | Optional[[models.RerankConfig](rerankconfig.md)] | No | Per-query native reranking; omitted/null preserves search behavior. Requires scoring retrieval, positive size and no sort. |
 | `candidate_size` | *Optional[int]* | :heavy_minus_sign: | Bayesian budget without rerank: size <= candidate_size <= 100. With rerank, omit and use rerank.candidate_size. Unsupported for other queries. |
 | `size` | *Optional[int]* | :heavy_minus_sign: | Number of documents to return, up to 100. Use `0` with at least one facet to return counts without documents. |
 | `query` | *Optional[Dict[str, Any]]* | :heavy_minus_sign: | Query object. Omit it to match all documents. |
@@ -19,6 +19,6 @@
 
 See [keyword facets](../keyword-facets.md) for supported queries, limits, and index requirements.
 
-See [managed reranking](../managed-reranking.md) for score meaning, examples and failure semantics.
+See [native reranking](../native-reranking.md) for score meaning, examples and failure semantics.
 
 See [Bayesian search and native embeddings](../bayesian-native-embeddings.md) for the pinned contract and examples.
