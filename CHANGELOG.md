@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.12.1
+
+- Standardize feature terminology as native embedding and native reranking in
+  documentation, SDK descriptions, examples, and internal test names.
+- Rename the reranking guide and scoped schema files to `native-reranking` and
+  update repository references. Explain the server's reranking and provider
+  credential responsibilities directly.
+- Preserve public symbols, `managedEmbedding` / `managed_embedding`, error
+  strings, legacy behavior, and pinned external identifiers. No API behavior,
+  validation, serialization, defaults, limits, or dependencies change.
+
 ## 0.12.0
 
 - Support Bayesian hybrid search with optional `candidate_size` across sync/async
