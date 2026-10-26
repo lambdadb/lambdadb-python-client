@@ -11,6 +11,9 @@
   and backend `0a54b6ecb483ce7df9677ba2071a491f9f9879c9`. See
   [read limits and stored text](docs/read-limits-and-stored-text.md) for scope,
   compatibility, and the remaining OpenAPI/backend vector constraint difference.
+- Refresh the locked development/test CA bundle to certifi 2026.10.23, including
+  the GHSA-6q48-6c7w-9gw2 root-certificate fix. Published dependency ranges remain
+  unchanged.
 
 ## 0.12.1
 
