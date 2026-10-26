@@ -1,13 +1,16 @@
 # Bayesian search and native embeddings
 
-This scoped extension is pinned to backend
+The current 1000-result/candidate limits and unindexed source paths are pinned
+in [read limits and stored text](read-limits-and-stored-text.md). The original
+Bayesian and embedding-only extension is pinned to backend
 [`9072a1bc8925954369a887f558f1eaf387b7ea0e`](https://github.com/lambdadb/lambdadb/commit/9072a1bc8925954369a887f558f1eaf387b7ea0e):
 [QueryRequest](https://github.com/lambdadb/lambdadb/blob/9072a1bc8925954369a887f558f1eaf387b7ea0e/api/src/main/java/ai/lambdadb/dto/QueryRequest.java),
 [BayesianQuery](https://github.com/lambdadb/lambdadb/blob/9072a1bc8925954369a887f558f1eaf387b7ea0e/api/src/main/java/ai/lambdadb/model/query/BayesianQuery.java),
 [RankableQueryBase](https://github.com/lambdadb/lambdadb/blob/9072a1bc8925954369a887f558f1eaf387b7ea0e/api/src/main/java/ai/lambdadb/model/query/RankableQueryBase.java), and
 [FieldConfig](https://github.com/lambdadb/lambdadb/blob/9072a1bc8925954369a887f558f1eaf387b7ea0e/api/src/main/java/ai/lambdadb/model/collection/FieldConfig.java).
-The base `API_CONTRACT_REVISION` and the separate reranking/analyzer pins are
-unchanged; this does not port every intervening backend change. A source pin
+The base `API_CONTRACT_REVISION` and analyzer pin are unchanged; the current
+reranking pin is documented in the linked scoped update. This does not port
+every intervening backend change. A source pin
 alone does not establish deployment or availability in another environment.
 
 The final merged TypeScript references were
@@ -44,7 +47,7 @@ field, replace `queryVector` with `queryText`.
 - Rank fusion is top-level only: do not nest `bayesian`, `rrf`, `mm`, or `l2`
   in either signal or its Boolean descendants.
 - Without rerank, supply `candidate_size` with
-  `1 <= size <= candidate_size <= 100`. Omitting it returns HTTP 400 on this contract.
+  `1 <= size <= candidate_size <= 1000`. Omitting it returns HTTP 400 on this contract.
 - With rerank, omit the top-level budget and use `rerank.candidate_size` (model)
   or `rerank["candidateSize"]` (wire dictionary). Omitting the rerank budget
   preserves the existing server default.

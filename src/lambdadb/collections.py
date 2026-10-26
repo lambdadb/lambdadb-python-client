@@ -1357,9 +1357,9 @@ class Collections(BaseSDK):
         :param collection_name: Collection name.
         :param query: Query object; omit to match all documents.
         :param facets: Up to five keyword fields and their bucket limits (default 10, maximum 100).
-        :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 100). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
+        :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 1000). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
         :param rerank: Optional per-query native reranking. The server runs reranking and handles provider credentials. Omitted/null preserves search behavior; no provider API key is required.
-        :param size: Number of documents to return. Note that the maximum number of documents is 100.
+        :param size: Number of documents to return. The maximum number of documents is 1000; zero requires at least one facet.
         :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
@@ -1524,9 +1524,9 @@ class Collections(BaseSDK):
         :param collection_name: Collection name.
         :param query: Query object; omit to match all documents.
         :param facets: Up to five keyword fields and their bucket limits (default 10, maximum 100).
-        :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 100). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
+        :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 1000). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
         :param rerank: Optional per-query native reranking. The server runs reranking and handles provider credentials. Omitted/null preserves search behavior; no provider API key is required.
-        :param size: Number of documents to return. Note that the maximum number of documents is 100.
+        :param size: Number of documents to return. The maximum number of documents is 1000; zero requires at least one facet.
         :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.

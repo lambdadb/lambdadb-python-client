@@ -77,9 +77,9 @@ class EmbeddingConfigTypedDict(TypedDict):
     provider: Provider
     r"""Embedding provider."""
     model: str
-    r"""Embedding model name. See /guides/collections/managed-embeddings for the current supported providers and models."""
+    r"""Embedding model name. See /guides/collections/native-embeddings for the current supported providers and models."""
     source_field: str
-    r"""Source text field name used to generate embeddings."""
+    r"""Stored scalar string path through objects; no source index config is required. The server validates declared types and document values."""
     dimensions: NotRequired[int]
     r"""Resolved embedding dimensions. Optional in requests and resolved in stored collection metadata."""
     similarity: NotRequired[Similarity]
@@ -93,10 +93,10 @@ class EmbeddingConfig(BaseModel):
     r"""Embedding provider."""
 
     model: str
-    r"""Embedding model name. See /guides/collections/managed-embeddings for the current supported providers and models."""
+    r"""Embedding model name. See /guides/collections/native-embeddings for the current supported providers and models."""
 
     source_field: Annotated[str, pydantic.Field(alias="sourceField")]
-    r"""Source text field name used to generate embeddings."""
+    r"""Stored scalar string path through objects; no source index config is required. The server validates declared types and document values."""
 
     dimensions: Optional[int] = None
     r"""Resolved embedding dimensions. Optional in requests and resolved in stored collection metadata."""

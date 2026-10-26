@@ -17,7 +17,7 @@ class ListDocsRequestTypedDict(TypedDict):
     collection_name: str
     r"""Collection name."""
     size: NotRequired[int]
-    r"""Max number of documents to return at once."""
+    r"""Max number of documents to return at once (1-1000, server default 100)."""
     page_token: NotRequired[str]
     r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
     include_vectors: NotRequired[bool]
@@ -38,7 +38,7 @@ class ListDocsRequest(BaseModel):
         Optional[int],
         FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
     ] = None
-    r"""Max number of documents to return at once."""
+    r"""Max number of documents to return at once (1-1000, server default 100)."""
 
     page_token: Annotated[
         Optional[str],
@@ -85,7 +85,7 @@ class ListDocsRequest(BaseModel):
 
 class ListDocsExtendedRequestBodyTypedDict(TypedDict):
     size: NotRequired[int]
-    r"""Max number of documents to return at once."""
+    r"""Max number of documents to return at once (1-1000, server default 100)."""
     page_token: NotRequired[str]
     r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
     filter_: NotRequired[Dict[str, Any]]
@@ -102,7 +102,7 @@ class ListDocsExtendedRequestBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     size: Optional[int] = None
-    r"""Max number of documents to return at once."""
+    r"""Max number of documents to return at once (1-1000, server default 100)."""
 
     page_token: Annotated[Optional[str], pydantic.Field(alias="pageToken")] = None
     r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""

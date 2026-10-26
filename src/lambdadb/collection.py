@@ -17,7 +17,7 @@ from lambdadb.types import OptionalNullable, UNSET
 from lambdadb.versioning import Aliases, Branches, CollectionVersioning, Tags
 
 # API max page size for list_docs
-_LIST_DOCS_MAX_SIZE = 100
+_LIST_DOCS_MAX_SIZE = 1000
 
 
 def _fetch_bytes_from_presigned_url(
@@ -972,7 +972,7 @@ class Collection:
         Optional ``rerank`` requires a scoring query and positive size. Check
         ``response.rerank.status`` before interpreting final scores.
         Bayesian retrieval without rerank requires ``candidate_size`` with
-        ``1 <= size <= candidate_size <= 100``. With rerank, omit it and use
+        ``1 <= size <= candidate_size <= 1000``. With rerank, omit it and use
         ``rerank.candidate_size``. Other query types do not support this field.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
@@ -1034,7 +1034,7 @@ class Collection:
         Optional ``rerank`` requires a scoring query and positive size. Check
         ``response.rerank.status`` before interpreting final scores.
         Bayesian retrieval without rerank requires ``candidate_size`` with
-        ``1 <= size <= candidate_size <= 100``. With rerank, omit it and use
+        ``1 <= size <= candidate_size <= 1000``. With rerank, omit it and use
         ``rerank.candidate_size``. Other query types do not support this field.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Support up to 1000 rerank candidates and returned documents. Preserve omitted
+  candidate budgets, server defaults, and each retrieval leg's `knn.k`.
+- Use up to 1000 documents per internal List request when a larger logical page
+  is requested; retain the default page size of 100 and ref/filter propagation.
+- Align Query, Fetch, and List limit descriptions and native embedding/reranking
+  stored-path guidance with docs contract `ce2d8f7bd8ee2ab4f240be022085aab37cca0b91`
+  and backend `0a54b6ecb483ce7df9677ba2071a491f9f9879c9`. See
+  [read limits and stored text](docs/read-limits-and-stored-text.md) for scope,
+  compatibility, and the remaining OpenAPI/backend vector constraint difference.
+
 ## 0.12.1
 
 - Standardize feature terminology as native embedding and native reranking in

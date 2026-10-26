@@ -5,7 +5,7 @@
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `collection_name` | `str` | Yes | Collection name. |
-| `size` | `Optional[int]` | No | Maximum documents returned at once. |
+| `size` | `Optional[int]` | No | Maximum documents returned at once (1-1000, server default 100). |
 | `page_token` | `Optional[str]` | No | Opaque token from the previous page. |
 | `include_vectors` | `Optional[bool]` | No | Include vector values. |
 | `ref_kind` | `Optional[RefKind]` | No | Pair with `ref_name`. |

@@ -1,4 +1,4 @@
-"""Opt-in smoke for backend 9072a1bc8925954369a887f558f1eaf387b7ea0e.
+"""Opt-in Bayesian/native smoke, including docs contract ce2d8f7.
 
 Verify deployment separately before enabling LAMBDADB_RUN_BAYESIAN_SMOKE.
 Only uniquely named collections created by this test are removed.
@@ -123,7 +123,7 @@ def test_bayesian_and_rerank(live_sdk):
               for method in ("bayesian", "rrf", "mm", "l2")],
         ]
         invalid = [*[{**args, "query": q} for q in invalid_queries],
-                   *[{**args, "candidate_size": n} for n in (None, 0, 2, 101)],
+                   *[{**args, "candidate_size": n} for n in (None, 0, 2, 1001)],
                    {**args, "rerank": RERANK},
                    *[{**args, "query": q} for q in [LEXICAL, VECTOR, *[{method: [LEXICAL, VECTOR]} for method in ("rrf", "mm", "l2")]]]]
         for request in invalid:
@@ -156,6 +156,14 @@ def test_bayesian_and_rerank(live_sdk):
                 assert math.isfinite(hit.score) and 0 <= hit.score <= 1
                 assert hit.retrieval_score == pytest.approx(scores[hit.doc["id"]])
             print(f"Bayesian rerank applied: async={async_mode}, candidate/scored=3/3, retrievalScore preserved")
+        stage = "expanded query and rerank count limits"
+        for size in (101, 1000):
+            expanded = {**args, "size": size, "candidate_size": 1000}
+            assert len(coll.query(**expanded, retries=None).results) == 3
+        expanded = {**args, "size": 1000, "candidate_size": None,
+                    "rerank": {**RERANK, "candidateSize": 1000}}
+        assert len(coll.query(**expanded, retries=None).results) == 3
+        print("Query size and Bayesian/rerank candidate budgets of 1000 accepted; actual candidate set has 3 documents")
     except Exception as error:
         # SDK errors can contain response bodies and URLs; never print those in live logs.
         pytest.fail(f"{stage}: {type(error).__name__}; HTTP {getattr(error, 'status_code', 'n/a')}", pytrace=False)
@@ -192,5 +200,54 @@ def test_native_embedding_create_update(live_sdk, legacy):
         assert response.documents[0]["id"] == "one"
         assert math.isfinite(response.results[0].score)
         print(f"Native create/update, actual document/query embeddings and KNN passed: legacy={legacy}")
+    except Exception as error:
+        pytest.fail(f"{stage}: {type(error).__name__}; HTTP {getattr(error, 'status_code', 'n/a')}", pytrace=False)
+
+
+@pytest.mark.parametrize("nested", [False, True])
+def test_unindexed_native_source_and_rerank_paths(live_sdk, nested):
+    sdk, names = live_sdk
+    name = f"python-stored-text-{uuid.uuid4().hex[:12]}"
+    names.append(name)
+    path = "article.body" if nested else "body"
+    embedding = {**EMBEDDING, "sourceField": path}
+    stage = "create vector-only schema"
+    try:
+        sdk.collections.create(collection_name=name, index_configs={
+            "vector": {"type": "vector", "embedding": embedding},
+        }, retries=None)
+        coll = sdk.collection(name)
+        text = "Restore a saved collection version using a branch."
+        source = {"article": {"body": text}} if nested else {"body": text}
+        stage = "generate embedding from unindexed stored text"
+        coll.docs.upsert(docs=[{"id": "one", **source}], retries=None)
+        result = _wait_query(coll, 1, size=1, consistent_read=True, include_vectors=True)
+        vector = result.documents[0]["vector"]
+        assert len(vector) == 1536
+        assert all(math.isfinite(value) for value in vector)
+        stage = "query text and rerank using unindexed path"
+        query = {"knn": {"field": "vector", "queryText": "Restore a version", "k": 1000}}
+        response = coll.query(query=query, size=101, consistent_read=True, retries=None,
+            rerank={**RERANK, "fields": [path], "candidateSize": 1000})
+        assert response.rerank.status == "applied"
+        assert response.rerank.candidate_count == response.rerank.scored_count == 1
+        assert response.documents[0]["id"] == "one"
+        stage = "preserve server rejection of raw query vector on native field"
+        with pytest.raises(errors.BadRequestError):
+            coll.query(query={"knn": {"field": "vector", "queryVector": vector, "k": 1000}},
+                       size=1000, consistent_read=True, retries=None)
+        stage = "reject non-string unindexed embedding source"
+        invalid = {"article": {"body": 42}} if nested else {"body": 42}
+        with pytest.raises(errors.BadRequestError):
+            coll.docs.upsert(docs=[{"id": "invalid", **invalid}], retries=None)
+        stage = "preserve source and vector through sibling partial update"
+        coll.docs.update(docs=[{"id": "one", "note": "unchanged source"}], retries=None)
+        fetched = coll.docs.fetch(ids=["one"], consistent_read=True, include_vectors=True, retries=None)
+        assert fetched.documents[0]["vector"] == vector
+        stage = "full replacement omits source and old generated vector"
+        coll.docs.upsert(docs=[{"id": "one", "note": "replacement"}], retries=None)
+        fetched = coll.docs.fetch(ids=["one"], consistent_read=True, include_vectors=True, retries=None)
+        assert "vector" not in fetched.documents[0]
+        print(f"Unindexed native source, rerank, raw-vector rejection and write semantics passed: nested={nested}")
     except Exception as error:
         pytest.fail(f"{stage}: {type(error).__name__}; HTTP {getattr(error, 'status_code', 'n/a')}", pytrace=False)

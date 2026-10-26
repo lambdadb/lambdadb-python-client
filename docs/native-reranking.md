@@ -82,17 +82,18 @@ See [RerankConfig](models/rerankconfig.md) for field types and required values.
 `provider`, `model`, nonblank `queryText` and `fields` are required. Query text
 is limited to 8 KiB UTF-8, including when retrieval uses raw vectors.
 `fields` is an ordered list of 1–8 unique stored scalar text paths. The backend
-accepts scalar strings on text or keyword paths, including nested object paths.
-It validates the collection configuration and actual candidate values; a
+accepts unindexed top-level and nested paths such as `article.body`. Index
+declarations are optional; declared leaves must be text or keyword, and declared
+ancestors must be objects. It validates the configuration and candidate values; a
 non-string value or a candidate with no nonblank selected text is an error.
 Rerank input fields are independent of public result projection: selecting
 `body` for reranking does not force `body` into returned documents.
 
 | Control | Meaning |
 | --- | --- |
-| `size` | Final number of returned documents; must be positive with reranking, at most 100. Server default is 10. |
-| `knn.k` | Candidate count for that vector retrieval leg. The SDK never rewrites it. |
-| `rerank.candidateSize` | Upper bound on the merged rerank pool; defaults to `max(50, size)`, with `size <= candidateSize <= 100`. |
+| `size` | Final number of returned documents; must be positive with reranking, at most 1000. Server default is 10. |
+| `knn.k` | Candidate count for that vector retrieval leg, from 1 to 1000. The SDK never rewrites it. |
+| `rerank.candidateSize` | Upper bound on the merged rerank pool; defaults to `max(50, size)`, with `size <= candidateSize <= 1000`. |
 
 For vector-only retrieval, increase `knn.k` explicitly when a deeper pool is
 wanted. A vector leg with `k=20` can also join a lexical leg in a larger merged
@@ -113,6 +114,9 @@ the opaque query DSL, field storage/type, input materialization limits, model
 availability and admission. Invalid requests are validated before empty-result
 handling. The server also limits rendered candidate text to 16 KiB and combined
 query/candidate/criteria text to 256 KiB, without silently truncating it.
+These byte and deadline budgets still apply at 1000 candidates. See
+[read limits and stored text](read-limits-and-stored-text.md) for the exact
+contract revisions and result download behavior.
 
 ## Response scores and status
 
