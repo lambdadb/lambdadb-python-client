@@ -50,6 +50,12 @@ on the stable `0.9.0` release until they upgrade their interpreter.
 
 The SDK can be installed with *uv*, *pip*, or *poetry* package managers.
 
+Before upgrading to `0.13.0`, review the
+[vector configuration migration requirements](docs/vector-configuration.md).
+Dense vectors now follow the public OpenAPI: 64-4096 dimensions and
+`cosine`/`euclidean` similarity, including collection response parsing.
+Collections outside that contract must be migrated before upgrading.
+
 ### uv
 
 *uv* is a fast Python package installer and resolver, designed as a drop-in replacement for pip and pip-tools. It's recommended for its speed and modern Python tooling capabilities.

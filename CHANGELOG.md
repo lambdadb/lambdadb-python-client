@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.0
+
 - Align dense vector configuration with OpenAPI revision
   `94a7b71613a3bf217a370d5117b3ff6ddfbae851`: dimensions are 64-4096 and
   similarity is `cosine` or `euclidean`, for both caller-provided and native
