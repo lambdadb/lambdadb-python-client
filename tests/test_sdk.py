@@ -564,7 +564,7 @@ def test_vector_index_config_rejects_embedding_for_caller_provided_vectors() -> 
             }
         )
 
-    with pytest.raises(ValidationError, match="Dimensions must be between 1 and 4096"):
+    with pytest.raises(ValidationError, match="Dimensions must be between 64 and 4096"):
         CreateCollectionRequest.model_validate(
             {
                 "collectionName": "articles",
@@ -578,7 +578,7 @@ def test_vector_index_config_rejects_embedding_for_caller_provided_vectors() -> 
             }
         )
 
-    with pytest.raises(ValidationError, match="Dimensions must be between 1 and 4096"):
+    with pytest.raises(ValidationError, match="Dimensions must be between 64 and 4096"):
         CreateCollectionRequest.model_validate(
             {
                 "collectionName": "articles",

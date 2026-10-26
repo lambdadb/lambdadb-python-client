@@ -23,7 +23,7 @@ def test_schema_and_generated_outputs() -> None:
     root = Path(__file__).resolve().parents[1]
     schema = json.loads((root / "schemas/native-reranking.json").read_text())
     assert schema["source"]["revision"] == "0a54b6ecb483ce7df9677ba2071a491f9f9879c9"
-    assert schema["source"]["openapi"]["revision"] == "ce2d8f7bd8ee2ab4f240be022085aab37cca0b91"
+    assert schema["source"]["openapi"]["revision"] == "94a7b71613a3bf217a370d5117b3ff6ddfbae851"
     assert schema["schemas"]["RerankConfig"]["required"] == ["provider", "model", "queryText", "fields"]
     subprocess.run([sys.executable, str(root / "scripts/generate_reranking.py"), "--check"], check=True)
     for name in ["RerankConfig", "RerankConfigTypedDict", "RerankResponse", "RerankResponseTypedDict"]:

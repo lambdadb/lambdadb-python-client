@@ -1,4 +1,4 @@
-"""Bayesian/native wire compatibility, including docs contract ce2d8f7."""
+"""Bayesian/native wire compatibility, including docs contract 94a7b71."""
 
 import asyncio
 import copy
@@ -106,7 +106,7 @@ def test_opaque_query_and_budget_errors_remain_server_bad_requests(args):
 @pytest.mark.parametrize("explicit_options", [False, True])
 @pytest.mark.parametrize("use_model", [False, True])
 def test_native_and_legacy_create_update_serialization(legacy, explicit_options, use_model):
-    embedding = {**EMBEDDING, **({"dimensions": 512, "similarity": "dot_product"} if explicit_options else {})}
+    embedding = {**EMBEDDING, **({"dimensions": 512, "similarity": "euclidean"} if explicit_options else {})}
     vector = {"type": "vector", "embedding": embedding, **({"managedEmbedding": True} if legacy else {})}
     configs = {"vector": models.IndexConfigsVector.model_validate(vector) if use_model else vector}
     create = models.CreateCollectionRequest(collection_name="items", index_configs=configs)
@@ -138,8 +138,8 @@ def test_false_still_rejects_embedding_before_missing_dimensions():
 
 
 def test_caller_vector_default_unchanged():
-    assert models.IndexConfigsVector(type=models.TypeVector.VECTOR, dimensions=2).model_dump(mode="json", by_alias=True) == {
-        "type": "vector", "dimensions": 2, "similarity": "cosine",
+    assert models.IndexConfigsVector(type=models.TypeVector.VECTOR, dimensions=64).model_dump(mode="json", by_alias=True) == {
+        "type": "vector", "dimensions": 64, "similarity": "cosine",
     }
 
 

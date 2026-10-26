@@ -27,7 +27,7 @@ class UpdateStatus(str, Enum):
 
 
 class VectorParams(CompatModel):
-    size: int
+    size: int = Field(ge=64, le=4096)
     distance: Distance = Distance.COSINE
 
 

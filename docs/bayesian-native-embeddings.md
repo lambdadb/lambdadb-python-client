@@ -8,7 +8,8 @@ Bayesian and embedding-only extension is pinned to backend
 [BayesianQuery](https://github.com/lambdadb/lambdadb/blob/9072a1bc8925954369a887f558f1eaf387b7ea0e/api/src/main/java/ai/lambdadb/model/query/BayesianQuery.java),
 [RankableQueryBase](https://github.com/lambdadb/lambdadb/blob/9072a1bc8925954369a887f558f1eaf387b7ea0e/api/src/main/java/ai/lambdadb/model/query/RankableQueryBase.java), and
 [FieldConfig](https://github.com/lambdadb/lambdadb/blob/9072a1bc8925954369a887f558f1eaf387b7ea0e/api/src/main/java/ai/lambdadb/model/collection/FieldConfig.java).
-The base `API_CONTRACT_REVISION` and analyzer pin are unchanged; the current
+The current [vector configuration](vector-configuration.md) follows the public
+OpenAPI dimensions and metrics. The base `API_CONTRACT_REVISION` and analyzer pin are unchanged; the current
 reranking pin is documented in the linked scoped update. This does not port
 every intervening backend change. A source pin
 alone does not establish deployment or availability in another environment.

@@ -33,6 +33,10 @@ For v1, switch the import and client construction explicitly:
 + )
 ```
 
+Dense vector dimensions are 64-4096. Supported distances are `COSINE` and
+`EUCLID`; `DOT` and `MANHATTAN` raise `UnsupportedQdrantFeatureError`. See the
+[pinned vector contract and upgrade requirements](../vector-configuration.md).
+
 ## Basic Usage
 
 Declare payload fields used in filters when the collection is created:
@@ -41,7 +45,7 @@ Declare payload fields used in filters when the collection is created:
 client.create_collection(
     collection_name="docs",
     vectors_config=models.VectorParams(
-        size=3,
+        size=64,
         distance=models.Distance.COSINE,
     ),
     payload_schema={
@@ -54,7 +58,7 @@ client.upsert(
     points=[
         models.PointStruct(
             id=1,
-            vector=[1.0, 0.0, 0.0],
+            vector=([1.0, 0.0, 0.0] + [0.0] * 61),
             payload={"tenant": "acme", "title": "alpha"},
         )
     ],
@@ -62,7 +66,7 @@ client.upsert(
 
 result = client.query_points(
     collection_name="docs",
-    query=[1.0, 0.0, 0.0],
+    query=([1.0, 0.0, 0.0] + [0.0] * 61),
     query_filter=models.Filter(
         must=[
             models.FieldCondition(
@@ -149,7 +153,7 @@ Boolean selectors work as expected:
 ```python
 client.query_points(
     collection_name="docs",
-    query=[1.0, 0.0, 0.0],
+    query=([1.0, 0.0, 0.0] + [0.0] * 61),
     with_payload=True,
     with_vectors=False,
 )
@@ -161,7 +165,7 @@ also applied to the Qdrant-style response payload:
 ```python
 client.query_points(
     collection_name="docs",
-    query=[1.0, 0.0, 0.0],
+    query=([1.0, 0.0, 0.0] + [0.0] * 61),
     with_payload=["tenant", "title"],
 )
 ```
@@ -172,7 +176,7 @@ Qdrant-style vector object by Qdrant vector name:
 ```python
 client.query_points(
     collection_name="docs",
-    query=[1.0, 0.0, 0.0],
+    query=([1.0, 0.0, 0.0] + [0.0] * 61),
     with_vectors=["title"],
 )
 ```

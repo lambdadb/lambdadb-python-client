@@ -198,6 +198,14 @@ class ListDocsResponse(BaseModel):
     r"""Download URL for the list of documents."""
 
     @property
+    def documents(self) -> List[Dict[str, Any]]:
+        """Document bodies only; unwrap result envelopes and retain legacy plain documents."""
+        return [
+            item["doc"] if isinstance(item.get("doc"), dict) else item
+            for item in self.results
+        ]
+
+    @property
     def docs(self) -> List[Dict[str, Any]]:
         """Deprecated: use .results instead. List of result items."""
         warnings.warn(

@@ -2,7 +2,7 @@
 
 This scoped update uses these exact source revisions:
 
-- [OpenAPI, docs `ce2d8f7bd8ee2ab4f240be022085aab37cca0b91`](https://github.com/lambdadb/docs/blob/ce2d8f7bd8ee2ab4f240be022085aab37cca0b91/reference/api/openapi.json).
+- [OpenAPI, docs `94a7b71613a3bf217a370d5117b3ff6ddfbae851`](https://github.com/lambdadb/docs/blob/94a7b71613a3bf217a370d5117b3ff6ddfbae851/reference/api/openapi.json).
 - [Backend `0a54b6ecb483ce7df9677ba2071a491f9f9879c9`](https://github.com/lambdadb/lambdadb/commit/0a54b6ecb483ce7df9677ba2071a491f9f9879c9),
   including [query limits #469](https://github.com/lambdadb/lambdadb/pull/469),
   [query result spooling #472](https://github.com/lambdadb/lambdadb/pull/472),
@@ -111,23 +111,21 @@ still enforces a 64 MiB projected JSON budget per node and returns HTTP 400
 without partial results when exceeded. Requesting 1000 IDs does not guarantee
 that the selected bodies fit that budget.
 
-## Existing vector compatibility and upstream differences
+## Public vector configuration
 
-The pinned OpenAPI describes a minimum dense dimension of 64 and only cosine
-and Euclidean similarity. The pinned backend's
-[IndexingConstants](https://github.com/lambdadb/lambdadb/blob/0a54b6ecb483ce7df9677ba2071a491f9f9879c9/core/src/main/java/ai/lambdadb/core/IndexingConstants.java)
-instead allows dimensions 1-4096 and also `dot_product` and `max_inner_product`.
-[OpenAIEmbeddingModels](https://github.com/lambdadb/lambdadb/blob/0a54b6ecb483ce7df9677ba2071a491f9f9879c9/core/src/main/java/ai/lambdadb/application/embedding/OpenAIEmbeddingModels.java)
-also accepts dimensions starting at 1 up to the selected model's maximum, with
-fixed dimensions for `text-embedding-ada-002`, and all four similarities.
+Dense vector configuration follows the pinned OpenAPI: dimensions are 64-4096
+and similarity is `cosine` or `euclidean`. This applies to caller-provided and
+native embedding configuration, including collection response parsing. See
+[vector configuration](vector-configuration.md) for scope and migration from
+previously accepted settings.
 
-This update preserves existing SDK vector dimensions, enums, serialization,
-and Qdrant mappings.
+Native fields use `knn.queryText`. The upstream raw `queryVector` description
+was corrected in docs PR #73, included in the pinned revision. The SDK preserves
+the server's `BadRequestError` for that unsupported combination.
 
-The pinned OpenAPI also describes raw `knn.queryVector` on native embedding
-fields as supported. The pinned backend's
-[NativeEmbeddingService](https://github.com/lambdadb/lambdadb/blob/0a54b6ecb483ce7df9677ba2071a491f9f9879c9/runtime-aws/src/main/java/ai/lambdadb/service/embedding/NativeEmbeddingService.java#L245)
-rejects that combination with HTTP 400. The SDK continues passing the query
-through and preserving `BadRequestError`, without rewriting the query or
-claiming that the server supports it. Reconciling these upstream differences
-is separate from the read-limit and stored-path update.
+A candidate budget of 1000 is a request-count maximum, not a guarantee that
+reranking finishes within a deployment's deadline. Production verification on
+2026-10-26 recorded HTTP 408 for 1000 actual candidates with a 2000 ms server
+stage budget; `returnOriginal` returned fallback with zero scored candidates.
+[SDK PR #54](https://github.com/lambdadb/lambdadb-python-client/pull/54) records
+those bounded checks separately from successful 1000-document retrieval.

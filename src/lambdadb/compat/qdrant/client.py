@@ -537,8 +537,6 @@ class QdrantCompatClient:
             return models.Distance.COSINE
         if similarity_value == "euclidean":
             return models.Distance.EUCLID
-        if similarity_value == "dot_product":
-            return models.Distance.DOT
         raise UnsupportedQdrantFeatureError(f"LambdaDB similarity {similarity_value!r} cannot be represented as a Qdrant distance")
 
     @staticmethod

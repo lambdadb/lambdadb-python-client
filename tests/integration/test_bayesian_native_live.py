@@ -1,4 +1,4 @@
-"""Opt-in Bayesian/native smoke, including docs contract ce2d8f7.
+"""Opt-in Bayesian/native smoke, including docs contract 94a7b71.
 
 Verify deployment separately before enabling LAMBDADB_RUN_BAYESIAN_SMOKE.
 Only uniquely named collections created by this test are removed.
@@ -18,7 +18,7 @@ pytestmark = pytest.mark.integration
 
 EMBEDDING = {"provider": "openai", "model": "text-embedding-3-small", "sourceField": "body"}
 LEXICAL = {"queryString": {"query": "body:restore"}}
-VECTOR = {"knn": {"field": "vector", "queryVector": [1, 0], "k": 30}}
+VECTOR = {"knn": {"field": "vector", "queryVector": ([1, 0] + [0.0] * 62), "k": 30}}
 RERANK = {"provider": "typesafe", "model": "jev-1.13.0",
           "queryText": "How do I restore a previous version?", "fields": ["body"]}
 
@@ -88,13 +88,13 @@ def test_bayesian_and_rerank(live_sdk):
     stage = "create caller-vector collection"
     try:
         sdk.collections.create(collection_name=name, index_configs={
-            "body": {"type": "text"}, "vector": {"type": "vector", "dimensions": 2},
+            "body": {"type": "text"}, "vector": {"type": "vector", "dimensions": 64},
         }, retries=None)
         coll = sdk.collection(name)
         coll.docs.upsert(docs=[
-            {"id": "one", "body": "Restore a saved version using a branch.", "vector": [1, 0]},
-            {"id": "two", "body": "Restore a deleted document.", "vector": [0.8, 0.2]},
-            {"id": "three", "body": "Search a collection.", "vector": [0.2, 0.8]},
+            {"id": "one", "body": "Restore a saved version using a branch.", "vector": ([1, 0] + [0.0] * 62)},
+            {"id": "two", "body": "Restore a deleted document.", "vector": ([0.8, 0.2] + [0.0] * 62)},
+            {"id": "three", "body": "Search a collection.", "vector": ([0.2, 0.8] + [0.0] * 62)},
         ], retries=None)
         query = {"bayesian": [LEXICAL, VECTOR]}
         args = dict(query=query, size=3, candidate_size=30, consistent_read=True)

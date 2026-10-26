@@ -1,4 +1,4 @@
-"""Read limits and offloaded results from docs contract ce2d8f7."""
+"""Read limits and offloaded results from docs contract 94a7b71."""
 
 import asyncio
 import gzip
@@ -64,7 +64,7 @@ def test_thousand_document_reads(async_mode, high_level, operation):
         with httpx.Client(transport=httpx.MockTransport(handler)) as http:
             with LambdaDB(**OPTIONS, client=http) as sdk:
                 result = call(sdk)
-    documents = result.documents if operation == "fetch" else [item["doc"] for item in result.results]
+    documents = result.documents
     assert [item["id"] for item in documents] == ids
     assert calls == ["GET" if operation == "list" else "POST"]
 

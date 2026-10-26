@@ -12,7 +12,10 @@ preserved. These pins identify source contracts, not API deployment.
 The upstream OpenAPI inspected at docs revision
 `961561c379acb079aec20191e13b89809ef096e9` still lists 16 names and adds duplicate
 validation. Neither that unrelated validation change nor any other intervening
-API changes are imported here. Upstream OpenAPI propagation remains separate.
+API changes are imported here. That inspection is historical: OpenAPI at docs
+revision [94a7b71613a3bf217a370d5117b3ff6ddfbae851](https://github.com/lambdadb/docs/blob/94a7b71613a3bf217a370d5117b3ff6ddfbae851/reference/api/openapi.json)
+now contains all 49 names. The original source and extension pins are retained
+as provenance; the schema is still an adaptation of those pinned sources.
 
 The SDK originated from Speakeasy, but its configuration and workflow were
 removed in commit `f74e6ef55660e63f01f26ac7792e1855a5f7075d`. There is no current
@@ -58,5 +61,4 @@ Qdrant tokenizer names are not interpreted as LambdaDB analyzer names.
 
 All names are fixed presets. Nepali/Tamil/Telugu are Lucene extensions, not
 shared Elasticsearch/OpenSearch support. Deployment verification, live smoke,
-upstream documentation/schema propagation, and package publication are separate
-follow-up work; this local change does not establish any of those outcomes.
+and package publication remain separate follow-up work; this local change does not establish any of those outcomes.
