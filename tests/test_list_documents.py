@@ -12,6 +12,12 @@ from lambdadb import LambdaDB, models
     ([], []),
     ([{"collection": "items", "doc": {"id": "one"}}], [{"id": "one"}]),
     ([{"id": "one"}], [{"id": "one"}]),
+    ([{"id": "one", "doc": {"section": "Nested data"}}],
+     [{"id": "one", "doc": {"section": "Nested data"}}]),
+    ([{"id": "one", "collection": "application value", "doc": {"section": "Nested data"}}],
+     [{"id": "one", "collection": "application value", "doc": {"section": "Nested data"}}]),
+    ([{"title": "Projected document", "doc": {"section": "Nested data"}}],
+     [{"title": "Projected document", "doc": {"section": "Nested data"}}]),
     ([{"collection": "items", "doc": {"id": "one"}}, {"id": "two", "doc": None}],
      [{"id": "one"}, {"id": "two", "doc": None}]),
 ])
@@ -46,3 +52,24 @@ def test_list_documents_after_download_preserves_page_token(async_mode):
     assert response.documents == [{"id": "one"}]
     assert response.results == [{"collection": "items", "doc": {"id": "one"}}]
     assert response.next_page_token == "opaque+/="
+
+
+@pytest.mark.parametrize("async_mode", [False, True])
+def test_list_pages_preserves_plain_documents_with_nested_doc_fields(async_mode):
+    documents = [{"id": "one", "collection": "application value", "doc": {"section": "Nested data"}}]
+
+    def handler(_):
+        return httpx.Response(200, json={"total": 1, "docs": documents, "isDocsInline": True})
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+            async with LambdaDB(async_client=http, project_api_key="test-key") as sdk:
+                return [page async for page in sdk.collection("items").docs.list_pages_async(size=1)]
+
+    if async_mode:
+        pages = asyncio.run(run())
+    else:
+        with httpx.Client(transport=httpx.MockTransport(handler)) as http:
+            with LambdaDB(client=http, project_api_key="test-key") as sdk:
+                pages = list(sdk.collection("items").docs.list_pages(size=1))
+    assert pages == [documents]

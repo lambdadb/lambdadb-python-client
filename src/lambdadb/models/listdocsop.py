@@ -201,7 +201,11 @@ class ListDocsResponse(BaseModel):
     def documents(self) -> List[Dict[str, Any]]:
         """Document bodies only; unwrap result envelopes and retain legacy plain documents."""
         return [
-            item["doc"] if isinstance(item.get("doc"), dict) else item
+            item["doc"]
+            if "id" not in item
+            and isinstance(item.get("collection"), str)
+            and isinstance(item.get("doc"), dict)
+            else item
             for item in self.results
         ]
 

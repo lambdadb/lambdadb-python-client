@@ -15,7 +15,9 @@ Documents list.
 
 **Response access:** Use `response.results` for full result items and
 `response.documents` for document bodies only. The latter unwraps dictionary
-envelopes containing `doc` and also accepts legacy plain-document results.
+envelopes containing a string `collection` and object `doc`, without a top-level
+document `id`. Legacy plain-document results retain application fields named
+`doc`, including nested objects. List pagination uses the same normalization.
 It is a convenience property and is not included in serialized responses.
 The deprecated property `docs` still returns the same data as `results`.
 
