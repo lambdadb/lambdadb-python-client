@@ -137,15 +137,15 @@ def test_langchain_qdrant_vector_store_smoke() -> None:
 
     class StaticEmbeddings(embeddings_module.Embeddings):
         def embed_documents(self, texts):
-            return [[1.0, 0.0, 0.0] for _ in texts]
+            return [([1.0, 0.0, 0.0] + [0.0] * 61) for _ in texts]
 
         def embed_query(self, text):
-            return [1.0, 0.0, 0.0]
+            return ([1.0, 0.0, 0.0] + [0.0] * 61)
 
     client = ExternalCompatClient()
     client.create_collection(
         collection_name="docs",
-        vectors_config=models.VectorParams(size=3),
+        vectors_config=models.VectorParams(size=64),
     )
     store = langchain_qdrant.QdrantVectorStore(
         client=client,
@@ -159,7 +159,7 @@ def test_langchain_qdrant_vector_store_smoke() -> None:
         metadatas=[{"tenant": "acme"}],
         ids=["lc-1"],
     )
-    docs = store.similarity_search_by_vector([1.0, 0.0, 0.0], k=1)
+    docs = store.similarity_search_by_vector(([1.0, 0.0, 0.0] + [0.0] * 61), k=1)
 
     assert ids == ["lc-1"]
     assert docs[0].page_content == "alpha"
@@ -174,15 +174,15 @@ def test_langchain_qdrant_vector_store_filter_smoke() -> None:
 
     class StaticEmbeddings(embeddings_module.Embeddings):
         def embed_documents(self, texts):
-            return [[1.0, 0.0, 0.0] if text == "alpha" else [0.0, 1.0, 0.0] for text in texts]
+            return [([1.0, 0.0, 0.0] + [0.0] * 61) if text == "alpha" else ([0.0, 1.0, 0.0] + [0.0] * 61) for text in texts]
 
         def embed_query(self, text):
-            return [1.0, 0.0, 0.0]
+            return ([1.0, 0.0, 0.0] + [0.0] * 61)
 
     client = ExternalCompatClient()
     client.create_collection(
         collection_name="docs",
-        vectors_config=models.VectorParams(size=3),
+        vectors_config=models.VectorParams(size=64),
     )
     store = langchain_qdrant.QdrantVectorStore(
         client=client,
@@ -197,7 +197,7 @@ def test_langchain_qdrant_vector_store_filter_smoke() -> None:
         ids=["lc-1", "lc-2"],
     )
     docs = store.similarity_search_by_vector(
-        [1.0, 0.0, 0.0],
+        ([1.0, 0.0, 0.0] + [0.0] * 61),
         k=2,
         filter=qdrant_models.Filter(
             must=[
@@ -229,13 +229,13 @@ def test_llama_index_qdrant_vector_store_smoke() -> None:
         id_="li-1",
         text="alpha",
         metadata={"tenant": "acme"},
-        embedding=[1.0, 0.0, 0.0],
+        embedding=([1.0, 0.0, 0.0] + [0.0] * 61),
     )
 
     ids = store.add([node])
     result = store.query(
         vector_store_types.VectorStoreQuery(
-            query_embedding=[1.0, 0.0, 0.0],
+            query_embedding=([1.0, 0.0, 0.0] + [0.0] * 61),
             similarity_top_k=1,
         )
     )
@@ -265,7 +265,7 @@ def test_llama_index_qdrant_vector_store_delete_smoke() -> None:
         relationships={
             schema_module.NodeRelationship.SOURCE: schema_module.RelatedNodeInfo(node_id="alpha-ref")
         },
-        embedding=[1.0, 0.0, 0.0],
+        embedding=([1.0, 0.0, 0.0] + [0.0] * 61),
     )
     beta = schema_module.TextNode(
         id_="li-2",
@@ -274,14 +274,14 @@ def test_llama_index_qdrant_vector_store_delete_smoke() -> None:
         relationships={
             schema_module.NodeRelationship.SOURCE: schema_module.RelatedNodeInfo(node_id="beta-ref")
         },
-        embedding=[0.0, 1.0, 0.0],
+        embedding=([0.0, 1.0, 0.0] + [0.0] * 61),
     )
 
     store.add([alpha, beta])
     store.delete("alpha-ref")
     result = store.query(
         vector_store_types.VectorStoreQuery(
-            query_embedding=[1.0, 0.0, 0.0],
+            query_embedding=([1.0, 0.0, 0.0] + [0.0] * 61),
             similarity_top_k=2,
         )
     )

@@ -261,8 +261,6 @@ def distance_to_similarity(distance: Union[models.Distance, str]) -> str:
         return lambdadb_models.Similarity.COSINE.value
     if dist is models.Distance.EUCLID:
         return lambdadb_models.Similarity.EUCLIDEAN.value
-    if dist is models.Distance.DOT:
-        return lambdadb_models.Similarity.DOT_PRODUCT.value
     raise UnsupportedQdrantFeatureError(f"Qdrant distance {dist.value!r} is not supported")
 
 

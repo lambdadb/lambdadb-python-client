@@ -24,7 +24,7 @@ class QueryCollectionRequestBodyTypedDict(TypedDict):
     candidate_size: NotRequired[int]
     r"""Bayesian candidate budget without rerank; use rerank.candidate_size with rerank."""
     size: NotRequired[int]
-    r"""Number of documents to return. Note that the maximum number of documents is 100."""
+    r"""Number of documents to return, up to 1000. Zero requires at least one facet."""
     consistent_read: NotRequired[bool]
     r"""Overlay eligible pending writes on a directly selected branch. Tags and aliases reject true, and pending bulk imports are excluded."""
     include_vectors: NotRequired[bool]
@@ -48,7 +48,7 @@ class QueryCollectionRequestBody(BaseModel):
     candidate_size: Annotated[Optional[int], pydantic.Field(alias="candidateSize")] = None
     r"""Bayesian candidate budget without rerank; validated by the server. No client default."""
     size: Optional[int] = None
-    r"""Number of documents to return. Note that the maximum number of documents is 100."""
+    r"""Number of documents to return, up to 1000. Zero requires at least one facet."""
 
     consistent_read: Annotated[
         Optional[bool], pydantic.Field(alias="consistentRead")
@@ -87,8 +87,8 @@ class QueryCollectionRequestBody(BaseModel):
         if self.rerank is not None:
             size = 10 if self.size is None else self.size
             candidate_size = self.rerank.candidate_size
-            if not 1 <= size <= 100 or (candidate_size is not None and candidate_size < size):
-                raise ValueError("rerank requires 1 <= size <= candidate_size <= 100")
+            if not 1 <= size <= 1000 or (candidate_size is not None and candidate_size < size):
+                raise ValueError("rerank requires 1 <= size <= candidate_size <= 1000")
             if self.sort is not None:
                 raise ValueError("rerank cannot be combined with sort")
             if not self.query:

@@ -16,7 +16,7 @@ from typing_extensions import Annotated, NotRequired, TypedDict
 
 class FetchDocsRequestBodyTypedDict(TypedDict):
     ids: List[str]
-    r"""A list of document IDs to fetch. Note that the maximum number of document IDs is 100."""
+    r"""A list of 1-1000 nonblank document IDs. The server also enforces response byte limits."""
     consistent_read: NotRequired[bool]
     r"""Overlay eligible pending writes on a directly selected branch. Tags and aliases reject true, and pending bulk imports are excluded."""
     include_vectors: NotRequired[bool]
@@ -31,7 +31,7 @@ class FetchDocsRequestBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     ids: List[str]
-    r"""A list of document IDs to fetch. Note that the maximum number of document IDs is 100."""
+    r"""A list of 1-1000 nonblank document IDs. The server also enforces response byte limits."""
 
     consistent_read: Annotated[
         Optional[bool], pydantic.Field(alias="consistentRead")

@@ -10,7 +10,8 @@ from typing import Any, Dict, List, Optional, Union
 from typing_extensions import Annotated, NotRequired, TypeAliasType, TypedDict
 
 
-MIN_VECTOR_DIMENSIONS = 1
+# Scoped vector contract: docs OpenAPI 94a7b71613a3bf217a370d5117b3ff6ddfbae851.
+MIN_VECTOR_DIMENSIONS = 64
 MAX_VECTOR_DIMENSIONS = 4096
 
 
@@ -67,8 +68,6 @@ class Similarity(str, Enum):
 
     COSINE = "cosine"
     EUCLIDEAN = "euclidean"
-    DOT_PRODUCT = "dot_product"
-    MAX_INNER_PRODUCT = "max_inner_product"
 
 
 class EmbeddingConfigTypedDict(TypedDict):
@@ -77,9 +76,9 @@ class EmbeddingConfigTypedDict(TypedDict):
     provider: Provider
     r"""Embedding provider."""
     model: str
-    r"""Embedding model name. See /guides/collections/managed-embeddings for the current supported providers and models."""
+    r"""Embedding model name. See /guides/collections/native-embeddings for the current supported providers and models."""
     source_field: str
-    r"""Source text field name used to generate embeddings."""
+    r"""Stored scalar string path through objects; no source index config is required. The server validates declared types and document values."""
     dimensions: NotRequired[int]
     r"""Resolved embedding dimensions. Optional in requests and resolved in stored collection metadata."""
     similarity: NotRequired[Similarity]
@@ -93,16 +92,26 @@ class EmbeddingConfig(BaseModel):
     r"""Embedding provider."""
 
     model: str
-    r"""Embedding model name. See /guides/collections/managed-embeddings for the current supported providers and models."""
+    r"""Embedding model name. See /guides/collections/native-embeddings for the current supported providers and models."""
 
     source_field: Annotated[str, pydantic.Field(alias="sourceField")]
-    r"""Source text field name used to generate embeddings."""
+    r"""Stored scalar string path through objects; no source index config is required. The server validates declared types and document values."""
 
     dimensions: Optional[int] = None
     r"""Resolved embedding dimensions. Optional in requests and resolved in stored collection metadata."""
 
     similarity: Optional[Similarity] = Similarity.COSINE
     r"""Resolved vector similarity metric. Optional in requests and resolved in stored collection metadata."""
+
+    @model_validator(mode="after")
+    def validate_dimensions(self):
+        if self.dimensions is not None and not (
+            MIN_VECTOR_DIMENSIONS <= self.dimensions <= MAX_VECTOR_DIMENSIONS
+        ):
+            raise ValueError(
+                f"Embedding dimensions must be between {MIN_VECTOR_DIMENSIONS} and {MAX_VECTOR_DIMENSIONS}"
+            )
+        return self
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):

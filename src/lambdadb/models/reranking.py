@@ -30,10 +30,10 @@ class RerankConfig(BaseModel):
     """Nonblank query text, at most 8 KiB UTF-8; required even for raw-vector retrieval."""
 
     fields: List[StrictStr] = Field(min_length=1, max_length=8)
-    """Ordered unique stored scalar text paths (text or keyword). The server validates collection paths and candidate values."""
+    """Ordered unique stored scalar string paths through objects; index configs are optional. Declared leaves must be text or keyword. The server validates ancestors and candidate values before provider dispatch."""
 
-    candidate_size: Optional[int] = Field(default=None, alias="candidateSize", strict=True, ge=1, le=100)
-    """Merged rerank candidate cap; defaults to max(50, size). Must be at least size; does not change knn.k."""
+    candidate_size: Optional[int] = Field(default=None, alias="candidateSize", strict=True, ge=1, le=1000)
+    """Merged rerank candidate cap, up to 1000; defaults to max(50, size). Must be at least size; does not change knn.k."""
 
     on_failure: Optional[Literal['error', 'returnOriginal']] = Field(default=None, alias="onFailure")
     """Defaults to error. returnOriginal applies only to whole-stage provider failures, not input, quota, admission, retrieval or authorization errors."""

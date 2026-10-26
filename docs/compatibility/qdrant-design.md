@@ -348,9 +348,12 @@ Distance mapping:
 | Qdrant distance | LambdaDB similarity |
 | --- | --- |
 | `COSINE` | `cosine` |
-| `DOT` | `dot_product` |
+| `DOT` | Unsupported by the public OpenAPI contract |
 | `EUCLID` | `euclidean` |
 | `MANHATTAN` | raise in v1 |
+
+Dense vector dimensions must be 64-4096. The compatibility enum retains `DOT`
+for input construction, but collection creation rejects it explicitly.
 
 For named vectors, generate one LambdaDB vector index per name:
 
