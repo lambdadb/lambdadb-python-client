@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased
+
+## 0.13.0
+
+- Align dense vector configuration with OpenAPI revision
+  `94a7b71613a3bf217a370d5117b3ff6ddfbae851`: dimensions are 64-4096 and
+  similarity is `cosine` or `euclidean`, for both caller-provided and native
+  embedding fields. Remove `Similarity.DOT_PRODUCT` / `MAX_INNER_PRODUCT` and
+  reject Qdrant `DOT` configurations. This also narrows collection response
+  parsing; review [vector upgrade requirements](docs/vector-configuration.md).
+- Add `ListDocsResponse.documents` for dictionary envelopes and legacy plain
+  documents, including after automatic downloads; preserve response serialization
+  and pagination metadata. Repair README error links and update upstream status.
+- Support up to 1000 rerank candidates and returned documents. Preserve omitted
+  candidate budgets, server defaults, and each retrieval leg's `knn.k`.
+- Use up to 1000 documents per internal List request when a larger logical page
+  is requested; retain the default page size of 100 and ref/filter propagation.
+- Align Query, Fetch, and List limit descriptions and native embedding/reranking
+  stored-path guidance with docs contract `94a7b71613a3bf217a370d5117b3ff6ddfbae851`
+  and backend `0a54b6ecb483ce7df9677ba2071a491f9f9879c9`. See
+  [read limits and stored text](docs/read-limits-and-stored-text.md) for scope,
+  compatibility, and the public vector configuration rules.
+- Refresh the locked development/test CA bundle to certifi 2026.10.23, including
+  the GHSA-6q48-6c7w-9gw2 root-certificate fix. Published dependency ranges remain
+  unchanged.
+
 ## 0.12.1
 
 - Standardize feature terminology as native embedding and native reranking in

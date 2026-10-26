@@ -88,7 +88,7 @@ def test_qdrant_compat_live_smoke() -> None:
         assert client.create_collection(
             collection_name=collection_name,
             vectors_config=models.VectorParams(
-                size=3,
+                size=64,
                 distance=models.Distance.COSINE,
             ),
             payload_schema={"tenant": models.PayloadSchemaType.KEYWORD},
@@ -100,17 +100,17 @@ def test_qdrant_compat_live_smoke() -> None:
             points=[
                 models.PointStruct(
                     id=1,
-                    vector=[1.0, 0.0, 0.0],
+                    vector=([1.0, 0.0, 0.0] + [0.0] * 61),
                     payload={"tenant": "acme", "title": "alpha"},
                 ),
                 models.PointStruct(
                     id=2,
-                    vector=[0.0, 1.0, 0.0],
+                    vector=([0.0, 1.0, 0.0] + [0.0] * 61),
                     payload={"tenant": "acme", "title": "beta"},
                 ),
                 models.PointStruct(
                     id=3,
-                    vector=[0.0, 0.0, 1.0],
+                    vector=([0.0, 0.0, 1.0] + [0.0] * 61),
                     payload={"tenant": "other", "title": "gamma"},
                 ),
             ],
@@ -125,7 +125,7 @@ def test_qdrant_compat_live_smoke() -> None:
 
         queried = client.query_points(
             collection_name=collection_name,
-            query=[1.0, 0.0, 0.0],
+            query=([1.0, 0.0, 0.0] + [0.0] * 61),
             query_filter=models.Filter(
                 must=[
                     models.FieldCondition(

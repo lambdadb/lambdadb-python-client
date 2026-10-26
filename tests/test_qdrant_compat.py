@@ -153,7 +153,7 @@ def test_create_collection_maps_vector_params() -> None:
 
     assert client.create_collection(
         collection_name="docs",
-        vectors_config=models.VectorParams(size=3, distance=models.Distance.DOT),
+        vectors_config=models.VectorParams(size=64, distance=models.Distance.EUCLID),
     )
 
     assert fake.collections.created == [
@@ -162,8 +162,8 @@ def test_create_collection_maps_vector_params() -> None:
             "index_configs": {
                 "_qdrant_vector": {
                     "type": "vector",
-                    "dimensions": 3,
-                    "similarity": "dot_product",
+                    "dimensions": 64,
+                    "similarity": "euclidean",
                 }
             },
         }
@@ -178,7 +178,7 @@ def test_create_collection_maps_payload_schema() -> None:
 
     assert client.create_collection(
         collection_name="docs",
-        vectors_config=models.VectorParams(size=3, distance=models.Distance.COSINE),
+        vectors_config=models.VectorParams(size=64, distance=models.Distance.COSINE),
         payload_schema={
             "tenant": models.PayloadSchemaType.KEYWORD,
             "views": models.PayloadSchemaType.INTEGER,
@@ -190,7 +190,7 @@ def test_create_collection_maps_payload_schema() -> None:
     assert fake.collections.created[0]["index_configs"] == {
         "_qdrant_vector": {
             "type": "vector",
-            "dimensions": 3,
+            "dimensions": 64,
             "similarity": "cosine",
         },
         "tenant": {"type": "keyword"},
@@ -200,6 +200,40 @@ def test_create_collection_maps_payload_schema() -> None:
     }
 
 
+@pytest.mark.parametrize("distance", ["Dot", "Manhattan"])
+def test_create_collection_rejects_out_of_contract_distances(distance) -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    fake = FakeLambdaDB()
+    with pytest.raises(UnsupportedQdrantFeatureError):
+        QdrantCompatClient(fake).create_collection(
+            collection_name="docs", vectors_config=models.VectorParams(size=64, distance=distance)
+        )
+    assert fake.collections.created == []
+
+
+@pytest.mark.parametrize("dimensions", [1, 63, 4097])
+def test_qdrant_vector_params_follow_public_dimension_bounds(dimensions) -> None:
+    from pydantic import ValidationError
+    from lambdadb.compat.qdrant import models
+
+    with pytest.raises(ValidationError):
+        models.VectorParams(size=dimensions)
+
+
+def test_get_collection_rejects_out_of_contract_similarity() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    fake = FakeLambdaDB()
+    fake.collections.index_configs = {"_qdrant_vector": {
+        "type": "vector", "dimensions": 64, "similarity": "dot_product",
+    }}
+    with pytest.raises(UnsupportedQdrantFeatureError):
+        QdrantCompatClient(fake).get_collection(collection_name="docs")
+
+
 def test_get_collection_returns_qdrant_style_vector_config() -> None:
     from lambdadb.compat.qdrant import QdrantCompatClient, models
 
@@ -207,7 +241,7 @@ def test_get_collection_returns_qdrant_style_vector_config() -> None:
     fake.collections.index_configs = {
         "_qdrant_vector": {
             "type": "vector",
-            "dimensions": 3,
+            "dimensions": 64,
             "similarity": "cosine",
         }
     }
@@ -216,7 +250,7 @@ def test_get_collection_returns_qdrant_style_vector_config() -> None:
     collection = client.get_collection(collection_name="docs")
 
     assert collection.config.params.vectors == models.VectorParams(
-        size=3,
+        size=64,
         distance=models.Distance.COSINE,
     )
 
@@ -229,7 +263,7 @@ def test_create_payload_index_merges_existing_index_configs() -> None:
     fake.collections.index_configs = {
         "_qdrant_vector": {
             "type": "vector",
-            "dimensions": 3,
+            "dimensions": 64,
             "similarity": "cosine",
         }
     }
@@ -247,7 +281,7 @@ def test_create_payload_index_merges_existing_index_configs() -> None:
             "index_configs": {
                 "_qdrant_vector": {
                     "type": "vector",
-                    "dimensions": 3,
+                    "dimensions": 64,
                     "similarity": "cosine",
                 },
                 "tenant": {"type": "keyword"},
@@ -265,7 +299,7 @@ def test_create_payload_index_rejects_non_empty_collection() -> None:
     fake.collections.index_configs = {
         "_qdrant_vector": {
             "type": "vector",
-            "dimensions": 3,
+            "dimensions": 64,
             "similarity": "cosine",
         }
     }
@@ -289,7 +323,7 @@ def test_create_payload_index_is_idempotent_for_existing_index_on_non_empty_coll
     fake.collections.index_configs = {
         "_qdrant_vector": {
             "type": "vector",
-            "dimensions": 3,
+            "dimensions": 64,
             "similarity": "cosine",
         },
         "tenant": {"type": "keyword"},
@@ -723,7 +757,7 @@ def test_create_collection_passes_text_analyzers() -> None:
     client = QdrantCompatClient(fake)
     client.create_collection(
         collection_name="docs",
-        vectors_config=models.VectorParams(size=3, distance=models.Distance.COSINE),
+        vectors_config=models.VectorParams(size=64, distance=models.Distance.COSINE),
         payload_schema={"body": {"type": "text", "analyzers": ["keyword", "tamil"]}},
     )
     assert fake.collections.created[0]["index_configs"]["body"] == {

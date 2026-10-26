@@ -26,7 +26,7 @@ class Docs(BaseSDK):
         r"""List documents in a collection.
 
         :param collection_name: Collection name.
-        :param size: Max number of documents to return at once.
+        :param size: Max number of documents to return at once (1-1000, default 100).
         :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
         :param include_vectors: Set to true to include vector values in the response.
         :param retries: Override the default retry configuration for this method
@@ -150,7 +150,7 @@ class Docs(BaseSDK):
         r"""List documents in a collection.
 
         :param collection_name: Collection name.
-        :param size: Max number of documents to return at once.
+        :param size: Max number of documents to return at once (1-1000, default 100).
         :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
         :param include_vectors: Set to true to include vector values in the response.
         :param retries: Override the default retry configuration for this method
@@ -281,7 +281,7 @@ class Docs(BaseSDK):
         r"""List documents in a collection with optional filters, field selection, and vector inclusion.
 
         :param collection_name: Collection name.
-        :param size: Max number of documents to return at once.
+        :param size: Max number of documents to return at once (1-1000, default 100).
         :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
         :param filter_: Filter applied before pagination.
         :param partition_filter:
@@ -420,7 +420,7 @@ class Docs(BaseSDK):
         r"""List documents in a collection with optional filters, field selection, and vector inclusion.
 
         :param collection_name: Collection name.
-        :param size: Max number of documents to return at once.
+        :param size: Max number of documents to return at once (1-1000, default 100).
         :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
         :param filter_: Filter applied before pagination.
         :param partition_filter:
@@ -1780,7 +1780,7 @@ class Docs(BaseSDK):
         r"""Lookup and return documents by document IDs from a collection.
 
         :param collection_name: Collection name.
-        :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 100.
+        :param ids: A list of 1-1000 nonblank document IDs. The server also enforces response byte limits.
         :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
@@ -1926,7 +1926,7 @@ class Docs(BaseSDK):
         r"""Lookup and return documents by document IDs from a collection.
 
         :param collection_name: Collection name.
-        :param ids: A list of document IDs to fetch. Note that the maximum number of document IDs is 100.
+        :param ids: A list of 1-1000 nonblank document IDs. The server also enforces response byte limits.
         :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.

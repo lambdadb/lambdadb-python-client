@@ -15,14 +15,15 @@ from pydantic import ValidationError
 from lambdadb import LambdaDB, models
 
 CONFIG = {"provider": "typesafe", "model": "jev-1.13.0", "queryText": "restore", "fields": ["title", "body"]}
-QUERY = {"knn": {"field": "embedding", "vector": [1.0, 0.0], "k": 20}}
+QUERY = {"knn": {"field": "embedding", "queryVector": [1.0, 0.0], "k": 20}}
 OPTIONS = dict(base_url="https://api.example", project_name="project", project_api_key="test-key")
 
 
 def test_schema_and_generated_outputs() -> None:
     root = Path(__file__).resolve().parents[1]
     schema = json.loads((root / "schemas/native-reranking.json").read_text())
-    assert schema["source"]["revision"] == "55d888299fee44466326a9db8016af9811ade13b"
+    assert schema["source"]["revision"] == "0a54b6ecb483ce7df9677ba2071a491f9f9879c9"
+    assert schema["source"]["openapi"]["revision"] == "94a7b71613a3bf217a370d5117b3ff6ddfbae851"
     assert schema["schemas"]["RerankConfig"]["required"] == ["provider", "model", "queryText", "fields"]
     subprocess.run([sys.executable, str(root / "scripts/generate_reranking.py"), "--check"], check=True)
     for name in ["RerankConfig", "RerankConfigTypedDict", "RerankResponse", "RerankResponseTypedDict"]:
@@ -41,7 +42,7 @@ def test_rerank_wire_round_trip(async_mode, high_level, download, use_model, lev
     if retrieval == "bayesian":
         query = {"bayesian": [{"queryString": {"query": "body:restore"}}, QUERY]}
     facets = {"tags": {"size": 3}} if retrieval == "lexical" else None
-    config = {**CONFIG, "candidateSize": 50, "onFailure": "returnOriginal"}
+    config = {**CONFIG, "candidateSize": 1000, "onFailure": "returnOriginal"}
     if levels is not None:
         config["criteria"] = [f"Relevance level {i}" for i in range(levels)]
     model = models.RerankConfig.model_validate(config)
@@ -159,7 +160,7 @@ def test_legacy_and_null_are_omitted_and_defaults_stay_server_side():
 @pytest.mark.parametrize("patch", [
     {"provider": "cohere"}, {"model": "other"}, {"queryText": " "}, {"queryText": "가" * 2731},
     {"fields": []}, {"fields": ["x"] * 2}, {"fields": [str(i) for i in range(9)]}, {"fields": ["a..b"]},
-    {"candidateSize": 0}, {"candidateSize": 101}, {"candidateSize": True}, {"onFailure": "ignore"},
+    {"candidateSize": 0}, {"candidateSize": 1001}, {"candidateSize": True}, {"onFailure": "ignore"},
     {"criteria": []}, {"criteria": ["one"]}, {"criteria": ["x", "x"]}, {"criteria": ["x", " "]},
     {"criteria": ["x", None]}, {"criteria": [{}, {}]}, {"criteria": [str(i) for i in range(11)]},
     {"criteria": ["x", "가" * 683]}, {"criteria": [str(i) + "x" * 1700 for i in range(5)]},
@@ -186,11 +187,32 @@ def test_utf8_boundaries_and_exact_criteria_text():
         models.RerankConfig.model_validate({**CONFIG, "criteria": [*values, "x"]})
 
 
-@pytest.mark.parametrize("patch", [{"size": 0}, {"size": 101}, {"size": 51}, {"sort": []}, {"query": None}, {"query": {}}])
+@pytest.mark.parametrize("patch", [{"size": 0}, {"size": 1001}, {"size": 51}, {"sort": []}, {"query": None}, {"query": {}}])
 def test_invalid_request_context(patch):
     with pytest.raises(ValidationError):
         models.QueryCollectionRequestBody.model_validate({"query": QUERY, "size": 10,
             "rerank": {**CONFIG, "candidateSize": 50}, **patch})
+
+
+@pytest.mark.parametrize("size", [101, 1000])
+@pytest.mark.parametrize("candidate_size", [None, 1000])
+def test_expanded_rerank_limits_preserve_server_default(size, candidate_size):
+    config = {**CONFIG, "candidateSize": candidate_size}
+    request = models.QueryCollectionRequestBody(query=QUERY, size=size, rerank=config)
+    wire = request.model_dump(mode="json", by_alias=True)
+    assert wire["size"] == size
+    if candidate_size is None:
+        assert "candidateSize" not in wire["rerank"]
+    else:
+        assert wire["rerank"]["candidateSize"] == candidate_size
+    assert wire["query"]["knn"]["k"] == 20
+
+
+def test_rerank_candidate_size_still_bounds_expanded_output_size():
+    with pytest.raises(ValidationError, match="size <= candidate_size"):
+        models.QueryCollectionRequestBody(
+            query=QUERY, size=1000, rerank={**CONFIG, "candidateSize": 999}
+        )
 
 
 def test_legacy_facet_only_request_stays_valid():

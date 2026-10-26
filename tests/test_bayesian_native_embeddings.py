@@ -1,4 +1,4 @@
-"""Scoped contract at backend 9072a1bc8925954369a887f558f1eaf387b7ea0e."""
+"""Bayesian/native wire compatibility, including docs contract 94a7b71."""
 
 import asyncio
 import copy
@@ -24,6 +24,9 @@ EMPTY = {"took": 1, "total": 0, "docs": [], "isDocsInline": True}
 @pytest.mark.parametrize("args,expected", [
     ({"query": BAYESIAN, "candidate_size": 30, "size": 2},
      {"query": BAYESIAN, "candidateSize": 30, "size": 2}),
+    ({"query": BAYESIAN, "candidate_size": 1000, "size": 1000},
+     {"query": BAYESIAN, "candidateSize": 1000, "size": 1000}),
+    ({"query": VECTOR, "size": 1000}, {"query": VECTOR, "size": 1000}),
     ({"query": BAYESIAN, "rerank": RERANK}, {"query": BAYESIAN, "rerank": RERANK}),
     ({"query": BAYESIAN, "size": 2, "rerank": {**RERANK, "candidateSize": 30}},
      {"query": BAYESIAN, "size": 2, "rerank": {**RERANK, "candidateSize": 30}}),
@@ -77,7 +80,7 @@ INVALID_QUERIES = [
 @pytest.mark.parametrize("args", [
     *[{"query": query, "candidate_size": 30} for query in INVALID_QUERIES],
     {"query": BAYESIAN},
-    *[{"query": BAYESIAN, "size": 2, "candidate_size": n} for n in (0, 1, 101)],
+    *[{"query": BAYESIAN, "size": 2, "candidate_size": n} for n in (0, 1, 1001)],
     {"query": BAYESIAN, "candidate_size": 30, "rerank": RERANK},
     *[{"query": query, "candidate_size": 30} for query in
       [LEXICAL, VECTOR, *[{method: [LEXICAL, VECTOR]} for method in ("rrf", "mm", "l2")]]],
@@ -103,7 +106,7 @@ def test_opaque_query_and_budget_errors_remain_server_bad_requests(args):
 @pytest.mark.parametrize("explicit_options", [False, True])
 @pytest.mark.parametrize("use_model", [False, True])
 def test_native_and_legacy_create_update_serialization(legacy, explicit_options, use_model):
-    embedding = {**EMBEDDING, **({"dimensions": 512, "similarity": "dot_product"} if explicit_options else {})}
+    embedding = {**EMBEDDING, **({"dimensions": 512, "similarity": "euclidean"} if explicit_options else {})}
     vector = {"type": "vector", "embedding": embedding, **({"managedEmbedding": True} if legacy else {})}
     configs = {"vector": models.IndexConfigsVector.model_validate(vector) if use_model else vector}
     create = models.CreateCollectionRequest(collection_name="items", index_configs=configs)
@@ -135,16 +138,18 @@ def test_false_still_rejects_embedding_before_missing_dimensions():
 
 
 def test_caller_vector_default_unchanged():
-    assert models.IndexConfigsVector(type=models.TypeVector.VECTOR, dimensions=2).model_dump(mode="json", by_alias=True) == {
-        "type": "vector", "dimensions": 2, "similarity": "cosine",
+    assert models.IndexConfigsVector(type=models.TypeVector.VECTOR, dimensions=64).model_dump(mode="json", by_alias=True) == {
+        "type": "vector", "dimensions": 64, "similarity": "cosine",
     }
 
 
 @pytest.mark.parametrize("async_mode", [False, True])
 @pytest.mark.parametrize("operation", ["create", "update"])
 @pytest.mark.parametrize("legacy", [False, True])
-def test_native_create_update_http(async_mode, operation, legacy):
-    vector = {"type": "vector", "embedding": EMBEDDING, **({"managedEmbedding": True} if legacy else {})}
+@pytest.mark.parametrize("source_field", ["body", "article.body"])
+def test_native_create_update_http(async_mode, operation, legacy, source_field):
+    embedding = {**EMBEDDING, "sourceField": source_field}
+    vector = {"type": "vector", "embedding": embedding, **({"managedEmbedding": True} if legacy else {})}
     calls = []
 
     def handler(request):
@@ -159,7 +164,7 @@ def test_native_create_update_http(async_mode, operation, legacy):
             "snapshotRetentionInDays": 1, "createdAt": 1788336000123,
             "updatedAt": 1788336000123, "numDocs": 0, "numPartitions": 1,
             "indexConfigs": {"vector": {"type": "vector", "managedEmbedding": True,
-                "embedding": {**EMBEDDING, "dimensions": 1536, "similarity": "cosine"}}},
+                "embedding": {**embedding, "dimensions": 1536, "similarity": "cosine"}}},
         }
         return httpx.Response(201 if operation == "create" else 200, json={"collection": metadata})
 

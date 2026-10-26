@@ -17,7 +17,7 @@ from lambdadb.types import OptionalNullable, UNSET
 from lambdadb.versioning import Aliases, Branches, CollectionVersioning, Tags
 
 # API max page size for list_docs
-_LIST_DOCS_MAX_SIZE = 100
+_LIST_DOCS_MAX_SIZE = 1000
 
 
 def _fetch_bytes_from_presigned_url(
@@ -189,13 +189,6 @@ async def _resolve_list_docs_response_async(
     )
 
 
-def _doc_from_item(item: Any) -> Dict[str, Any]:
-    """Normalize list_docs item: return item['doc'] if present else item."""
-    if isinstance(item, dict) and "doc" in item:
-        return item["doc"]
-    return item if isinstance(item, dict) else {}
-
-
 def _bulk_upload_headers(info: models.GetBulkUpsertDocsResponse) -> Dict[str, str]:
     """Return signed upload headers plus the contract-required content type."""
     headers = dict(info.headers)
@@ -314,8 +307,7 @@ class CollectionDocs:
                 timeout_ms=t,
                 http_headers=h,
             )
-            for item in resp.results:
-                buffer.append(_doc_from_item(item))
+            buffer.extend(resp.documents)
             current_page_token = resp.next_page_token
             if len(buffer) >= size or current_page_token is None:
                 page = buffer[:size]
@@ -435,7 +427,7 @@ class CollectionDocs:
                 ref=ref,
                 options=options,
             )
-            buffer.extend(_doc_from_item(item) for item in response.results)
+            buffer.extend(response.documents)
             current_page_token = response.next_page_token
             if len(buffer) >= size or current_page_token is None:
                 page = buffer[:size]
@@ -972,7 +964,7 @@ class Collection:
         Optional ``rerank`` requires a scoring query and positive size. Check
         ``response.rerank.status`` before interpreting final scores.
         Bayesian retrieval without rerank requires ``candidate_size`` with
-        ``1 <= size <= candidate_size <= 100``. With rerank, omit it and use
+        ``1 <= size <= candidate_size <= 1000``. With rerank, omit it and use
         ``rerank.candidate_size``. Other query types do not support this field.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
@@ -1034,7 +1026,7 @@ class Collection:
         Optional ``rerank`` requires a scoring query and positive size. Check
         ``response.rerank.status`` before interpreting final scores.
         Bayesian retrieval without rerank requires ``candidate_size`` with
-        ``1 <= size <= candidate_size <= 100``. With rerank, omit it and use
+        ``1 <= size <= candidate_size <= 1000``. With rerank, omit it and use
         ``rerank.candidate_size``. Other query types do not support this field.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)

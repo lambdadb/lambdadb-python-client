@@ -1,22 +1,21 @@
 # Native reranking contract maintenance
 
-`native-reranking.json` is a scoped schema adapted from backend DTOs, service
-validation, tests and the native reranking design. It is pinned to backend
-`develop` revision
-[55d888299fee44466326a9db8016af9811ade13b](https://github.com/lambdadb/lambdadb/commit/55d888299fee44466326a9db8016af9811ade13b),
-which includes [PR #435](https://github.com/lambdadb/lambdadb/pull/435) and
-[PR #442](https://github.com/lambdadb/lambdadb/pull/442).
-The local reference checkout was inspected at
-`a5e06d49be06d95dc5f4046aeecaf51f8a7733c0`; comparison to the pinned develop
-revision showed only the subsequent analyzer extension, with no reranking
-contract changes. `source.files` records SHA-256 hashes of the inspected files.
+`native-reranking.json` is a scoped adaptation of backend DTOs, service
+validation, tests, and the public OpenAPI. It is pinned to backend
+[`0a54b6ecb483ce7df9677ba2071a491f9f9879c9`](https://github.com/lambdadb/lambdadb/commit/0a54b6ecb483ce7df9677ba2071a491f9f9879c9)
+and [OpenAPI at docs revision `94a7b71613a3bf217a370d5117b3ff6ddfbae851`](https://github.com/lambdadb/docs/blob/94a7b71613a3bf217a370d5117b3ff6ddfbae851/reference/api/openapi.json).
+`source.files` records SHA-256 hashes of files read from the exact backend commit;
+`source.openapi` records the docs revision, path, and relevant JSON pointers.
 These pins identify source contracts, not deployment.
 
-The upstream OpenAPI inspected at docs revision
-`961561c379acb079aec20191e13b89809ef096e9` does not contain reranking. This is
-not an extracted upstream OpenAPI fragment and does not change the SDK's base
-`API_CONTRACT_REVISION` or claim adoption of unrelated intervening APIs.
-The repository has no active full Speakeasy generation workflow.
+The 1000-candidate limit and optional index declarations for stored rerank paths
+supersede the earlier backend `55d888299fee44466326a9db8016af9811ade13b`
+contract. The scoped schema preserves existing SDK optional response fields and
+validation boundaries; it is not an exact OpenAPI extraction. The base
+`API_CONTRACT_REVISION` remains unchanged. See
+[read limits and stored text](../docs/read-limits-and-stored-text.md) for scope
+and the public vector configuration contract. There is no
+active full Speakeasy generation workflow.
 
 Generate the scoped models, TypedDicts and model references with:
 
@@ -63,7 +62,8 @@ than a billing unit. The supplied shared-dev smoke record reports 38 contract
 checks and per-request events; that is evidence about the server run, not live
 verification of this SDK or complete quality/load/failure/settlement validation.
 
-Upstream OpenAPI propagation, live SDK validation on the intended environment,
-backend usage ingestion/rate-card adoption and approved effective-time input/output
-rates remain separate dependencies. No rate is inferred or copied from embeddings.
+Environment validation is recorded separately in
+[SDK PR #54](https://github.com/lambdadb/lambdadb-python-client/pull/54). Backend
+usage ingestion/rate-card adoption and approved effective-time input/output rates
+remain separate dependencies. No rate is inferred or copied from embeddings.
 Publication and deployment require separate authorization and release checks.

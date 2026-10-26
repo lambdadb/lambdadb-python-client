@@ -93,6 +93,19 @@ def test_locked_pytest_excludes_vulnerable_versions() -> None:
     assert versions and all(version >= Version("9.0.3") for version in versions)
 
 
+def test_locked_certifi_excludes_compromised_ca_roots() -> None:
+    lock = (SCRIPT.parents[1] / "poetry.lock").read_text(encoding="utf-8")
+    versions = [
+        Version(version)
+        for version in re.findall(
+            r'\[\[package\]\]\nname = "certifi"\nversion = "([^"]+)"', lock
+        )
+    ]
+
+    # GHSA-6q48-6c7w-9gw2 is fixed in certifi 2026.10.19.
+    assert versions and all(version >= Version("2026.10.19") for version in versions)
+
+
 def _project_requirements() -> dict[str, Requirement]:
     pyproject = (SCRIPT.parents[1] / "pyproject.toml").read_text(encoding="utf-8")
     match = re.search(r"(?ms)^dependencies\s*=\s*\[(?P<body>.*?)^\]", pyproject)

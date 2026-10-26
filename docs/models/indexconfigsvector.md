@@ -15,6 +15,10 @@
 
 For native embedding vector fields, provide `embedding` and omit `managed_embedding`, or set it to `True` for legacy compatibility. Top-level `dimensions` and `similarity` are not allowed.
 
-For caller-provided vector fields, omit both `embedding` and `managed_embedding`, or set `managed_embedding=False`. `dimensions` is required and must be between 1 and 4096, and `embedding` is not allowed.
+For caller-provided vector fields, omit both `embedding` and `managed_embedding`, or set `managed_embedding=False`. `dimensions` is required and must be between 64 and 4096, and `embedding` is not allowed. Similarity is `cosine` or `euclidean`.
+
+These bounds follow the [pinned public OpenAPI](../vector-configuration.md),
+including when parsing collection metadata. Review its upgrade requirements
+before using collections configured outside that contract.
 
 See [native embeddings](../bayesian-native-embeddings.md) for create/update examples and the exact contract pin.

@@ -50,6 +50,12 @@ on the stable `0.9.0` release until they upgrade their interpreter.
 
 The SDK can be installed with *uv*, *pip*, or *poetry* package managers.
 
+Before upgrading to `0.13.0`, review the
+[vector configuration migration requirements](docs/vector-configuration.md).
+Dense vectors now follow the public OpenAPI: 64-4096 dimensions and
+`cosine`/`euclidean` similarity, including collection response parsing.
+Collections outside that contract must be migrated before upgrading.
+
 ### uv
 
 *uv* is a fast Python package installer and resolver, designed as a drop-in replacement for pip and pip-tools. It's recommended for its speed and modern Python tooling capabilities.
@@ -378,12 +384,19 @@ with LambdaDB(
 <!-- End Authentication [security] -->
 
 <!-- Start Available Resources and Operations [operations] -->
+## Vector configuration
+
+Dense vector fields require dimensions 64-4096 and `cosine` or `euclidean`
+similarity, following the [public OpenAPI contract](docs/vector-configuration.md).
+These constraints also apply to native embedding configuration and collection
+response parsing. Review the linked upgrade requirements for legacy schemas.
+
 ## Available Resources and Operations
 
 **Recommended:** Use the collection-scoped API: `client.collection("name").docs.list()`, `.docs.fetch()`, `.docs.upsert()`, etc., and `client.collection("name").query()` for search. This matches the REST API structure and avoids repeating the collection name.
 
 * **Response access:** List, query, and fetch responses expose `.results` (full result items, with score/metadata when applicable) and `.documents` (document bodies only). When the API returns `is_docs_inline: false` with a presigned `docs_url`, the SDK automatically fetches from that URL so `response.results` and `response.documents` are always populated when using `coll.query()` and `coll.docs.fetch()`.
-* **Pagination:** Use `coll.docs.list_pages(size=10, ref=...)` to iterate pages of up to `size` documents, or `coll.docs.iter_all(page_size=100, ref=...)` to iterate over all documents. Async variants preserve the same ref on every request.
+* **Pagination:** Use `coll.docs.list_pages(size=10, ref=...)` to iterate pages of up to `size` documents, or `coll.docs.iter_all(page_size=100, ref=...)` to iterate over all documents. Async variants preserve the same ref on every request. Internal document requests support up to 1000 items; the default page size remains 100. See [read limits and stored text](docs/read-limits-and-stored-text.md) for Query/Fetch/List limits, unindexed native inputs, and result downloads.
 * **Advanced options:** Pass `options=RequestOptions(timeout_ms=..., http_headers=...)` to any docs or query call; import with `from lambdadb import RequestOptions`. For delete by filter, prefer `query_filter=...` over `filter_=...`. Response types such as `ListDocsResponse`, `QueryCollectionResponse`, and `FetchDocsResponse` are also exported from `lambdadb` for type hints.
 
 <details open>
@@ -500,13 +513,13 @@ with LambdaDB(
 ### Error Classes
 **Primary errors:**
 * [`LambdaDBError`](./src/lambdadb/errors/lambdadberror.py): The base class for HTTP error responses.
-  * [`UnauthenticatedError`](./src/lambdadb/errors/unauthenticatederror.py): Unauthenticated. Status code `401`.
-  * [`TooManyRequestsError`](./src/lambdadb/errors/toomanyrequestserror.py): Too many requests. Status code `429`.
+  * [`UnauthenticatedError`](./src/lambdadb/errors/unauthenticated_error.py): Unauthenticated. Status code `401`.
+  * [`TooManyRequestsError`](./src/lambdadb/errors/toomanyrequests_error.py): Too many requests. Status code `429`.
   * [`InternalServerError`](./src/lambdadb/errors/internalservererror.py): Internal server error. Status code `500`.
   * [`BadGatewayError`](./src/lambdadb/errors/contract_errors.py): Unexpected downstream failure. Status code `502`.
   * [`ServiceUnavailableError`](./src/lambdadb/errors/contract_errors.py): Transient catalog or storage dependency failure. Status code `503`.
   * [`GatewayTimeoutError`](./src/lambdadb/errors/contract_errors.py): Gateway deadline exceeded; write outcome may be uncertain. Status code `504`.
-  * [`ResourceNotFoundError`](./src/lambdadb/errors/resourcenotfounderror.py): Resource not found. Status code `404`. *
+  * [`ResourceNotFoundError`](./src/lambdadb/errors/resourcenotfound_error.py): Resource not found. Status code `404`. *
 
 <details><summary>Less common errors</summary>
 
@@ -519,8 +532,8 @@ with LambdaDB(
 
 
 **Inherit from [`LambdaDBError`](./src/lambdadb/errors/lambdadberror.py)**:
-* [`BadRequestError`](./src/lambdadb/errors/badrequesterror.py): Bad request. Status code `400`. Applicable to 9 of 13 methods.*
-* [`ResourceAlreadyExistsError`](./src/lambdadb/errors/resourcealreadyexistserror.py): Resource already exists. Status code `409`. Applicable to 1 of 13 methods.*
+* [`BadRequestError`](./src/lambdadb/errors/badrequest_error.py): Bad request. Status code `400`.
+* [`ResourceAlreadyExistsError`](./src/lambdadb/errors/resourcealreadyexists_error.py): Resource already exists. Status code `409`.
 * [`CatalogConflictError`](./src/lambdadb/errors/contract_errors.py): Conditional catalog conflict. Status code `409`.
 * [`RefDeleteConflictError`](./src/lambdadb/errors/contract_errors.py): Branch or Tag deletion conflict, including a target referenced by an Alias. Status code `409`.
 * [`PayloadTooLargeError`](./src/lambdadb/errors/contract_errors.py): Request exceeds the Gateway transport limit. Status code `413`.

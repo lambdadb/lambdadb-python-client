@@ -9,5 +9,3 @@ Vector similarity metric.
 | ------------------- | ------------------- |
 | `COSINE`            | cosine              |
 | `EUCLIDEAN`         | euclidean           |
-| `DOT_PRODUCT`       | dot_product         |
-| `MAX_INNER_PRODUCT` | max_inner_product   |
