@@ -32,7 +32,7 @@ def generated_files() -> dict[Path, str]:
 
 from typing import List, Literal, Optional
 from typing_extensions import NotRequired, TypedDict
-from pydantic import ConfigDict, Field, StrictStr, field_validator, model_serializer
+from pydantic import ConfigDict, Field, StrictStr, field_validator, model_serializer, model_validator
 from lambdadb.types import BaseModel
 '''
     files = {}
@@ -88,6 +88,14 @@ from lambdadb.types import BaseModel
                     or max(sizes) > {props['criteria']['items']['x-maxUtf8Bytes']} or sum(sizes) > {props['criteria']['x-maxUtf8Bytes']}):
                 raise ValueError("criteria must be distinct and nonblank, at most 2 KiB each and 8 KiB total UTF-8")
         return value
+
+    @model_validator(mode="after")
+    def validate_provider_model(self):
+        if self.model not in {schema['x-providerModels']!r}[self.provider]:
+            raise ValueError(f"model {{self.model}} is not supported by provider {{self.provider}}")
+        if self.criteria is not None and self.provider not in {schema['x-criteriaProviders']!r}:
+            raise ValueError(f"criteria is not supported by provider {{self.provider}}")
+        return self
 
 '''
         optional = [python_name(key) for key in props if key not in required]

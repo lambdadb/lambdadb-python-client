@@ -132,7 +132,9 @@ poetry run pytest tests/integration/test_bayesian_native_live.py -m integration 
 
 Use the same three connection environment variables as above. The suite creates
 unique collections, tests actual document/query embeddings and native reranking,
-and verifies collection deletion with HTTP 404. See the
+and verifies collection deletion with HTTP 404. It includes Cohere text/image
+`sources`, `queryInputs`, direct and bulk-uploaded vectors on native fields, and
+Cohere reranking, so the server must have Cohere credentials configured. See the
 [scoped contract guide](bayesian-native-embeddings.md) for limits and temporary
 project/key cleanup. This repository has no CLI to validate.
 

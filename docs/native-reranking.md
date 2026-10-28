@@ -2,10 +2,10 @@
 
 Native reranking is an optional **per-query** stage after retrieval, global
 merge, deduplication and hydration. It is not a collection setting. This source
-checkout supports `typesafe` / `jev-1.13.0` on a compatible server. LambdaDB
-manages provider credentials; supply your normal LambdaDB project API key, not
-a Jev API key. Omitting `rerank` or passing `None` preserves existing search
-behavior. The SDK omits optional `None` values on the wire.
+checkout supports `typesafe` / `jev-1.13.0` and `cohere` / `rerank-v5.0-pro` or
+`rerank-v5.0-fast` on a compatible server. LambdaDB manages provider credentials;
+supply your normal LambdaDB project API key, not a provider API key. Omitting
+`rerank` or passing `None` preserves existing search behavior. The SDK omits optional `None` values on the wire.
 
 ## Default criteria
 
@@ -76,6 +76,31 @@ descriptions selects custom weights and differs from omission. No caller
 weights, thresholds, persistent criteria registry, or custom version/hash is
 supported. These descriptions illustrate the API, not a validated domain rubric.
 
+## Cohere reranking
+
+Cohere uses its native relevance scores and does not support `criteria`; omit it
+or pass `None`. The SDK rejects other provider/model pairs and Cohere criteria
+before sending the request.
+
+```python
+response = client.collection("articles").query(
+    query={"queryString": {"query": "body:restore"}},
+    size=10,
+    rerank=models.RerankConfig(
+        provider="cohere",
+        model="rerank-v5.0-fast",
+        query_text="How do I restore a previous collection version?",
+        fields=["title", "body"],
+    ),
+)
+```
+
+Applied Cohere results report `criteriaVersion` `cohere-relevance-v1`. Request
+fields, candidate limits, failure handling and response envelopes are shared
+with Jev. Cohere reranking is text-only. The provider pairs follow
+[lambdadb OpenAPI `f9d34b8`](https://github.com/lambdadb/lambdadb/blob/f9d34b8f78ae829ae34d5065d29a42f3574983e1/api/openapi.json);
+that pin does not establish deployment or Cohere credential configuration.
+
 ## Request and candidate counts
 
 See [RerankConfig](models/rerankconfig.md) for field types and required values.
@@ -130,7 +155,7 @@ ordering, including exact ties; it never sorts or rounds results again.
 
 | Status | Scores and metadata |
 | --- | --- |
-| `applied` | Final rerank scores and original `retrievalScore`; `scoredCount == candidateCount`. `criteriaVersion` identifies `default-relevance-v1` or `custom`. |
+| `applied` | Final rerank scores and original `retrievalScore`; `scoredCount == candidateCount`. `criteriaVersion` identifies `default-relevance-v1` or `custom` for Jev, and `cohere-relevance-v1` for Cohere. |
 | `skipped` | Empty pool: `reason=noCandidates`, both counts zero, no `maxScore`, `retrievalScore` or `criteriaVersion`. |
 | `fallback` | Retained original candidate order and search scores; `scoredCount=0`, reason present, no `retrievalScore` or `criteriaVersion`. No partial rerank results are exposed. |
 | No reranking | Original search scores; no top-level `rerank` or `retrievalScore`. |

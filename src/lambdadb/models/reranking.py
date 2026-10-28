@@ -2,13 +2,13 @@
 
 from typing import List, Literal, Optional
 from typing_extensions import NotRequired, TypedDict
-from pydantic import ConfigDict, Field, StrictStr, field_validator, model_serializer
+from pydantic import ConfigDict, Field, StrictStr, field_validator, model_serializer, model_validator
 from lambdadb.types import BaseModel
 
 
 class RerankConfigTypedDict(TypedDict):
-    provider: Literal['typesafe']
-    model: Literal['jev-1.13.0']
+    provider: Literal['typesafe', 'cohere']
+    model: Literal['jev-1.13.0', 'rerank-v5.0-pro', 'rerank-v5.0-fast']
     query_text: str
     fields: List[str]
     candidate_size: NotRequired[Optional[int]]
@@ -20,11 +20,11 @@ class RerankConfig(BaseModel):
     """Native reranking request."""
     model_config = ConfigDict(extra="forbid")
 
-    provider: Literal['typesafe']
+    provider: Literal['typesafe', 'cohere']
     """Native reranking provider. The server handles provider credentials; no customer provider API key is required."""
 
-    model: Literal['jev-1.13.0']
-    """Explicit native reranking model."""
+    model: Literal['jev-1.13.0', 'rerank-v5.0-pro', 'rerank-v5.0-fast']
+    """Explicit native reranking model; typesafe uses jev-1.13.0, cohere uses rerank-v5.0-pro or rerank-v5.0-fast."""
 
     query_text: StrictStr = Field(alias="queryText")
     """Nonblank query text, at most 8 KiB UTF-8; required even for raw-vector retrieval."""
@@ -39,7 +39,7 @@ class RerankConfig(BaseModel):
     """Defaults to error. returnOriginal applies only to whole-stage provider failures, not input, quota, admission, retrieval or authorization errors."""
 
     criteria: Optional[List[StrictStr]] = Field(default=None, min_length=2, max_length=10)
-    """Distinct nonblank descriptions ordered lowest to highest relevance. Omitted/null uses default criteria; at most 2 KiB each and 8 KiB total UTF-8."""
+    """TypeSafe/Jev only; Cohere requires omitted/null. Distinct nonblank descriptions ordered lowest to highest relevance. Omitted/null uses default criteria; at most 2 KiB each and 8 KiB total UTF-8."""
 
     @field_validator("query_text")
     @classmethod
@@ -67,6 +67,14 @@ class RerankConfig(BaseModel):
                 raise ValueError("criteria must be distinct and nonblank, at most 2 KiB each and 8 KiB total UTF-8")
         return value
 
+    @model_validator(mode="after")
+    def validate_provider_model(self):
+        if self.model not in {'typesafe': ['jev-1.13.0'], 'cohere': ['rerank-v5.0-pro', 'rerank-v5.0-fast']}[self.provider]:
+            raise ValueError(f"model {self.model} is not supported by provider {self.provider}")
+        if self.criteria is not None and self.provider not in ['typesafe']:
+            raise ValueError(f"criteria is not supported by provider {self.provider}")
+        return self
+
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
         serialized = handler(self)
@@ -87,7 +95,7 @@ class RerankResponseTypedDict(TypedDict):
     candidate_count: int
     scored_count: int
     took: int
-    criteria_version: NotRequired[Optional[Literal['default-relevance-v1', 'custom']]]
+    criteria_version: NotRequired[Optional[Literal['default-relevance-v1', 'custom', 'cohere-relevance-v1']]]
     reason: NotRequired[Optional[str]]
 
 
@@ -114,8 +122,8 @@ class RerankResponse(BaseModel):
     took: int
     """Rerank stage duration in milliseconds, excluding candidate hydration."""
 
-    criteria_version: Optional[Literal['default-relevance-v1', 'custom']] = Field(default=None, alias="criteriaVersion")
-    """Only on applied results when reported. custom identifies caller-supplied criteria, not a content hash or unique version."""
+    criteria_version: Optional[Literal['default-relevance-v1', 'custom', 'cohere-relevance-v1']] = Field(default=None, alias="criteriaVersion")
+    """Only on applied results when reported. TypeSafe/Jev uses default-relevance-v1 or custom; custom identifies caller-supplied criteria, not a content hash or unique version. Cohere uses cohere-relevance-v1."""
 
     reason: Optional[StrictStr] = Field(default=None)
     """Skipped/fallback reason: noCandidates, timeout, rateLimit, unavailable, invalidResponse or credentials."""

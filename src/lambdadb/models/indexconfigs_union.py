@@ -61,6 +61,7 @@ class Provider(str, Enum):
     r"""Embedding provider."""
 
     OPENAI = "openai"
+    COHERE = "cohere"
 
 
 class Similarity(str, Enum):
@@ -70,6 +71,32 @@ class Similarity(str, Enum):
     EUCLIDEAN = "euclidean"
 
 
+class EmbeddingSourceType(str, Enum):
+    r"""Embedding source input type."""
+
+    TEXT = "text"
+    IMAGE = "image"
+
+
+class EmbeddingSourceTypedDict(TypedDict):
+    r"""Ordered source mapping for a native embedding field."""
+
+    field: str
+    r"""Unique dotted path in the original stored JSON; no index declaration is required."""
+    type: EmbeddingSourceType
+    r"""Source input type."""
+
+
+class EmbeddingSource(BaseModel):
+    r"""Ordered source mapping for a native embedding field."""
+
+    field: str = pydantic.Field(pattern=r".*\S.*")
+    r"""Unique dotted path in the original stored JSON; no index declaration is required."""
+
+    type: EmbeddingSourceType
+    r"""Source input type."""
+
+
 class EmbeddingConfigTypedDict(TypedDict):
     r"""Native embedding configuration for vector fields."""
 
@@ -77,10 +104,12 @@ class EmbeddingConfigTypedDict(TypedDict):
     r"""Embedding provider."""
     model: str
     r"""Embedding model name. See /guides/collections/native-embeddings for the current supported providers and models."""
-    source_field: str
-    r"""Stored scalar string path through objects; no source index config is required. The server validates declared types and document values."""
+    source_field: NotRequired[Optional[str]]
+    r"""Legacy single-text source path. Use exactly one non-null source_field or sources."""
+    sources: NotRequired[Optional[List[EmbeddingSourceTypedDict]]]
+    r"""Ordered source mappings, 1-16 items. OpenAI requires exactly one text source."""
     dimensions: NotRequired[int]
-    r"""Resolved embedding dimensions. Optional in requests and resolved in stored collection metadata."""
+    r"""Optional model dimensions, resolved in stored metadata. Cohere accepts 256, 512, 768, 1024, 1536 or 2048 and defaults to 2048."""
     similarity: NotRequired[Similarity]
     r"""Resolved vector similarity metric. Optional in requests and resolved in stored collection metadata."""
 
@@ -94,17 +123,27 @@ class EmbeddingConfig(BaseModel):
     model: str
     r"""Embedding model name. See /guides/collections/native-embeddings for the current supported providers and models."""
 
-    source_field: Annotated[str, pydantic.Field(alias="sourceField")]
-    r"""Stored scalar string path through objects; no source index config is required. The server validates declared types and document values."""
+    source_field: Annotated[
+        Optional[str], pydantic.Field(alias="sourceField", pattern=r".*\S.*")
+    ] = None
+    r"""Legacy single-text source path. Use exactly one non-null source_field or sources."""
+
+    sources: Annotated[
+        Optional[List[EmbeddingSource]], pydantic.Field(min_length=1, max_length=16)
+    ] = None
+    r"""Ordered source mappings, 1-16 items. OpenAI requires exactly one text source."""
 
     dimensions: Optional[int] = None
-    r"""Resolved embedding dimensions. Optional in requests and resolved in stored collection metadata."""
+    r"""Optional model dimensions, resolved in stored metadata. Cohere accepts 256, 512, 768, 1024, 1536 or 2048 and defaults to 2048."""
 
     similarity: Optional[Similarity] = Similarity.COSINE
     r"""Resolved vector similarity metric. Optional in requests and resolved in stored collection metadata."""
 
     @model_validator(mode="after")
     def validate_dimensions(self):
+        # Provider/model pairs, duplicate paths and image limits remain server validation.
+        if (self.source_field is None) == (self.sources is None):
+            raise ValueError("Exactly one of source_field or sources must be provided")
         if self.dimensions is not None and not (
             MIN_VECTOR_DIMENSIONS <= self.dimensions <= MAX_VECTOR_DIMENSIONS
         ):
@@ -115,7 +154,7 @@ class EmbeddingConfig(BaseModel):
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["dimensions", "similarity"])
+        optional_fields = set(["sourceField", "sources", "dimensions", "similarity"])
         serialized = handler(self)
         m = {}
 
