@@ -34,7 +34,8 @@ The following rules are mandatory:
 - Follow the branch and merge flow in `RELEASING.md`: feature and fix pull
   requests target `develop` and are squash-merged; `develop` -> `main`
   promotion and `main` -> `develop` synchronization pull requests use a merge
-  commit and are never squashed or rebased.
+  commit and are never squashed or rebased. Synchronize `main` into `develop`
+  after every promotion and release tag.
 - Never replace an existing PyPI version or move a published Git tag. Publish
   the next development, RC, or patch version instead.
 - Never create or push a tag, publish a GitHub Release, upload to PyPI, yank a

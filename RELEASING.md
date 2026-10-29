@@ -41,13 +41,15 @@ require canonical input.
 3. Promotion: open a `develop` -> `main` pull request and merge it with
    **Create a merge commit**. Tag and publish only from the resulting reviewed
    `main` commit.
-4. Synchronization: whenever `main` contains commits absent from `develop`,
-   such as a release merge commit, a hotfix, or a Dependabot security update
-   merged into `main`, open a `main` -> `develop` pull request and merge it with
-   **Create a merge commit**. Never squash or rebase a synchronization pull
-   request: that makes the trees equal without shared ancestry, so later
-   comparisons show already-synchronized commits again and release tags become
-   unreachable from `develop`. Verify:
+4. Synchronization: after every promotion and release tag, and whenever `main`
+   contains other commits absent from `develop`, such as a hotfix or a
+   Dependabot security update merged into `main`, open a `main` -> `develop`
+   pull request and merge it with **Create a merge commit**. The promotion merge
+   commit itself is absent from `develop`, so without this synchronization the
+   release tag is unreachable from `develop`. Never squash or rebase a
+   synchronization pull request: that makes the trees equal without shared
+   ancestry, so later comparisons show already-synchronized commits again and
+   release tags become unreachable from `develop`. Verify:
 
    ```bash
    git merge-base --is-ancestor <main-sha> origin/develop
@@ -133,8 +135,9 @@ environments before publishing.
 If an RC needs a fix, publish a new commit and increment the RC number. Never
 move or replace an existing tag or PyPI version.
 
-After the release, synchronize `main` back into `develop` without rewriting the
-reviewed main ancestry, as described in
+After every release, synchronize `main` back into `develop` without rewriting
+the reviewed main ancestry, including the promotion merge commit that carries
+the release tag, as described in
 [Branches and merges](#branches-and-merges). Merge the `main` -> `develop` pull
 request with **Create a merge commit**; do not squash or rebase the
 synchronization PR. Verify:
@@ -158,7 +161,8 @@ accepted and all feedback is resolved.
 5. Create tag `v0.9.0` from that exact `main` merge commit.
 6. Create a non-prerelease GitHub Release for the tag.
 7. Verify the PyPI package and a clean installation.
-8. Synchronize `main` back into `develop` as described in
+8. Synchronize `main`, including the promotion merge commit that carries the
+   tag, back into `develop` as described in
    [Branches and merges](#branches-and-merges).
 
 ## Validation checklist
