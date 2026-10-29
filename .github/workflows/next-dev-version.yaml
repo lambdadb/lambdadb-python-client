@@ -48,8 +48,10 @@ jobs:
           fi
           NEXT=$(python scripts/version.py next-dev "$RELEASED")
           BRANCH="chore/next-dev-$NEXT"
-          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
-            echo "$BRANCH already exists"
+          # Keep an open pull request that already builds on the current main.
+          OPEN_PR=$(gh pr list --base main --head "$BRANCH" --state open --json url --jq '.[0].url // ""')
+          if [ -n "$OPEN_PR" ] && git fetch origin "$BRANCH" && git merge-base --is-ancestor HEAD FETCH_HEAD; then
+            echo "$OPEN_PR already proposes $NEXT from the current main"
             exit 0
           fi
           python scripts/version.py set "$NEXT"
@@ -57,6 +59,11 @@ jobs:
           git -c user.name="github-actions[bot]" \
             -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
             commit -am "chore: start $NEXT development"
-          git push origin "$BRANCH"
+          # Replace a branch left by an earlier release, a failed run, or an outdated pull request.
+          git push --force origin "$BRANCH"
+          if [ -n "$OPEN_PR" ]; then
+            echo "Refreshed $OPEN_PR from the current main"
+            exit 0
+          fi
           gh pr create --base main --head "$BRANCH" --title "chore: start $NEXT development" --body \
             "$RELEASE_TAG is published. This restores the development placeholder \`$NEXT\` so main carries a version above the release. Change it with \`python scripts/version.py set X.Y.Z.dev0\` if the next release is a minor or major version. Pull requests opened by GitHub Actions do not trigger CI; CI runs on the main push after this merges."

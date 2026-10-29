@@ -258,7 +258,13 @@ def _next_dev_repo(tmp_path: Path, version: str) -> tuple[Path, Path, dict[str, 
     _git(repo, env, "commit", "-m", f"Release {version}")
     _git(repo, env, "remote", "add", "origin", str(remote))
     _git(repo, env, "push", "origin", "main")
-    bin_dir = _bin(tmp_path, "gh", 'printf "%s\\n" "$@" > "$GH_CALL_LOG"')
+    bin_dir = _bin(
+        tmp_path,
+        "gh",
+        'if [ "$1 $2" = "pr list" ]; then printf "%s" "$OPEN_PR"; exit 0; fi\n'
+        '[ -z "$GH_CREATE_FAILS" ] || exit 1\n'
+        'printf "%s\\n" "$@" > "$GH_CALL_LOG"',
+    )
     (bin_dir / "python").symlink_to(sys.executable)
     env["PATH"] = f"{bin_dir}:{env['PATH']}"
     env["GH_CALL_LOG"] = str(tmp_path / "gh-call")
@@ -274,32 +280,60 @@ def test_next_dev_workflow_opens_the_placeholder_pull_request(
 ) -> None:
     repo, remote, env = _next_dev_repo(tmp_path, tag[1:])
     script = _step_script(NEXT_DEV, "Open the next development version pull request")
+    branch = f"chore/next-dev-{next_version}"
+    gh_log = tmp_path / "gh-call"
 
-    def run() -> subprocess.CompletedProcess[str]:
+    def run(**extra: str) -> subprocess.CompletedProcess[str]:
+        # Each workflow run starts from a fresh checkout of main.
+        _git(repo, env, "checkout", "-f", "main")
+        subprocess.run(
+            ["git", "branch", "-D", branch], cwd=repo, env=env, capture_output=True, check=False
+        )
+        gh_log.unlink(missing_ok=True)
         return subprocess.run(
             ["bash", "-e", "-c", script],
             cwd=repo,
-            env={**env, "RELEASE_TAG": tag},
+            env={**env, "RELEASE_TAG": tag, **extra},
             capture_output=True,
             text=True,
             check=False,
         )
 
+    def pushed() -> tuple[str, str]:
+        return (
+            _git(remote, env, "rev-parse", f"{branch}^"),
+            _git(remote, env, "show", f"{branch}:src/lambdadb/version.py"),
+        )
+
+    main = _git(repo, env, "rev-parse", "main")
+    expected = (main, f'SDK_VERSION: str = "{next_version}"')
+
+    # The branch is pushed, but opening the pull request fails.
+    assert run(GH_CREATE_FAILS="1").returncode != 0
+    assert pushed() == expected and not gh_log.exists()
+
+    # A rerun without an open pull request refreshes the branch and opens one.
     result = run()
     assert result.returncode == 0, result.stderr
-    branch = f"chore/next-dev-{next_version}"
-    pushed = _git(remote, env, "show", f"{branch}:src/lambdadb/version.py")
-    assert pushed == f'SDK_VERSION: str = "{next_version}"'
-    gh_call = (tmp_path / "gh-call").read_text(encoding="utf-8").splitlines()
+    assert pushed() == expected
+    gh_call = gh_log.read_text(encoding="utf-8").splitlines()
     assert gh_call[:6] == ["pr", "create", "--base", "main", "--head", branch]
 
-    # A rerun finds the existing branch and opens nothing.
-    (tmp_path / "gh-call").unlink()
-    _git(repo, env, "checkout", "main")
-    result = run()
+    # An open pull request built on the current main is left alone.
+    head = _git(remote, env, "rev-parse", branch)
+    result = run(OPEN_PR="https://example.test/pull/1")
     assert result.returncode == 0, result.stderr
-    assert "already exists" in result.stdout
-    assert not (tmp_path / "gh-call").exists()
+    assert "already proposes" in result.stdout
+    assert _git(remote, env, "rev-parse", branch) == head and not gh_log.exists()
+
+    # An open pull request behind main is refreshed in place.
+    _git(repo, env, "commit", "--allow-empty", "-m", "Later change on main")
+    _git(repo, env, "push", "origin", "main")
+    main = _git(repo, env, "rev-parse", "main")
+    result = run(OPEN_PR="https://example.test/pull/1")
+    assert result.returncode == 0, result.stderr
+    assert "Refreshed" in result.stdout
+    assert pushed() == (main, expected[1]) and not gh_log.exists()
 
 
 @pytest.mark.parametrize(
