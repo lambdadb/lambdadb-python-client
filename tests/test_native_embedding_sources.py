@@ -1,4 +1,6 @@
-"""Native embedding source mappings from lambdadb OpenAPI revision f9d34b8."""
+"""Native embedding source mappings from lambdadb OpenAPI revision 1c3e7d4."""
+
+import json
 
 import httpx
 import pytest
@@ -63,3 +65,29 @@ def test_collection_response_preserves_source_mappings():
     assert [source.type for source in vector.embedding.sources] == [
         models.EmbeddingSourceType.TEXT, models.EmbeddingSourceType.IMAGE]
     assert response.model_dump(mode="json", by_alias=True)["collection"]["indexConfigs"]["v"] == stored
+
+
+def test_server_managed_id_round_trips_and_id_only_schema_is_sent():
+    """lambdadb#515: responses include id as keyword; requests may send it back."""
+    stored = {"id": {"type": "keyword"}, "body": {"type": "text"}}
+    collection = {
+        "projectName": "project", "collectionName": "items", "indexConfigs": stored,
+        "description": "", "tags": {}, "defaultBranchName": "main", "snapshotRetentionInDays": 1,
+        "createdAt": 1788336000123, "updatedAt": 1788336000123, "numDocs": 0, "numPartitions": 1,
+    }
+    sent = []
+
+    def handler(request):
+        if request.method != "GET":
+            sent.append(request.read())
+        return httpx.Response(201 if request.method == "POST" else 200, json={"collection": collection})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as http:
+        sdk = LambdaDB(client=http, project_api_key="test-key")
+        returned = sdk.collections.get(collection_name="items").collection.index_configs
+        sdk.collections.update(collection_name="items", index_configs=returned)
+        sdk.collections.create(collection_name="items", index_configs={"id": {"type": "keyword"}})
+        sdk.collections.update(collection_name="items", index_configs={"id": {"type": "keyword"}})
+
+    assert [json.loads(body)["indexConfigs"] for body in sent] == [
+        stored, {"id": {"type": "keyword"}}, {"id": {"type": "keyword"}}]

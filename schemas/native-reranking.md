@@ -1,11 +1,13 @@
 # Native reranking contract maintenance
 
 `native-reranking.json` is a scoped adaptation of backend DTOs, service
-validation, tests, and the public OpenAPI. It is pinned to backend
-[`0a54b6ecb483ce7df9677ba2071a491f9f9879c9`](https://github.com/lambdadb/lambdadb/commit/0a54b6ecb483ce7df9677ba2071a491f9f9879c9)
-and [OpenAPI at docs revision `94a7b71613a3bf217a370d5117b3ff6ddfbae851`](https://github.com/lambdadb/docs/blob/94a7b71613a3bf217a370d5117b3ff6ddfbae851/reference/api/openapi.json).
+validation, tests, and the public OpenAPI. Both are pinned to lambdadb
+[`1c3e7d453cca296a7b2af85a375b4c5016504101`](https://github.com/lambdadb/lambdadb/commit/1c3e7d453cca296a7b2af85a375b4c5016504101);
+the OpenAPI is [`api/openapi.json`](https://github.com/lambdadb/lambdadb/blob/1c3e7d453cca296a7b2af85a375b4c5016504101/api/openapi.json)
+at that commit. It previously lived in `lambdadb/docs` (last pinned at
+`94a7b71613a3bf217a370d5117b3ff6ddfbae851`).
 `source.files` records SHA-256 hashes of files read from the exact backend commit;
-`source.openapi` records the docs revision, path, and relevant JSON pointers.
+`source.openapi` records the repository, revision, path, and relevant JSON pointers.
 These pins identify source contracts, not deployment.
 
 The 1000-candidate limit and optional index declarations for stored rerank paths

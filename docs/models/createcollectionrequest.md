@@ -5,7 +5,7 @@
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `collection_name` | `str` | Yes | Collection name, 3-52 supported characters. |
-| `index_configs` | `Dict[str, models.IndexConfigsUnion]` | Yes | Nonempty collection index configuration. |
+| `index_configs` | `Dict[str, models.IndexConfigsUnion]` | Yes | Nonempty collection index configuration. The server-managed `id` may be omitted or set to exactly `{"type": "keyword"}`. |
 | `description` | `Optional[str]` | No | Collection description, up to 255 characters. |
 | `tags` | `Optional[Dict[str, str]]` | No | Up to five metadata tags; values must contain a non-whitespace character. |
 | `partition_config` | `Optional[models.PartitionConfig]` | No | Partition configuration. |

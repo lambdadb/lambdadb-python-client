@@ -119,7 +119,7 @@ native embedding configuration, including collection response parsing. See
 [vector configuration](vector-configuration.md) for scope and migration from
 previously accepted settings.
 
-Native fields use `knn.queryText`. As of lambdadb OpenAPI `f9d34b8`, native
+Native fields use `knn.queryText`. As of lambdadb OpenAPI `1c3e7d4`, native
 fields also accept `knn.queryInputs` and a raw `knn.queryVector`; see
 [native embedding sources](native-embedding-sources.md).
 

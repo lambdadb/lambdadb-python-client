@@ -1,4 +1,4 @@
-"""Opt-in Bayesian/native smoke, including lambdadb OpenAPI f9d34b8 (Cohere).
+"""Opt-in Bayesian/native smoke, including lambdadb OpenAPI 1c3e7d4 (Cohere).
 
 Verify deployment separately before enabling LAMBDADB_RUN_BAYESIAN_SMOKE.
 Only uniquely named collections created by this test are removed.

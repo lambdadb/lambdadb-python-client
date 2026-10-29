@@ -1,9 +1,10 @@
 # Native embedding sources and Cohere providers
 
 This scoped update follows the public
-[OpenAPI at lambdadb `f9d34b8f78ae829ae34d5065d29a42f3574983e1`](https://github.com/lambdadb/lambdadb/blob/f9d34b8f78ae829ae34d5065d29a42f3574983e1/api/openapi.json),
+[OpenAPI at lambdadb `1c3e7d453cca296a7b2af85a375b4c5016504101`](https://github.com/lambdadb/lambdadb/blob/1c3e7d453cca296a7b2af85a375b4c5016504101/api/openapi.json),
 the `main` merge that includes
-[Cohere native multimodal embeddings and text reranking #483](https://github.com/lambdadb/lambdadb/pull/483).
+[Cohere native multimodal embeddings and text reranking #483](https://github.com/lambdadb/lambdadb/pull/483)
+and [the server-managed `id` in collection `indexConfigs` #515](https://github.com/lambdadb/lambdadb/pull/515).
 The public OpenAPI moved from `lambdadb/docs` to `lambdadb/lambdadb` in
 [#498](https://github.com/lambdadb/lambdadb/pull/498); its first revision is
 identical to the previously pinned docs revision
@@ -96,6 +97,17 @@ Cohere accepts mixed ordered parts; OpenAI accepts one text part. `queryInputs`
 uses the same part, image and byte limits as document inputs. A raw
 `queryVector` is accepted on native fields and skips inference. The server
 validates these rules.
+
+## Server-managed `id` in `indexConfigs`
+
+Collection responses include the server-managed top-level `id` field as
+`{"type": "keyword"}`. Create and update requests may omit it or send exactly
+that configuration, so `index_configs` read from `collections.get()` can be sent
+back unchanged as the base of an update. A schema containing only `id` is
+accepted. The server rejects any other `id` configuration, `id` inside an object
+field, and other reserved internal field names. The SDK adds no local check for
+these rules. Servers without #515 reject a returned `id` as a reserved field
+name; omit it when targeting such a server.
 
 ## Reranking
 

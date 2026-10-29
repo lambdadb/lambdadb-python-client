@@ -22,8 +22,8 @@ OPTIONS = dict(base_url="https://api.example", project_name="project", project_a
 def test_schema_and_generated_outputs() -> None:
     root = Path(__file__).resolve().parents[1]
     schema = json.loads((root / "schemas/native-reranking.json").read_text())
-    assert schema["source"]["revision"] == "f9d34b8f78ae829ae34d5065d29a42f3574983e1"
-    assert schema["source"]["openapi"]["revision"] == "f9d34b8f78ae829ae34d5065d29a42f3574983e1"
+    assert schema["source"]["revision"] == "1c3e7d453cca296a7b2af85a375b4c5016504101"
+    assert schema["source"]["openapi"]["revision"] == "1c3e7d453cca296a7b2af85a375b4c5016504101"
     assert schema["schemas"]["RerankConfig"]["required"] == ["provider", "model", "queryText", "fields"]
     subprocess.run([sys.executable, str(root / "scripts/generate_reranking.py"), "--check"], check=True)
     for name in ["RerankConfig", "RerankConfigTypedDict", "RerankResponse", "RerankResponseTypedDict"]:

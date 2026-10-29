@@ -98,7 +98,7 @@ response = client.collection("articles").query(
 Applied Cohere results report `criteriaVersion` `cohere-relevance-v1`. Request
 fields, candidate limits, failure handling and response envelopes are shared
 with Jev. Cohere reranking is text-only. The provider pairs follow
-[lambdadb OpenAPI `f9d34b8`](https://github.com/lambdadb/lambdadb/blob/f9d34b8f78ae829ae34d5065d29a42f3574983e1/api/openapi.json);
+[lambdadb OpenAPI `1c3e7d4`](https://github.com/lambdadb/lambdadb/blob/1c3e7d453cca296a7b2af85a375b4c5016504101/api/openapi.json);
 that pin does not establish deployment or Cohere credential configuration.
 
 ## Request and candidate counts

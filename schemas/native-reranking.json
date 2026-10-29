@@ -1,10 +1,10 @@
 {
   "source": {
     "repository": "lambdadb/lambdadb",
-    "revision": "f9d34b8f78ae829ae34d5065d29a42f3574983e1",
+    "revision": "1c3e7d453cca296a7b2af85a375b4c5016504101",
     "openapi": {
       "repository": "lambdadb/lambdadb",
-      "revision": "f9d34b8f78ae829ae34d5065d29a42f3574983e1",
+      "revision": "1c3e7d453cca296a7b2af85a375b4c5016504101",
       "path": "api/openapi.json",
       "pointers": [
         "/components/schemas/RerankConfig",
