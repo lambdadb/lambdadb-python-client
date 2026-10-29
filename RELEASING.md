@@ -9,6 +9,10 @@ without publication, and a published GitHub Release for that version publishes
 it to PyPI. Development builds are GitHub Actions artifacts only; nothing
 publishes development versions to PyPI automatically.
 
+Every `main` push and Release also runs the deployed
+[live smoke gate](#deployed-live-smoke-gate): development pushes against the dev
+environment, release verification and Releases against production.
+
 ## Branches
 
 - Branch from `main`, open a pull request into `main`, and merge it with
@@ -60,7 +64,8 @@ committed `X.Y.Z.dev0` must be newer than the latest stable release.
 
 Development packages are for internal testing and must not be uploaded to
 production PyPI. They are built manually; merging into `main` does not publish
-or upload one.
+or upload one. A `main` push with the `X.Y.Z.dev0` placeholder runs only the
+dev-environment live smoke gate in the **Publish to PyPI** workflow.
 
 1. Run the **Build development package** workflow with the exact branch, tag,
    or commit as its `ref` input (default `main`).
@@ -91,15 +96,15 @@ stable installation does not upgrade to an RC unless the consumer opts in.
    Unreleased heading to that exact package version.
 3. Merge it and record the exact merge commit. That `main` push runs the
    **Publish to PyPI** workflow in verification mode: metadata validation,
-   tests on every supported Python version, and distribution checks, with no
-   publication. Do not merge other pull requests until the release is tagged,
+   tests on every supported Python version, distribution checks, and the
+   production live smoke gate, with no publication. Do not merge other pull requests until the release is tagged,
    or tag the release pull request's merge commit explicitly.
 4. After verification passes and with explicit publication approval, create tag
    `v0.9.0rc1` from that exact `main` commit. Never move an existing tag.
 5. Create a GitHub Release whose name exactly matches the tag. Mark an RC as a
    prerelease and explicitly leave it out of the `latest` designation.
-6. Wait for the **Publish to PyPI** workflow to validate, test, build, and
-   publish the package.
+6. Wait for the **Publish to PyPI** workflow to validate, test, build, run the
+   production live smoke gate again, and publish the package.
 7. Verify the explicit RC installation in a clean environment:
 
    ```bash
@@ -168,7 +173,8 @@ Before publishing an RC or stable release:
 - Build both the wheel and source distribution.
 - Run `twine check` on all distributions.
 - Install the built wheel and verify imports and the runtime version.
-- Complete applicable live and third-party integration smoke tests.
+- Confirm the production live smoke gate passed for the release commit, and
+  complete applicable third-party integration smoke tests.
 - Review generated release notes before publishing the GitHub Release.
 
 See [docs/TESTING.md](docs/TESTING.md) for local and integration test commands.
@@ -179,10 +185,11 @@ See [docs/TESTING.md](docs/TESTING.md) for local and integration test commands.
   artifacts. It is manually dispatched, requires an `X.Y.Z.devN` version, and
   never receives PyPI credentials.
 - `.github/workflows/publish.yaml` runs for `main` pushes and published GitHub
-  Releases. A `main` push with the `X.Y.Z.dev0` placeholder does nothing, and
-  any other committed development version fails. A `main` push with an RC or
-  stable version runs the validation, test, and build jobs without publishing.
-  A Release publishes its RC or stable version. The workflow rejects development
+  Releases. A `main` push with the `X.Y.Z.dev0` placeholder runs only the
+  dev-environment live smoke gate, and any other committed development version
+  fails. A `main` push with an RC or stable version runs the validation, test,
+  build, and production live smoke jobs without publishing. A Release runs the
+  same jobs and publishes its RC or stable version only after all of them pass. The workflow rejects development
   versions, non-canonical versions, version mismatches, versions outside exact
   `X.Y.ZrcN` / `X.Y.Z` channels, mismatched release names or changelog headings,
   incorrect GitHub prerelease flags, and release commits outside `main`.
@@ -192,6 +199,86 @@ See [docs/TESTING.md](docs/TESTING.md) for local and integration test commands.
 - The production publish job uses PyPI Trusted Publishing with a short-lived
   OIDC credential.
 - `scripts/publish.sh` intentionally refuses direct token-based publishing.
+- Ordinary pull request CI has no credentials and runs no live tests.
+
+## Deployed live smoke gate
+
+The `live-smoke` job in `.github/workflows/publish.yaml` runs
+`python scripts/run_live_smoke.py`, which runs every
+`tests/integration/test_*_live.py` file in one sequential pytest process with
+every suite flag enabled (`LAMBDADB_RUN_LIVE_TESTS`,
+`LAMBDADB_RUN_VERSIONING_SMOKE`, `LAMBDADB_RUN_QUERY_SCORE_SMOKE`, and
+`LAMBDADB_RUN_BAYESIAN_SMOKE`). A skipped live test fails the gate, as does
+missing configuration. Each suite creates uniquely named temporary collections
+and verifies their deletion. The run takes about three minutes.
+
+| Run mode | Event | Live target |
+| :-- | :-- | :-- |
+| development | `main` push with `X.Y.Z.dev0` | Dev environment; nothing is published |
+| verify | `main` push with `X.Y.ZrcN` or `X.Y.Z` | Production; nothing is published |
+| release | Published GitHub Release | Production, before the PyPI publish job |
+
+The job authenticates to AWS with a dedicated GitHub OIDC role, then reads the
+smoke project API key from Secrets Manager. The key is masked in the workflow
+log and passed only in the pytest child process environment, never in command
+arguments, files, artifacts, or GitHub Secrets.
+
+The following repository Variables configure the gate. The `LAMBDADB_DEV_`
+Variables serve development pushes; the `LAMBDADB_PROD_` Variables serve release
+verification and Releases. A missing Variable fails the run; it never falls back
+to the other environment.
+
+| Variable | Value |
+| :-- | :-- |
+| `LAMBDADB_DEV_BASE_URL` | `https://internal-dev-aws-apne2-v3-c05a2b5d492a.lambdadb.ai` |
+| `LAMBDADB_DEV_PROJECT_NAME` | Dedicated SDK smoke project in `dev-aws-apne2-v3` (`python-sdk-ci`) |
+| `LAMBDADB_DEV_SMOKE_AWS_ROLE_ARN` | Dev OIDC role (`lambdadb-python-sdk-smoke`) |
+| `LAMBDADB_DEV_SMOKE_SECRET_ARN` | Exact ARN of the dev project's API key secret |
+| `LAMBDADB_PROD_BASE_URL` | `https://aws-ap-northeast-2-v3.lambdadb.ai` |
+| `LAMBDADB_PROD_PROJECT_NAME` | Dedicated SDK smoke project in `prod-aws-apne2-v3` (`python-sdk-ci`) |
+| `LAMBDADB_PROD_SMOKE_AWS_ROLE_ARN` | Production OIDC role (`lambdadb-python-sdk-prod-smoke`) |
+| `LAMBDADB_PROD_SMOKE_SECRET_ARN` | Exact ARN of the production project's API key secret |
+
+Store each project key as a plain SecretString in `ap-northeast-2`. Use a
+dedicated project where test collections may be created and deleted, with a
+`rateLimit` of at least 100 requests per second. Do not grant the workflow the
+stack admin key, project creation, deployment, or secret write permissions. Key
+rotation updates the AWS secret without changing this workflow.
+
+Each role trusts audience `sts.amazonaws.com` and only these subjects. The dev
+role:
+
+```text
+repo:lambdadb/lambdadb-python-client:ref:refs/heads/main
+```
+
+The production role (release verification on `main`, Releases on tags):
+
+```text
+repo:lambdadb/lambdadb-python-client:ref:refs/heads/main
+repo:lambdadb/lambdadb-python-client:ref:refs/tags/v*
+```
+
+Each role's permission policy allows only `secretsmanager:GetSecretValue` on its
+own environment's smoke secret ARN (plus `kms:Decrypt` on the exact key only if
+the secret uses a customer-managed KMS key).
+
+Run the same gate locally with AWS credentials that can read the secret, for
+example an SSO profile. Outside GitHub Actions the runner prints no mask
+command, so the key never reaches the terminal:
+
+```bash
+AWS_PROFILE=dev \
+LAMBDADB_BASE_URL=https://internal-dev-aws-apne2-v3-c05a2b5d492a.lambdadb.ai \
+LAMBDADB_PROJECT_NAME=python-sdk-ci \
+LAMBDADB_SMOKE_SECRET_ARN=<dev smoke secret ARN> \
+poetry run python scripts/run_live_smoke.py
+```
+
+Production can lag dev. A live failure caused by an undeployed or changed
+server contract blocks the gate; report the exact error rather than skipping
+the test. Missing credentials or an untested endpoint are never a successful
+live validation.
 
 For additional administrative protection, configure a protected GitHub
 Environment for production PyPI publishing and update the PyPI Trusted

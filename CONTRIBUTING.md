@@ -37,7 +37,8 @@ Maintainers must follow [RELEASING.md](RELEASING.md). `main` carries the next
 version as `X.Y.Z.dev0` between releases. Development packages are
 artifact-only, release candidates use canonical `X.Y.ZrcN` versions, and stable
 packages are published only after release-candidate validation. Creating or
-merging a pull request does not publish a package.
+merging a pull request does not publish a package; merging into `main` runs the
+deployed live smoke tests against the dev environment.
 
 ## Contact
 

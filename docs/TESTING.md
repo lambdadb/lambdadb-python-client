@@ -57,6 +57,28 @@ python -m venv /tmp/lambdadb-wheel-check
   "from lambdadb import LambdaDB, __version__; print(__version__)"
 ```
 
+## Full live suite (release gate)
+
+`scripts/run_live_smoke.py` runs every `tests/integration/test_*_live.py` file in
+one sequential pytest process with all suite flags enabled, and fails if any
+live test is skipped. The publish workflow runs it against the dev environment
+for development `main` pushes and against production for release verification
+and Releases. It reads the project API key from AWS Secrets Manager itself; see
+[Deployed live smoke gate](../RELEASING.md#deployed-live-smoke-gate) for the
+required configuration and a local invocation.
+
+To run the same suite with a key you already hold, export the three connection
+variables (or load `.env.local` without printing it) and enable every suite:
+
+```bash
+LAMBDADB_RUN_LIVE_TESTS=1 LAMBDADB_RUN_VERSIONING_SMOKE=1 \
+LAMBDADB_RUN_QUERY_SCORE_SMOKE=1 LAMBDADB_RUN_BAYESIAN_SMOKE=1 \
+poetry run python -m pytest tests/integration/test_*_live.py -p scripts.run_live_smoke -v
+```
+
+Use `python -m pytest` so the plugin module resolves from the repository root.
+The sections below run individual suites.
+
 ## Live LambdaDB smoke test
 
 The live test creates and removes test data. Run it only against the intended
@@ -160,9 +182,11 @@ results.
   wheel artifact without publishing to PyPI.
 - `.github/workflows/publish.yaml` validates an RC or stable version committed on
   `main` or a published GitHub Release, tests Python 3.10 through 3.13, checks
-  the built distributions, and verifies wheel installation. Only a GitHub
-  Release publishes, through PyPI Trusted Publishing, after all required jobs
-  succeed; a `main` push with the `X.Y.Z.dev0` placeholder skips these jobs.
+  the built distributions, verifies wheel installation, and runs the full live
+  suite against production. Only a GitHub Release publishes, through PyPI
+  Trusted Publishing, after all required jobs succeed; a `main` push with the
+  `X.Y.Z.dev0` placeholder runs only the full live suite against the dev
+  environment.
 - `.github/workflows/next-dev-version.yaml` opens the next development version
   pull request after a successful Release publication.
 
