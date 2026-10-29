@@ -35,35 +35,42 @@ require canonical input.
 1. Feature and fix work: branch from the current `develop`, open a pull request
    that targets `develop`, and merge it with **Squash and merge**. Select the
    base branch explicitly; GitHub defaults new pull requests to `main`.
-2. Release preparation: commit version, changelog, and release-note changes on
-   a branch from `develop` and merge it into `develop` with **Squash and
-   merge**. Do not add release-only commits directly to `main`.
-3. Promotion: open a `develop` -> `main` pull request and merge it with
-   **Create a merge commit**. Tag and publish only from the resulting reviewed
-   `main` commit.
-4. Synchronization: after every promotion and release tag, and whenever `main`
-   contains other commits absent from `develop`, such as a hotfix or a
-   Dependabot security update merged into `main`, open a `main` -> `develop`
-   pull request and merge it with **Create a merge commit**. The promotion merge
-   commit itself is absent from `develop`, so without this synchronization the
-   release tag is unreachable from `develop`. Never squash or rebase a
-   synchronization pull request: that makes the trees equal without shared
-   ancestry, so later comparisons show already-synchronized commits again and
-   release tags become unreachable from `develop`. Verify:
+2. Release branch: cut `release/X.Y.Z` from the reviewed `develop` commit.
+   Commit release preparation (version sources, changelog, and release notes)
+   and any RC fixes through pull requests into the release branch. `develop`
+   keeps receiving feature work meanwhile; nothing merged into `develop` after
+   the cut ships in this release. When there is nothing to stabilize, the
+   release branch may be skipped and `develop` promoted directly.
+3. Promotion: open a `release/X.Y.Z` -> `main` pull request (or `develop` ->
+   `main` when the release branch is skipped) and merge it with **Create a
+   merge commit**. Tag and publish only from the resulting reviewed `main` merge
+   commit. Each RC repeats this: fix on the release branch, promote, and tag the
+   next RC.
+4. Back-merge: after every promotion and tag, open a `main` -> `develop` pull
+   request and merge it with **Create a merge commit**. Back-merge `main`, not
+   the release branch: only `main` carries the promotion merge commit and its
+   tag, plus any hotfix or Dependabot change merged directly into `main`. Never
+   squash or rebase a back-merge pull request: that makes the trees equal
+   without shared ancestry, so later comparisons repeat merged commits and
+   release tags become unreachable from `develop`. Resolve conflicts in the
+   back-merge pull request, typically keeping `develop`'s newer content.
+   Afterwards, this check must succeed:
 
    ```bash
-   git merge-base --is-ancestor <main-sha> origin/develop
+   git merge-base --is-ancestor origin/main origin/develop
    ```
 
-5. Hotfixes: branch from `main`, open a pull request into `main`, merge it with
-   **Create a merge commit**, release from `main`, and then synchronize `main`
-   into `develop` as in step 4.
+5. Hotfixes: cut `hotfix/X.Y.Z` from `main`, open a pull request into `main`,
+   merge it with **Create a merge commit**, tag and publish from `main`, and
+   then back-merge `main` into `develop` as in step 4.
+6. Delete `release/*` and `hotfix/*` branches after their final promotion pull
+   request merges.
 
-Once lambdadb/lambdadb-iac#22 is applied, organization rulesets enforce the
-branch side of this flow: deletion and force pushes are blocked on `develop`
-and `main`, both require pull requests, `develop` allows squash merges and
-merge commits but blocks rebase merges, and `main` allows only merge commits.
-The rulesets have no bypass actors and do not apply to tags.
+Once lambdadb/lambdadb-iac#22 is applied, organization rulesets enforce part of
+this flow: deletion and force pushes are blocked on `develop` and `main`, both
+require pull requests, `develop` allows squash merges and merge commits but
+blocks rebase merges, and `main` allows only merge commits. The rulesets have no
+bypass actors and do not cover tags or `release/*` and `hotfix/*` branches.
 
 ## Development packages
 
@@ -96,12 +103,12 @@ pip excludes prereleases from normal selection by default, so an existing
 stable installation does not upgrade to an RC unless the consumer opts in.
 
 1. Complete development and environment smoke tests.
-2. On a release-preparation branch from the reviewed `develop` commit, set both
-   version sources to the next RC, such as `0.9.0rc1`, and change the
-   `CHANGELOG.md` Unreleased heading to that exact package version. Merge the
-   reviewed pull request into `develop`.
-3. Merge a reviewed `develop` -> `main` promotion pull request with **Create a
-   merge commit** and record the exact merge commit.
+2. Cut `release/0.9.0` from the exact reviewed `develop` commit. Through a
+   reviewed pull request into the release branch, set both version sources to
+   the next RC, such as `0.9.0rc1`, and change the `CHANGELOG.md` Unreleased
+   heading to that exact package version.
+3. Merge a reviewed `release/0.9.0` -> `main` promotion pull request with
+   **Create a merge commit** and record the exact merge commit.
 4. After explicit publication approval, create tag `v0.9.0rc1` from that exact
    `main` commit. Never move an existing tag.
 5. Create a GitHub Release whose name exactly matches the tag. Mark an RC as a
@@ -132,18 +139,18 @@ the runtime dependency upper bounds in `pyproject.toml` aligned with the major
 versions supported by the SDK. Validate both opt-in forms in clean
 environments before publishing.
 
-If an RC needs a fix, publish a new commit and increment the RC number. Never
-move or replace an existing tag or PyPI version.
+If an RC needs a fix, merge it into the release branch, increment the RC
+number, and promote and tag again from `main`. Never move or replace an
+existing tag or PyPI version.
 
-After every release, synchronize `main` back into `develop` without rewriting
-the reviewed main ancestry, including the promotion merge commit that carries
-the release tag, as described in
+After every promotion and tag, back-merge `main` (not the release branch) into
+`develop` without rewriting the reviewed main ancestry, as described in
 [Branches and merges](#branches-and-merges). Merge the `main` -> `develop` pull
-request with **Create a merge commit**; do not squash or rebase the
-synchronization PR. Verify:
+request with **Create a merge commit**; do not squash or rebase the back-merge
+PR. Verify:
 
 ```bash
-git merge-base --is-ancestor <reviewed-main-sha> origin/develop
+git merge-base --is-ancestor origin/main origin/develop
 ```
 
 ## Stable releases
@@ -151,19 +158,18 @@ git merge-base --is-ancestor <reviewed-main-sha> origin/develop
 Publish the matching stable version only after the release candidate is
 accepted and all feedback is resolved.
 
-1. On a release-preparation branch from `develop`, set both version sources to
-   the stable version, such as `0.9.0`.
-2. Update the release notes and user-facing documentation, and merge the
-   reviewed pull request into `develop`.
+1. On the release branch, set both version sources to the stable version, such
+   as `0.9.0`.
+2. Update the release notes and user-facing documentation on the release
+   branch.
 3. Run the complete validation checklist.
-4. Merge a reviewed `develop` -> `main` promotion pull request with **Create a
-   merge commit**.
+4. Merge a reviewed `release/0.9.0` -> `main` promotion pull request with
+   **Create a merge commit**.
 5. Create tag `v0.9.0` from that exact `main` merge commit.
 6. Create a non-prerelease GitHub Release for the tag.
 7. Verify the PyPI package and a clean installation.
-8. Synchronize `main`, including the promotion merge commit that carries the
-   tag, back into `develop` as described in
-   [Branches and merges](#branches-and-merges).
+8. Back-merge `main` into `develop` as described in
+   [Branches and merges](#branches-and-merges), and delete the release branch.
 
 ## Validation checklist
 

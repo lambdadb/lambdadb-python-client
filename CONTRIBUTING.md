@@ -27,9 +27,9 @@ The original Speakeasy configuration is no longer present in this repository.
 
 Maintainers must follow [RELEASING.md](RELEASING.md). Development packages are
 artifact-only, release candidates use canonical `X.Y.ZrcN` versions, and stable
-packages are published only after release-candidate validation. Maintainer
-pull requests target `develop`; promotion to `main` and synchronization back
-into `develop` follow the
+packages are published only after release-candidate validation. Feature and
+fix pull requests target `develop`; release branches, promotion to `main`, and
+back-merges into `develop` follow the
 [branch and merge flow](RELEASING.md#branches-and-merges).
 
 ## Contact
