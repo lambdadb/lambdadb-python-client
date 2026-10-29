@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Releases are trunk-based on `main`; `develop` is retired. `main` carries the
-  next version as `X.Y.Z.dev0` (now `0.13.1.dev0`), and
+  next version as `X.Y.Z.dev0` (now `0.14.0.dev0`), and
   `scripts/version.py` updates both version sources. A `main` push that sets an
   RC or stable version runs the publish workflow's validation, tests, and build
   without publishing; its GitHub Release still publishes to PyPI. After

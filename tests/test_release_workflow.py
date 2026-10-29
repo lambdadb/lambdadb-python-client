@@ -336,6 +336,52 @@ def test_next_dev_workflow_opens_the_placeholder_pull_request(
     assert pushed() == (main, expected[1]) and not gh_log.exists()
 
 
+@pytest.mark.parametrize("delete_branch", [True, False])
+def test_next_dev_workflow_opens_a_new_pull_request_after_each_rc(
+    tmp_path: Path, delete_branch: bool
+) -> None:
+    repo, remote, env = _next_dev_repo(tmp_path, "0.14.0rc1")
+    script = _step_script(NEXT_DEV, "Open the next development version pull request")
+    branch = "chore/next-dev-0.14.0.dev0"
+    gh_log = tmp_path / "gh-call"
+
+    def run(tag: str) -> list[str]:
+        gh_log.unlink(missing_ok=True)
+        result = subprocess.run(
+            ["bash", "-e", "-c", script],
+            cwd=repo,
+            env={**env, "RELEASE_TAG": tag},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert result.returncode == 0, result.stderr
+        return gh_log.read_text(encoding="utf-8").splitlines()[:6]
+
+    assert run("v0.14.0rc1") == ["pr", "create", "--base", "main", "--head", branch]
+
+    # The rc1 pull request merges (its branch deleted or kept), then rc2 releases.
+    _git(repo, env, "checkout", "main")
+    _git(repo, env, "merge", "--no-ff", "-m", "Merge next development version", branch)
+    _git(repo, env, "branch", "-D", branch)
+    set_rc2 = [sys.executable, "scripts/version.py", "set", "0.14.0rc2"]
+    subprocess.run(set_rc2, cwd=repo, env=env, check=True, capture_output=True)
+    (repo / "CHANGELOG.md").write_text("# Changelog\n\n## 0.14.0rc2\n", encoding="utf-8")
+    _git(repo, env, "commit", "-am", "Release 0.14.0rc2")
+    _git(repo, env, "push", "origin", "main")
+    if delete_branch:
+        _git(repo, env, "push", "origin", "--delete", branch)
+    main = _git(repo, env, "rev-parse", "main")
+
+    # No pull request is open, so rc2 opens a new one from the current main.
+    assert run("v0.14.0rc2") == ["pr", "create", "--base", "main", "--head", branch]
+    assert _git(remote, env, "rev-parse", f"{branch}^") == main
+    assert (
+        _git(remote, env, "show", f"{branch}:src/lambdadb/version.py")
+        == 'SDK_VERSION: str = "0.14.0.dev0"'
+    )
+
+
 @pytest.mark.parametrize(
     ("tag", "status", "message"),
     [
