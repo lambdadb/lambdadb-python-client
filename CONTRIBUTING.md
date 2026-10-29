@@ -1,6 +1,7 @@
 # Contributing to This Repository
 
-Thank you for your interest in contributing to this repository. Please note that this repository contains generated code. As such, we do not accept direct changes or pull requests. Instead, we encourage you to follow the guidelines below to report issues and suggest improvements.
+Thank you for your interest in contributing to this repository. This SDK is
+maintained manually. Issues and focused pull requests are welcome.
 
 ## How to Report Issues
 
@@ -13,9 +14,16 @@ If you encounter any bugs or have suggestions for improvements, please open an i
 - Information about your environment (e.g., operating system, software versions)
     - For example can be collected using the `npx envinfo` command from your terminal if you have Node.js installed
 
-## Issue Triage and Upstream Fixes
+## Issue Triage
 
-We will review and triage issues as quickly as possible. Our goal is to address bugs and incorporate improvements in the upstream source code. Fixes will be included in the next generation of the generated code.
+We will review and triage issues as quickly as possible. Fixes are included in
+the next release.
+
+## Preparing a pull request
+
+Branch from `main` and open the pull request against `main`; maintainers merge
+it with **Squash and merge**. There is no `develop` branch. Run the checks in
+[docs/TESTING.md](docs/TESTING.md) before requesting review.
 
 ## Maintaining text analyzer models
 
@@ -25,9 +33,11 @@ The original Speakeasy configuration is no longer present in this repository.
 
 ## Releasing
 
-Maintainers must follow [RELEASING.md](RELEASING.md). Development packages are
+Maintainers must follow [RELEASING.md](RELEASING.md). `main` carries the next
+version as `X.Y.Z.dev0` between releases. Development packages are
 artifact-only, release candidates use canonical `X.Y.ZrcN` versions, and stable
-packages are published only after release-candidate validation.
+packages are published only after release-candidate validation. Creating or
+merging a pull request does not publish a package.
 
 ## Contact
 

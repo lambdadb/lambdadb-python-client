@@ -152,9 +152,9 @@ Create/revoke temporary project keys and delete temporary projects through the
 authorized test-stack admin API separately. Never print credentials or signed
 URLs; persistent CI projects/keys must remain untouched.
 
-Python development artifacts do **not** automatically track `develop` pushes.
+Python development artifacts do **not** automatically track `main` pushes.
 `.github/workflows/dev-package.yaml` is manually dispatched with `ref` defaulting
-to `develop`, requires matching `X.Y.Z.devN` versions, and only uploads GitHub
+to `main`, requires matching `X.Y.Z.devN` versions, and only uploads GitHub
 Actions artifacts. The API support PR used `0.11.0`, which is not a development
 artifact version. Automatic publishing is a separate change; this API support
 change does not modify versions, publishing workflows, tags, or releases.

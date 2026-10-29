@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import runpy
+import sys
 
 from packaging.version import Version
 
@@ -36,19 +37,12 @@ def validate_development_metadata(
     return project_version_text
 
 
-def validate_release_metadata(
-    *, release_tag: str, release_name: str, release_is_prerelease: bool
-) -> str:
-    """Validate tag, package/runtime versions, changelog, and release flags."""
-    match = re.fullmatch(r"v(?P<version>.+)", release_tag)
-    if not match:
-        raise ValueError(f"Release tag must look like v<version>, got: {release_tag}")
-
-    version_text = match.group("version")
+def _release_version(version_text: str, source: str) -> Version:
+    """Validate that a version belongs to the exact RC or stable channels."""
     version = Version(version_text)
     if str(version) != version_text:
         raise ValueError(
-            "Release tag must use canonical PEP 440 syntax: "
+            f"{source} must use canonical PEP 440 syntax: "
             f"{version_text!r} normalizes to {str(version)!r}"
         )
     if version.is_devrelease:
@@ -60,6 +54,11 @@ def validate_release_metadata(
             "Production releases must use exactly X.Y.Z or X.Y.ZrcN, got: "
             f"{version_text}"
         )
+    return version
+
+
+def _committed_versions() -> tuple[str, str]:
+    """Return the project and runtime versions committed in the checkout."""
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     project_section = re.search(
         r"(?ms)^\[project\]\s*$\n(?P<body>.*?)(?=^\[|\Z)", pyproject
@@ -79,7 +78,31 @@ def validate_release_metadata(
     runtime_version = runpy.run_path(str(ROOT / "src/lambdadb/version.py"))[
         "SDK_VERSION"
     ]
+    return project_version, runtime_version
 
+
+def _require_changelog_heading(version_text: str) -> None:
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    headings = re.findall(
+        r"^## (?:\[)?([^\]\s]+)(?:\])?(?:\s+-.*)?$", changelog, re.MULTILINE
+    )
+    if version_text not in headings:
+        raise ValueError(
+            f"CHANGELOG.md must contain a level-2 heading for {version_text}"
+        )
+
+
+def validate_release_metadata(
+    *, release_tag: str, release_name: str, release_is_prerelease: bool
+) -> str:
+    """Validate tag, package/runtime versions, changelog, and release flags."""
+    match = re.fullmatch(r"v(?P<version>.+)", release_tag)
+    if not match:
+        raise ValueError(f"Release tag must look like v<version>, got: {release_tag}")
+
+    version_text = match.group("version")
+    version = _release_version(version_text, "Release tag")
+    project_version, runtime_version = _committed_versions()
     if version_text != project_version or version_text != runtime_version:
         raise ValueError(
             "Tag, project, and runtime versions must match: "
@@ -98,18 +121,28 @@ def validate_release_metadata(
             f"version={version}, prerelease={release_is_prerelease}"
         )
 
-    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    headings = re.findall(
-        r"^## (?:\[)?([^\]\s]+)(?:\])?(?:\s+-.*)?$", changelog, re.MULTILINE
-    )
-    if version_text not in headings:
-        raise ValueError(
-            f"CHANGELOG.md must contain a level-2 heading for {version_text}"
-        )
+    _require_changelog_heading(version_text)
     return version_text
 
 
+def validate_release_commit_metadata() -> str:
+    """Validate an RC or stable version committed on main before it is tagged."""
+    project_version, runtime_version = _committed_versions()
+    if project_version != runtime_version:
+        raise ValueError(
+            "Project and runtime versions must match: "
+            f"project={project_version!r}, runtime={runtime_version!r}"
+        )
+    _release_version(project_version, "Project version")
+    _require_changelog_heading(project_version)
+    return project_version
+
+
 def main() -> None:
+    if sys.argv[1:] == ["--commit"]:
+        version = validate_release_commit_metadata()
+        print(f"Validated committed release metadata for {version}; not publishing")
+        return
     version = validate_release_metadata(
         release_tag=os.environ["RELEASE_TAG"],
         release_name=os.environ["RELEASE_NAME"],

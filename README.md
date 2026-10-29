@@ -751,5 +751,6 @@ looking for the latest version.
 
 ## Contributions
 
-While we value open-source contributions to this SDK, this library is generated programmatically. Any manual changes added to internal files will be overwritten on the next generation. 
-We look forward to hearing your feedback. Feel free to open a PR or an issue with a proof of concept and we'll do our best to include it in a future release.
+We welcome contributions. This SDK is maintained manually; open pull requests
+against `main` as described in [CONTRIBUTING.md](CONTRIBUTING.md), or open an
+issue.
