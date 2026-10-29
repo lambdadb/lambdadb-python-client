@@ -63,8 +63,11 @@ require canonical input.
 5. Hotfixes: cut `hotfix/X.Y.Z` from `main`, open a pull request into `main`,
    merge it with **Create a merge commit**, tag and publish from `main`, and
    then back-merge `main` into `develop` as in step 4.
-6. Delete `release/*` and `hotfix/*` branches after their final promotion pull
-   request merges.
+6. Keep `release/X.Y.Z` through its RCs and delete it after the final stable
+   promotion; delete `hotfix/*` after its merge. The CI workflow runs only for
+   pull requests into `main` and `develop`, so run the repository checks in
+   [docs/TESTING.md](docs/TESTING.md) locally for pull requests into
+   `release/*` and `hotfix/*`.
 
 Once lambdadb/lambdadb-iac#22 is applied, organization rulesets enforce part of
 this flow: deletion and force pushes are blocked on `develop` and `main`, both
