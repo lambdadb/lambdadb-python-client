@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -60,7 +61,7 @@ def test_repository_commits_a_supported_version() -> None:
     assert MODULE.COMMITTED_VERSION.fullmatch(version)
 
 
-@pytest.mark.parametrize("version", ["0.13.1.dev0", "0.14.0rc1", "0.14.0rc12", "1.0.0"])
+@pytest.mark.parametrize("version", ["0.14.0rc1", "0.14.0rc12", "1.0.0"])
 def test_set_updates_every_source_and_preserves_formatting(
     tmp_path: Path, version: str
 ) -> None:
@@ -77,6 +78,7 @@ def test_set_updates_every_source_and_preserves_formatting(
 @pytest.mark.parametrize(
     "version",
     [
+        "0.13.1.dev0",
         "0.13.1.dev3",
         "0.13.1.dev",
         "0.13.1rc0",
@@ -105,27 +107,111 @@ def test_mismatched_sources_are_rejected_without_mutation(tmp_path: Path) -> Non
     with pytest.raises(ValueError, match="Version sources must agree"):
         MODULE.read_version(root)
     with pytest.raises(ValueError, match="Version sources must agree"):
-        MODULE.set_version("0.13.1.dev0", root)
+        MODULE.set_version("0.13.1rc1", root)
     assert _snapshot(root) == before
 
 
-@pytest.mark.parametrize(
-    ("released", "expected"),
-    [
-        ("0.14.0rc1", "0.14.0.dev0"),
-        ("0.14.0rc12", "0.14.0.dev0"),
-        ("0.13.0", "0.13.1.dev0"),
-        ("1.9.9", "1.9.10.dev0"),
-    ],
-)
-def test_next_dev_follows_rc_and_stable_releases(released: str, expected: str) -> None:
-    assert MODULE.next_dev_version(released) == expected
+def _git(root: Path, *args: str) -> str:
+    config = root.parent / "gitconfig"
+    config.write_text(
+        "[user]\n\tname = Version Test\n\temail = version-test@example.com\n"
+        "[commit]\n\tgpgsign = false\n[tag]\n\tgpgsign = false\n"
+        "[core]\n\thooksPath = /dev/null\n[init]\n\tdefaultBranch = main\n",
+        encoding="utf-8",
+    )
+    env = {**os.environ, "GIT_CONFIG_GLOBAL": str(config), "GIT_CONFIG_NOSYSTEM": "1"}
+    result = subprocess.run(
+        ["git", *args], cwd=root, env=env, capture_output=True, text=True, check=False
+    )
+    assert result.returncode == 0, result.stderr
+    return result.stdout.strip()
 
 
-@pytest.mark.parametrize("released", ["0.13.1.dev0", "0.13.1.dev4", "0.13.1rc0", "v0.13.0"])
-def test_next_dev_rejects_unreleased_versions(released: str) -> None:
-    with pytest.raises(ValueError, match="Expected an RC or stable version"):
-        MODULE.next_dev_version(released)
+def _release(root: Path, version: str) -> None:
+    """Commit and tag a release on the current branch."""
+    MODULE.set_version(version, root)
+    _git(root, "commit", "-am", f"Release {version}")
+    _git(root, "tag", f"v{version}")
+
+
+def _repo(tmp_path: Path) -> Path:
+    root = _tree(tmp_path / "repo", "0.9.0")
+    _git(root, "init")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-m", "Release 0.9.0")
+    _git(root, "tag", "v0.9.0")
+    _release(root, "0.10.0")
+    return root
+
+
+def test_development_version_after_stable_counts_first_parent_commits(
+    tmp_path: Path,
+) -> None:
+    root = _repo(tmp_path)
+    # A merge counts once on main; its side-branch commits do not count, nor
+    # does a stable tag that HEAD cannot reach.
+    _git(root, "checkout", "-b", "side")
+    _git(root, "commit", "--allow-empty", "-m", "Side 1")
+    _git(root, "commit", "--allow-empty", "-m", "Side 2")
+    _git(root, "checkout", "-b", "unmerged", "main")
+    _git(root, "commit", "--allow-empty", "-m", "Unmerged")
+    _git(root, "tag", "v0.99.0")
+    _git(root, "checkout", "main")
+    _git(root, "commit", "--allow-empty", "-m", "Change 1")
+    _git(root, "merge", "--no-ff", "-m", "Merge side", "side")
+
+    # v0.10.0 is newer than v0.9.0 although it sorts first as text.
+    assert MODULE.development_version(root) == "0.10.1.dev2"
+
+
+def test_development_version_after_rc_keeps_the_core_and_counts_from_stable(
+    tmp_path: Path,
+) -> None:
+    root = _repo(tmp_path)
+    _git(root, "commit", "--allow-empty", "-m", "Change 1")
+    _release(root, "0.11.0rc1")
+    _git(root, "commit", "--allow-empty", "-m", "Change 2")
+
+    # N counts from v0.10.0; RC tags do not reset it.
+    assert MODULE.development_version(root) == "0.11.0.dev3"
+    assert MODULE.read_version(root) == "0.11.0rc1"
+    assert MODULE.set_development_version(root) == "0.11.0.dev3"
+    assert MODULE.read_version(root) == "0.11.0.dev3"
+
+
+def test_development_version_without_a_stable_tag_counts_every_commit(
+    tmp_path: Path,
+) -> None:
+    root = _tree(tmp_path / "repo", "0.1.0rc1")
+    _git(root, "init")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-m", "Initial")
+    _git(root, "tag", "v0.1.0rc1")
+    _git(root, "commit", "--allow-empty", "-m", "Change 1")
+
+    assert MODULE.development_version(root) == "0.1.0.dev2"
+
+
+def test_development_version_requires_a_commit_after_the_stable_tag(
+    tmp_path: Path,
+) -> None:
+    root = _repo(tmp_path)
+    before = _snapshot(root)
+
+    with pytest.raises(ValueError, match="at least one first-parent commit"):
+        MODULE.set_development_version(root)
+    assert _snapshot(root) == before
+
+
+def test_development_version_rejects_a_committed_development_version(
+    tmp_path: Path,
+) -> None:
+    root = _repo(tmp_path)
+    MODULE._write_version("0.10.1.dev0", root)
+    _git(root, "commit", "-am", "Commit a development version")
+
+    with pytest.raises(ValueError, match="must be an RC or stable version"):
+        MODULE.development_version(root)
 
 
 def test_cli_reports_usage_and_errors() -> None:
@@ -138,8 +224,6 @@ def test_cli_reports_usage_and_errors() -> None:
         )
 
     assert run("get").stdout.strip() == MODULE.read_version()
-    assert run("next-dev", "0.13.0").stdout.strip() == "0.13.1.dev0"
     assert run().returncode == 2
-    failed = run("next-dev", "0.13.1.dev0")
-    assert failed.returncode == 1
-    assert "Expected an RC or stable version" in failed.stderr
+    assert run("next-dev", "0.13.0").returncode == 2
+    assert run("set-dev", "0.13.1.dev1").returncode == 2

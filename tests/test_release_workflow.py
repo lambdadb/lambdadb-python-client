@@ -1,4 +1,4 @@
-"""Tests for the trunk-based publish and next-development-version workflows."""
+"""Tests for the trunk-based publish and development package workflows."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLISH = (ROOT / ".github/workflows/publish.yaml").read_text(encoding="utf-8")
-NEXT_DEV = (ROOT / ".github/workflows/next-dev-version.yaml").read_text(encoding="utf-8")
+DEV_PACKAGE = (ROOT / ".github/workflows/dev-package.yaml").read_text(encoding="utf-8")
 CI = (ROOT / ".github/workflows/ci.yaml").read_text(encoding="utf-8")
 
 SPEC = importlib.util.spec_from_file_location(
@@ -85,27 +85,50 @@ def test_publish_runs_for_main_pushes_and_releases_only() -> None:
     assert CI.count("branches: [main]") == 2
 
 
+def _origin_repo(tmp_path: Path, env: dict[str, str]) -> Path:
+    """Return a checkout whose origin has v0.14.0rc1 and v0.14.0 tags."""
+    remote = tmp_path / "remote.git"
+    _git(tmp_path, env, "init", "--bare", str(remote))
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, env, "init")
+    _git(repo, env, "commit", "--allow-empty", "-m", "Release")
+    _git(repo, env, "tag", "v0.14.0rc1")
+    _git(repo, env, "tag", "v0.14.0")
+    _git(repo, env, "remote", "add", "origin", str(remote))
+    _git(repo, env, "push", "origin", "main", "--tags")
+    # A tag that exists only in the local checkout does not count.
+    _git(repo, env, "tag", "v0.15.0")
+    return repo
+
+
 @pytest.mark.parametrize(
     ("event", "version", "expected"),
     [
-        ("push", "0.13.1.dev0", "mode=development\nsmoke_prefix=LAMBDADB_DEV_"),
-        ("push", "0.14.0rc1", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_"),
-        ("push", "0.14.0", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_"),
-        ("push", "0.14.0.dev3", None),
+        ("push", "0.14.0", "mode=development\nsmoke_prefix=LAMBDADB_DEV_"),
+        ("push", "0.14.0rc1", "mode=development\nsmoke_prefix=LAMBDADB_DEV_"),
+        ("push", "0.15.0rc1", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_"),
+        ("push", "0.15.0", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_"),
+        ("push", "0.14.1.dev0", None),
+        ("push", "0.14.1.dev3", None),
+        ("push", "0.15.0-rc.1", None),
         ("release", "0.14.0", "mode=release\nsmoke_prefix=LAMBDADB_PROD_"),
         ("release", "0.14.0rc1", "mode=release\nsmoke_prefix=LAMBDADB_PROD_"),
     ],
 )
-def test_run_mode_follows_the_committed_version(
+def test_run_mode_follows_the_committed_version_tag_on_origin(
     tmp_path: Path, event: str, version: str, expected: str | None
 ) -> None:
+    env = _git_env(tmp_path)
+    repo = _origin_repo(tmp_path, env)
     bin_dir = _bin(tmp_path, "python", 'echo "$COMMITTED_VERSION"')
     output = tmp_path / "output"
     result = subprocess.run(
         ["bash", "-e", "-c", _step_script(PUBLISH, "Select the run mode")],
+        cwd=repo,
         env={
-            **os.environ,
-            "PATH": f"{bin_dir}:{os.environ['PATH']}",
+            **env,
+            "PATH": f"{bin_dir}:{env['PATH']}",
             "GITHUB_OUTPUT": str(output),
             "PUBLISH_EVENT": event,
             "COMMITTED_VERSION": version,
@@ -116,10 +139,35 @@ def test_run_mode_follows_the_committed_version(
     )
     if expected is None:
         assert result.returncode != 0
-        assert ".dev0 placeholder" in result.stderr
+        assert "must be an RC or stable version" in result.stderr
+        assert not output.exists()
     else:
         assert result.returncode == 0, result.stderr
         assert output.read_text(encoding="utf-8").strip() == expected
+
+
+def test_run_mode_fails_when_origin_cannot_be_queried(tmp_path: Path) -> None:
+    env = _git_env(tmp_path)
+    repo = _origin_repo(tmp_path, env)
+    _git(repo, env, "remote", "set-url", "origin", str(tmp_path / "missing.git"))
+    bin_dir = _bin(tmp_path, "python", "echo 0.15.0")
+    output = tmp_path / "output"
+    result = subprocess.run(
+        ["bash", "-e", "-c", _step_script(PUBLISH, "Select the run mode")],
+        cwd=repo,
+        env={
+            **env,
+            "PATH": f"{bin_dir}:{env['PATH']}",
+            "GITHUB_OUTPUT": str(output),
+            "PUBLISH_EVENT": "push",
+        },
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "Could not query origin for tag v0.15.0" in result.stderr
+    assert not output.exists()
 
 
 def test_only_releases_publish_and_verification_runs_every_check() -> None:
@@ -257,177 +305,42 @@ def test_commit_verification_rejects_unreleasable_commits(
         METADATA.validate_release_commit_metadata()
 
 
-def test_next_dev_workflow_runs_only_after_a_successful_release() -> None:
-    assert re.search(
-        r'workflow_run:\n\s+workflows: \["Publish to PyPI"\]\n\s+types: \[completed\]',
-        NEXT_DEV,
-    )
-    assert re.search(r"(?m)^name: Publish to PyPI$", PUBLISH)
+def test_dev_package_builds_the_derived_development_version(tmp_path: Path) -> None:
+    pytest.importorskip("tomllib")
+    assert "fetch-depth: 0" in DEV_PACKAGE
+    assert DEV_PACKAGE.index("Run non-integration tests") < DEV_PACKAGE.index(
+        "Set development version"
+    ) < DEV_PACKAGE.index("Build distributions")
     assert (
-        "if: github.event.workflow_run.conclusion == 'success' "
-        "&& github.event.workflow_run.event == 'release'" in NEXT_DEV
+        "name: lambdadb-${{ steps.package.outputs.version }}-"
+        "${{ steps.package.outputs.sha }}" in DEV_PACKAGE
     )
-    assert "ref: main" in NEXT_DEV
-
-
-def _next_dev_repo(tmp_path: Path, version: str) -> tuple[Path, Path, dict[str, str]]:
     env = _git_env(tmp_path)
-    remote = tmp_path / "remote.git"
-    _git(tmp_path, env, "init", "--bare", str(remote))
     repo = tmp_path / "repo"
     (repo / "scripts").mkdir(parents=True)
-    shutil.copy(ROOT / "scripts/version.py", repo / "scripts/version.py")
-    _release_tree(repo, version)
+    for script in ("version.py", "validate_release_metadata.py"):
+        shutil.copy(ROOT / "scripts" / script, repo / "scripts" / script)
+    _release_tree(repo, "0.14.0")
     _git(repo, env, "init")
     _git(repo, env, "add", "-A")
-    _git(repo, env, "commit", "-m", f"Release {version}")
-    _git(repo, env, "remote", "add", "origin", str(remote))
-    _git(repo, env, "push", "origin", "main")
-    bin_dir = _bin(
-        tmp_path,
-        "gh",
-        'if [ "$1 $2" = "pr list" ]; then printf "%s" "$OPEN_PR"; exit 0; fi\n'
-        '[ -z "$GH_CREATE_FAILS" ] || exit 1\n'
-        'printf "%s\\n" "$@" > "$GH_CALL_LOG"',
-    )
-    (bin_dir / "python").symlink_to(sys.executable)
-    env["PATH"] = f"{bin_dir}:{env['PATH']}"
-    env["GH_CALL_LOG"] = str(tmp_path / "gh-call")
-    return repo, remote, env
-
-
-@pytest.mark.parametrize(
-    ("tag", "next_version"),
-    [("v0.14.0rc1", "0.14.0.dev0"), ("v0.14.0", "0.14.1.dev0")],
-)
-def test_next_dev_workflow_opens_the_placeholder_pull_request(
-    tmp_path: Path, tag: str, next_version: str
-) -> None:
-    repo, remote, env = _next_dev_repo(tmp_path, tag[1:])
-    script = _step_script(NEXT_DEV, "Open the next development version pull request")
-    branch = f"chore/next-dev-{next_version}"
-    gh_log = tmp_path / "gh-call"
-
-    def run(**extra: str) -> subprocess.CompletedProcess[str]:
-        # Each workflow run starts from a fresh checkout of main.
-        _git(repo, env, "checkout", "-f", "main")
-        subprocess.run(
-            ["git", "branch", "-D", branch], cwd=repo, env=env, capture_output=True, check=False
-        )
-        gh_log.unlink(missing_ok=True)
-        return subprocess.run(
-            ["bash", "-e", "-c", script],
-            cwd=repo,
-            env={**env, "RELEASE_TAG": tag, **extra},
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-
-    def pushed() -> tuple[str, str]:
-        return (
-            _git(remote, env, "rev-parse", f"{branch}^"),
-            _git(remote, env, "show", f"{branch}:src/lambdadb/version.py"),
-        )
-
-    main = _git(repo, env, "rev-parse", "main")
-    expected = (main, f'SDK_VERSION: str = "{next_version}"')
-
-    # The branch is pushed, but opening the pull request fails.
-    assert run(GH_CREATE_FAILS="1").returncode != 0
-    assert pushed() == expected and not gh_log.exists()
-
-    # A rerun without an open pull request refreshes the branch and opens one.
-    result = run()
-    assert result.returncode == 0, result.stderr
-    assert pushed() == expected
-    gh_call = gh_log.read_text(encoding="utf-8").splitlines()
-    assert gh_call[:6] == ["pr", "create", "--base", "main", "--head", branch]
-
-    # An open pull request built on the current main is left alone.
-    head = _git(remote, env, "rev-parse", branch)
-    result = run(OPEN_PR="https://example.test/pull/1")
-    assert result.returncode == 0, result.stderr
-    assert "already proposes" in result.stdout
-    assert _git(remote, env, "rev-parse", branch) == head and not gh_log.exists()
-
-    # An open pull request behind main is refreshed in place.
-    _git(repo, env, "commit", "--allow-empty", "-m", "Later change on main")
-    _git(repo, env, "push", "origin", "main")
-    main = _git(repo, env, "rev-parse", "main")
-    result = run(OPEN_PR="https://example.test/pull/1")
-    assert result.returncode == 0, result.stderr
-    assert "Refreshed" in result.stdout
-    assert pushed() == (main, expected[1]) and not gh_log.exists()
-
-
-@pytest.mark.parametrize("delete_branch", [True, False])
-def test_next_dev_workflow_opens_a_new_pull_request_after_each_rc(
-    tmp_path: Path, delete_branch: bool
-) -> None:
-    repo, remote, env = _next_dev_repo(tmp_path, "0.14.0rc1")
-    script = _step_script(NEXT_DEV, "Open the next development version pull request")
-    branch = "chore/next-dev-0.14.0.dev0"
-    gh_log = tmp_path / "gh-call"
-
-    def run(tag: str) -> list[str]:
-        gh_log.unlink(missing_ok=True)
-        result = subprocess.run(
-            ["bash", "-e", "-c", script],
-            cwd=repo,
-            env={**env, "RELEASE_TAG": tag},
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        assert result.returncode == 0, result.stderr
-        return gh_log.read_text(encoding="utf-8").splitlines()[:6]
-
-    assert run("v0.14.0rc1") == ["pr", "create", "--base", "main", "--head", branch]
-
-    # The rc1 pull request merges (its branch deleted or kept), then rc2 releases.
-    _git(repo, env, "checkout", "main")
-    _git(repo, env, "merge", "--no-ff", "-m", "Merge next development version", branch)
-    _git(repo, env, "branch", "-D", branch)
-    set_rc2 = [sys.executable, "scripts/version.py", "set", "0.14.0rc2"]
-    subprocess.run(set_rc2, cwd=repo, env=env, check=True, capture_output=True)
-    (repo / "CHANGELOG.md").write_text("# Changelog\n\n## 0.14.0rc2\n", encoding="utf-8")
-    _git(repo, env, "commit", "-am", "Release 0.14.0rc2")
-    _git(repo, env, "push", "origin", "main")
-    if delete_branch:
-        _git(repo, env, "push", "origin", "--delete", branch)
-    main = _git(repo, env, "rev-parse", "main")
-
-    # No pull request is open, so rc2 opens a new one from the current main.
-    assert run("v0.14.0rc2") == ["pr", "create", "--base", "main", "--head", branch]
-    assert _git(remote, env, "rev-parse", f"{branch}^") == main
-    assert (
-        _git(remote, env, "show", f"{branch}:src/lambdadb/version.py")
-        == 'SDK_VERSION: str = "0.14.0.dev0"'
-    )
-
-
-@pytest.mark.parametrize(
-    ("tag", "status", "message"),
-    [
-        ("v0.13.0", 0, "nothing to do"),
-        ("v0.14.0.dev1", 1, "Unexpected release tag"),
-        ("v0.14.0-rc.1", 1, "Unexpected release tag"),
-    ],
-)
-def test_next_dev_workflow_ignores_other_versions(
-    tmp_path: Path, tag: str, status: int, message: str
-) -> None:
-    repo, remote, env = _next_dev_repo(tmp_path, "0.14.0")
+    _git(repo, env, "commit", "-m", "Release 0.14.0")
+    _git(repo, env, "tag", "v0.14.0")
+    _git(repo, env, "commit", "--allow-empty", "-m", "Change 1")
+    _git(repo, env, "commit", "--allow-empty", "-m", "Change 2")
+    # The step runs `python` from the environment that runs these tests.
+    python_dir = Path(sys.executable).parent
+    output = tmp_path / "output"
     result = subprocess.run(
-        ["bash", "-e", "-c", _step_script(NEXT_DEV, "Open the next development version pull request")],
+        ["bash", "-e", "-c", _step_script(DEV_PACKAGE, "Set development version")],
         cwd=repo,
-        env={**env, "RELEASE_TAG": tag},
+        env={**env, "PATH": f"{python_dir}:{env['PATH']}", "GITHUB_OUTPUT": str(output)},
         capture_output=True,
         text=True,
         check=False,
     )
-    assert result.returncode == status
-    assert message in result.stdout + result.stderr
-    assert _git(remote, env, "for-each-ref", "--format=%(refname)", "refs/heads") == "refs/heads/main"
-    assert not (tmp_path / "gh-call").exists()
+    assert result.returncode == 0, result.stderr
+    sha = _git(repo, env, "rev-parse", "--short=12", "HEAD")
+    assert output.read_text(encoding="utf-8") == f"version=0.14.1.dev2\nsha={sha}\n"
+    assert 'SDK_VERSION: str = "0.14.1.dev2"' in (
+        repo / "src/lambdadb/version.py"
+    ).read_text(encoding="utf-8")

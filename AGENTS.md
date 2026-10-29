@@ -26,13 +26,14 @@ The following rules are mandatory:
   or documentation revision is not evidence that the API is deployed.
 - Keep the versions in `pyproject.toml` and `src/lambdadb/version.py` identical.
 - Use canonical PEP 440 versions: `X.Y.Z.devN` for development artifacts,
-  `X.Y.ZrcN` for release candidates, and `X.Y.Z` for stable releases. Between
-  releases, commit the placeholder `X.Y.Z.dev0`. Change versions with
-  `python scripts/version.py set`.
+  `X.Y.ZrcN` for release candidates, and `X.Y.Z` for stable releases. The
+  committed version is always an RC or stable version: the last release, or the
+  next one set by a merged release pull request. Only a release pull request
+  changes it, with `python scripts/version.py set`. Never commit a development
+  version; CI derives `X.Y.Z.devN` from tags in its disposable checkout.
 - Releases are trunk-based: open pull requests into `main` (squash merge). There
   are no `develop`, release, or hotfix branches. RC and stable releases come
-  from reviewed commits on `main`; the bot-opened next-version pull request is
-  reviewed and merged like any other change.
+  from reviewed commits on `main`.
 - Development builds must use the artifact-only development workflow. Do not
   publish routine development releases to production PyPI.
 - Release candidates may reach production PyPI only through a GitHub Release

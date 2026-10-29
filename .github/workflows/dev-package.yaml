@@ -15,9 +15,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Full history and tags: the development version counts commits since the
+      # newest stable tag.
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -28,9 +31,19 @@ jobs:
       - name: Install build and test dependencies
         run: python -m pip install --upgrade build packaging pytest twine
 
-      - name: Validate development version
+      - name: Install package
+        run: python -m pip install .
+
+      # Test the committed tree; the repository tests check the committed version.
+      - name: Run non-integration tests
+        run: python -m pytest tests/ -m "not integration" -v
+
+      # Only this disposable checkout receives the X.Y.Z.devN version; it is
+      # never committed.
+      - name: Set development version
         id: package
         run: |
+          python scripts/version.py set-dev
           python - <<'PY'
           import os
           import runpy
@@ -62,12 +75,6 @@ jobs:
 
           print(f"Validated development package {project_version} at {short_sha}")
           PY
-
-      - name: Install package
-        run: python -m pip install .
-
-      - name: Run non-integration tests
-        run: python -m pytest tests/ -m "not integration" -v
 
       - name: Build distributions
         run: python -m build

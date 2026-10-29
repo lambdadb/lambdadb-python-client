@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Development versions are derived from tags instead of being committed. `main`
+  keeps the last released version until the next release pull request, and
+  `scripts/version.py set` accepts only RC and stable versions. A `main` push
+  whose version is already tagged on `origin` runs the dev live smoke gate; an
+  untagged RC or stable version is verified against production. The manual
+  development package workflow computes `X.Y.Z.devN` (after an RC) or
+  `X.Y.(Z+1).devN` (after a stable release), where N counts first-parent
+  commits since the newest stable tag. The workflow that opened the next
+  development version pull request is removed.
+
 ## 0.14.0
 
 Stable release of `0.14.0rc1` with no SDK changes. The release candidate

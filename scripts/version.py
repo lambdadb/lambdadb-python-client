@@ -4,13 +4,14 @@
 Usage:
     python scripts/version.py get
     python scripts/version.py set <version>
-    python scripts/version.py next-dev <released-version>
+    python scripts/version.py set-dev
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 import re
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,10 +19,10 @@ PYPROJECT = "pyproject.toml"
 RUNTIME = "src/lambdadb/version.py"
 
 _CORE = r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)"
-# Versions that may be committed: the dev placeholder between releases, or an
-# RC/stable release.
-COMMITTED_VERSION = re.compile(rf"{_CORE}(?:\.dev0|rc[1-9][0-9]*)?")
-_RELEASED_VERSION = re.compile(rf"{_CORE}(rc[1-9][0-9]*)?")
+# Versions that may be committed: an RC or stable release. Development versions
+# are derived from tags in disposable CI checkouts and never committed.
+COMMITTED_VERSION = re.compile(rf"{_CORE}(rc[1-9][0-9]*)?")
+_STABLE_TAG = re.compile(rf"v{_CORE}")
 _PROJECT_SECTION = re.compile(r"(?ms)^\[project\][ \t]*$\n(?P<body>.*?)(?=^\[|\Z)")
 _PROJECT_VERSION = re.compile(r'(?m)^(version\s*=\s*")([^"]+)("[ \t]*)$')
 _RUNTIME_VERSION = re.compile(r'(?m)^(SDK_VERSION: str = ")([^"]+)(")$')
@@ -58,12 +59,8 @@ def read_version(root: Path = ROOT) -> str:
     return project.group(2)
 
 
-def set_version(version: str, root: Path = ROOT) -> str:
-    """Set every version source to a committed version, preserving formatting."""
-    if COMMITTED_VERSION.fullmatch(version) is None:
-        raise ValueError(
-            f"Unsupported version {version}; commit X.Y.Z.dev0, X.Y.ZrcN, or X.Y.Z"
-        )
+def _write_version(version: str, root: Path) -> str:
+    """Write a version to every source, preserving formatting."""
     read_version(root)
     pyproject = _read(root, PYPROJECT)
     section, project = _project_version(pyproject)
@@ -82,19 +79,54 @@ def set_version(version: str, root: Path = ROOT) -> str:
     return version
 
 
-def next_dev_version(released: str) -> str:
-    """Return the placeholder that follows a published RC or stable release.
+def set_version(version: str, root: Path = ROOT) -> str:
+    """Set every version source to a committed RC or stable version."""
+    if COMMITTED_VERSION.fullmatch(version) is None:
+        raise ValueError(f"Unsupported version {version}; commit X.Y.ZrcN or X.Y.Z")
+    return _write_version(version, root)
 
-    An RC keeps its version (X.Y.ZrcN -> X.Y.Z.dev0); a stable release moves to
-    the next patch (X.Y.Z -> X.Y.(Z+1).dev0).
+
+def _git(root: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", *args], cwd=root, capture_output=True, text=True, check=False
+    )
+    if result.returncode != 0:
+        raise ValueError(f"git {' '.join(args)} failed: {result.stderr.strip()}")
+    return result.stdout.strip()
+
+
+def development_version(root: Path = ROOT) -> str:
+    """Return the development version of the checked-out commit.
+
+    An RC X.Y.ZrcN builds X.Y.Z.devN, below the RC; a stable X.Y.Z builds the
+    next patch X.Y.(Z+1).devN. N counts first-parent commits since the newest
+    stable tag vA.B.C reachable from HEAD and must be at least 1.
     """
-    match = _RELEASED_VERSION.fullmatch(released)
+    committed = read_version(root)
+    match = COMMITTED_VERSION.fullmatch(committed)
     if match is None:
-        raise ValueError(f"Expected an RC or stable version, got {released}")
+        raise ValueError(
+            f"Committed version {committed} must be an RC or stable version"
+        )
     major, minor, patch = (int(part) for part in match.group(1, 2, 3))
     if match.group(4) is None:
         patch += 1
-    return f"{major}.{minor}.{patch}.dev0"
+    stable_tags = [
+        (tuple(int(part) for part in tag_match.groups()), tag)
+        for tag in _git(root, "tag", "--merged", "HEAD", "--list", "v*").splitlines()
+        if (tag_match := _STABLE_TAG.fullmatch(tag)) is not None
+    ]
+    newest = max(stable_tags, default=None)
+    revisions = "HEAD" if newest is None else f"{newest[1]}..HEAD"
+    count = int(_git(root, "rev-list", "--count", "--first-parent", revisions))
+    if count < 1:
+        raise ValueError(f"Expected at least one first-parent commit in {revisions}")
+    return f"{major}.{minor}.{patch}.dev{count}"
+
+
+def set_development_version(root: Path = ROOT) -> str:
+    """Write the development version; only for disposable CI checkouts."""
+    return _write_version(development_version(root), root)
 
 
 def main(argv: list[str]) -> int:
@@ -104,8 +136,8 @@ def main(argv: list[str]) -> int:
             print(read_version())
         elif len(argv) == 2 and argv[0] == "set":
             print(set_version(argv[1]))
-        elif len(argv) == 2 and argv[0] == "next-dev":
-            print(next_dev_version(argv[1]))
+        elif argv == ["set-dev"]:
+            print(set_development_version())
         else:
             print(__doc__.strip(), file=sys.stderr)
             return 2
