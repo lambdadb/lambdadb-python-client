@@ -8,3 +8,4 @@ Embedding provider.
 | Name     | Value  |
 | -------- | ------ |
 | `OPENAI` | openai |
+| `COHERE` | cohere |

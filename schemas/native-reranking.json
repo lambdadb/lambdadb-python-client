@@ -1,11 +1,11 @@
 {
   "source": {
     "repository": "lambdadb/lambdadb",
-    "revision": "0a54b6ecb483ce7df9677ba2071a491f9f9879c9",
+    "revision": "1c3e7d453cca296a7b2af85a375b4c5016504101",
     "openapi": {
-      "repository": "lambdadb/docs",
-      "revision": "94a7b71613a3bf217a370d5117b3ff6ddfbae851",
-      "path": "reference/api/openapi.json",
+      "repository": "lambdadb/lambdadb",
+      "revision": "1c3e7d453cca296a7b2af85a375b4c5016504101",
+      "path": "api/openapi.json",
       "pointers": [
         "/components/schemas/RerankConfig",
         "/components/schemas/RerankResponse",
@@ -17,13 +17,14 @@
       "api/src/main/java/ai/lambdadb/dto/RerankResponse.java": "ce767136204b41450e4d9e7a89e2ef1e47be04b61132107cfae914e70cde4b0c",
       "api/src/main/java/ai/lambdadb/dto/QueryRequest.java": "e18fcf57b19a585629bef15b422aec35fa8d3d7fc7430669223000665fe19aff",
       "api/src/main/java/ai/lambdadb/model/document/Document.java": "16bd2bab55327601f9add92fdf9d49e4dc68e09b37075620688870f219789507",
-      "core/src/main/java/ai/lambdadb/application/NativeRerankService.java": "1e511dd93c08ad87439421290f3d8fbe2ed62a4ac8f0e3edc7b378738bfc650d",
+      "core/src/main/java/ai/lambdadb/application/NativeRerankService.java": "d7c974d04c46bed47cf015f9ba1db4a795abb0eec28fa8cad4549a3476d029d5",
       "runtime-aws/src/test/java/ai/lambdadb/dto/RerankContractTest.java": "6532b139fd218057ecfcb734c401224d94072a297f164f4317b891f50c4a6bc3",
-      "docs/design/native-reranking.md": "238b0a628179d115627ec7df564d5e391564dcab4b932440195e33762ac168ca",
+      "docs/design/native-reranking.md": "78e15fcd0aab47d745fb6f3bdc353132ee27fed3b4a2e70db138b51a6a518704",
       "api/src/main/java/ai/lambdadb/dto/QueryResponse.java": "6b0a93f9a214b914827a1633dcb14f7894d3c02936d1a3b6d2ea10a0c94d3335",
       "api/src/main/java/ai/lambdadb/model/publiccontract/PublicContractConstants.java": "4132e9ff5b23a8cb8e9753536c9456ebe4ed4600516136350176ca7d6c791fce",
       "core/src/main/java/ai/lambdadb/port/RerankProvider.java": "3075d966460b37dcd167616df62fd9680f7e89a3ce951b03cbcf32652ac62593",
-      "core/src/test/java/ai/lambdadb/application/NativeRerankServiceTest.java": "865750c52c2a24d262c94aeaf0b1c77629395998b59dee3c7109e7843c042cb1"
+      "core/src/test/java/ai/lambdadb/application/NativeRerankServiceTest.java": "865750c52c2a24d262c94aeaf0b1c77629395998b59dee3c7109e7843c042cb1",
+      "core/src/main/java/ai/lambdadb/application/rerank/CohereRerankModels.java": "ef31270e63416fb1111c141ff24c67336b10eb3d10a5c1d65ab63bd7a9dba2b8"
     },
     "note": "Scoped adaptation of the pinned backend and OpenAPI. Preserves SDK optional response fields and server-side validation boundaries; not a full OpenAPI extraction or deployment record."
   },
@@ -41,16 +42,19 @@
         "provider": {
           "type": "string",
           "enum": [
-            "typesafe"
+            "typesafe",
+            "cohere"
           ],
           "description": "Native reranking provider. The server handles provider credentials; no customer provider API key is required."
         },
         "model": {
           "type": "string",
           "enum": [
-            "jev-1.13.0"
+            "jev-1.13.0",
+            "rerank-v5.0-pro",
+            "rerank-v5.0-fast"
           ],
-          "description": "Explicit native reranking model."
+          "description": "Explicit native reranking model; typesafe uses jev-1.13.0, cohere uses rerank-v5.0-pro or rerank-v5.0-fast."
         },
         "queryText": {
           "type": "string",
@@ -95,9 +99,21 @@
             "x-maxUtf8Bytes": 2048
           },
           "x-maxUtf8Bytes": 8192,
-          "description": "Distinct nonblank descriptions ordered lowest to highest relevance. Omitted/null uses default criteria; at most 2 KiB each and 8 KiB total UTF-8."
+          "description": "TypeSafe/Jev only; Cohere requires omitted/null. Distinct nonblank descriptions ordered lowest to highest relevance. Omitted/null uses default criteria; at most 2 KiB each and 8 KiB total UTF-8."
         }
-      }
+      },
+      "x-providerModels": {
+        "typesafe": [
+          "jev-1.13.0"
+        ],
+        "cohere": [
+          "rerank-v5.0-pro",
+          "rerank-v5.0-fast"
+        ]
+      },
+      "x-criteriaProviders": [
+        "typesafe"
+      ]
     },
     "RerankResponse": {
       "type": "object",
@@ -149,9 +165,10 @@
           "nullable": true,
           "enum": [
             "default-relevance-v1",
-            "custom"
+            "custom",
+            "cohere-relevance-v1"
           ],
-          "description": "Only on applied results when reported. custom identifies caller-supplied criteria, not a content hash or unique version."
+          "description": "Only on applied results when reported. TypeSafe/Jev uses default-relevance-v1 or custom; custom identifies caller-supplied criteria, not a content hash or unique version. Cohere uses cohere-relevance-v1."
         },
         "reason": {
           "type": "string",

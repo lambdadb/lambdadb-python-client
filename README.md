@@ -200,7 +200,9 @@ Provide `embedding` to enable native embeddings on a compatible server. The lega
 `managedEmbedding=True` flag remains supported. Put native dimensions/similarity
 inside `embedding`; caller-provided vectors keep top-level `dimensions`. See the
 [native embedding and Bayesian guide](docs/bayesian-native-embeddings.md) for the
-pinned contract, update examples, and server requirements.
+pinned contract, update examples, and server requirements. Cohere embeddings,
+ordered text/image `sources`, `knn.queryInputs`, and direct vectors on native
+fields are described in [native embedding sources](docs/native-embedding-sources.md).
 
 ```python
 from lambdadb import LambdaDB, models
@@ -304,7 +306,8 @@ for item in response.results:
     print(item.score, item.retrieval_score, item.doc)
 ```
 
-No Jev API key is required. Omitted/null reranking preserves existing search
+Cohere `rerank-v5.0-pro` and `rerank-v5.0-fast` are also supported without
+`criteria`. No provider API key is required. Omitted/null reranking preserves existing search
 behavior. Check `response.rerank.status`: applied scores are evaluation values
 in `[0, 1]`, while fallback keeps search scores. The `0.11.0` release requires a compatible server. See [native reranking](docs/native-reranking.md)
 for custom criteria, candidate limits, response metadata and failure handling.

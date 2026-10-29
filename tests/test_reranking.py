@@ -22,8 +22,8 @@ OPTIONS = dict(base_url="https://api.example", project_name="project", project_a
 def test_schema_and_generated_outputs() -> None:
     root = Path(__file__).resolve().parents[1]
     schema = json.loads((root / "schemas/native-reranking.json").read_text())
-    assert schema["source"]["revision"] == "0a54b6ecb483ce7df9677ba2071a491f9f9879c9"
-    assert schema["source"]["openapi"]["revision"] == "94a7b71613a3bf217a370d5117b3ff6ddfbae851"
+    assert schema["source"]["revision"] == "1c3e7d453cca296a7b2af85a375b4c5016504101"
+    assert schema["source"]["openapi"]["revision"] == "1c3e7d453cca296a7b2af85a375b4c5016504101"
     assert schema["schemas"]["RerankConfig"]["required"] == ["provider", "model", "queryText", "fields"]
     subprocess.run([sys.executable, str(root / "scripts/generate_reranking.py"), "--check"], check=True)
     for name in ["RerankConfig", "RerankConfigTypedDict", "RerankResponse", "RerankResponseTypedDict"]:
@@ -167,6 +167,43 @@ def test_legacy_and_null_are_omitted_and_defaults_stay_server_side():
     {"weights": [0, 1]}, {"threshold": .5}, {"rubricVersion": "v1"}, {"apiKey": "not-supported"},
 ])
 def test_invalid_config_rejected_without_loss(patch):
+    with pytest.raises(ValidationError):
+        models.RerankConfig.model_validate({**CONFIG, **patch})
+
+
+@pytest.mark.parametrize("model", ["rerank-v5.0-pro", "rerank-v5.0-fast"])
+@pytest.mark.parametrize("async_mode", [False, True])
+def test_cohere_rerank_request_and_response(model, async_mode):
+    config = {**CONFIG, "provider": "cohere", "model": model, "criteria": None}
+    metadata = {"status": "applied", "provider": "cohere", "model": model, "candidateCount": 1,
+                "scoredCount": 1, "took": 3, "criteriaVersion": "cohere-relevance-v1"}
+    payload = {"took": 4, "total": 1, "isDocsInline": True, "maxScore": .5, "rerank": metadata,
+               "docs": [{"collection": "items", "doc": {"id": "1"}, "score": .5, "retrievalScore": 2.0}]}
+
+    def handler(request):
+        assert json.loads(request.content)["rerank"] == {**CONFIG, "provider": "cohere", "model": model}
+        return httpx.Response(200, json=payload)
+
+    args = dict(query=QUERY, rerank=config, retries=None)
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as transport:
+            return await LambdaDB(**OPTIONS, async_client=transport).collection("items").query_async(**args)
+
+    if async_mode:
+        result = asyncio.run(run())
+    else:
+        with httpx.Client(transport=httpx.MockTransport(handler)) as transport:
+            result = LambdaDB(**OPTIONS, client=transport).collection("items").query(**args)
+    assert result.model_dump(mode="json", by_alias=True) == payload
+
+
+@pytest.mark.parametrize("patch", [
+    {"provider": "cohere", "model": "jev-1.13.0"},
+    {"provider": "typesafe", "model": "rerank-v5.0-pro"},
+    {"provider": "cohere", "model": "rerank-v5.0-fast", "criteria": ["irrelevant", "relevant"]},
+])
+def test_rerank_provider_model_pairs(patch):
     with pytest.raises(ValidationError):
         models.RerankConfig.model_validate({**CONFIG, **patch})
 

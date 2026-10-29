@@ -1,14 +1,17 @@
-"""Opt-in Bayesian/native smoke, including docs contract 94a7b71.
+"""Opt-in Bayesian/native smoke, including lambdadb OpenAPI 1c3e7d4 (Cohere).
 
 Verify deployment separately before enabling LAMBDADB_RUN_BAYESIAN_SMOKE.
 Only uniquely named collections created by this test are removed.
 """
 
 import asyncio
+import base64
 import math
 import os
+import struct
 import time
 import uuid
+import zlib
 
 import pytest
 
@@ -232,10 +235,10 @@ def test_unindexed_native_source_and_rerank_paths(live_sdk, nested):
         assert response.rerank.status == "applied"
         assert response.rerank.candidate_count == response.rerank.scored_count == 1
         assert response.documents[0]["id"] == "one"
-        stage = "preserve server rejection of raw query vector on native field"
-        with pytest.raises(errors.BadRequestError):
-            coll.query(query={"knn": {"field": "vector", "queryVector": vector, "k": 1000}},
-                       size=1000, consistent_read=True, retries=None)
+        stage = "accept raw query vector on native field"
+        raw = coll.query(query={"knn": {"field": "vector", "queryVector": vector, "k": 1000}},
+                         size=1000, consistent_read=True, retries=None)
+        assert raw.documents[0]["id"] == "one"
         stage = "reject non-string unindexed embedding source"
         invalid = {"article": {"body": 42}} if nested else {"body": 42}
         with pytest.raises(errors.BadRequestError):
@@ -248,6 +251,92 @@ def test_unindexed_native_source_and_rerank_paths(live_sdk, nested):
         coll.docs.upsert(docs=[{"id": "one", "note": "replacement"}], retries=None)
         fetched = coll.docs.fetch(ids=["one"], consistent_read=True, include_vectors=True, retries=None)
         assert "vector" not in fetched.documents[0]
-        print(f"Unindexed native source, rerank, raw-vector rejection and write semantics passed: nested={nested}")
+        print(f"Unindexed native source, rerank, raw query vector and write semantics passed: nested={nested}")
+    except Exception as error:
+        pytest.fail(f"{stage}: {type(error).__name__}; HTTP {getattr(error, 'status_code', 'n/a')}", pytrace=False)
+
+
+def _png_data_uri(rgb, size=32):
+    row = b"\x00" + bytes(rgb) * size
+    chunk = lambda kind, data: (struct.pack(">I", len(data)) + kind + data
+                                + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF))
+    png = (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0))
+           + chunk(b"IDAT", zlib.compress(row * size)) + chunk(b"IEND", b""))
+    return "data:image/png;base64," + base64.b64encode(png).decode()
+
+
+def test_cohere_sources_query_inputs_direct_vectors_and_rerank(live_sdk):
+    sdk, names = live_sdk
+    name = f"python-cohere-{uuid.uuid4().hex[:12]}"
+    names.append(name)
+    multimodal = {"provider": "cohere", "model": "embed-v5.0-fast", "dimensions": 256,
+                  "sources": [{"field": "title", "type": "text"}, {"field": "photos", "type": "image"}]}
+    text = {"provider": "cohere", "model": "embed-v5.0-pro", "sources": [{"field": "title", "type": "text"}]}
+    red, blue = _png_data_uri((220, 20, 20)), _png_data_uri((20, 20, 220))
+    direct = [0.0] * 255 + [1.0]
+    stage = "reject provider-specific embedding settings"
+    try:
+        for invalid in ({**multimodal, "dimensions": 300},
+                        {**text, "provider": "openai", "model": "text-embedding-3-small",
+                         "sources": multimodal["sources"]}):
+            with pytest.raises(errors.BadRequestError):
+                sdk.collections.create(collection_name=name, retries=None, index_configs={
+                    "v": {"type": "vector", "embedding": invalid}})
+        stage = "create Cohere source mappings"
+        sdk.collections.create(collection_name=name, retries=None, index_configs={
+            "mm": {"type": "vector", "embedding": multimodal},
+            "text": {"type": "vector", "embedding": text},
+        })
+        configs = sdk.collections.get(collection_name=name).collection.index_configs
+        assert configs["mm"].embedding.model_dump(mode="json", by_alias=True)["sources"] == multimodal["sources"]
+        assert configs["mm"].embedding.source_field is None
+        assert (configs["mm"].embedding.dimensions, configs["text"].embedding.dimensions) == (256, 2048)
+        coll = sdk.collection(name)
+        stage = "generate text/image embeddings and accept a direct vector"
+        coll.docs.upsert(retries=None, docs=[
+            {"id": "red", "title": "Red running shoes", "photos": [red]},
+            {"id": "blue", "title": "Blue rain jacket", "photos": [blue]},
+            {"id": "plain", "title": "Leather wallet", "photos": []},
+            {"id": "direct", "title": "Wool scarf", "mm": direct},
+        ])
+        fetched = _wait_query(coll, 4, size=4, consistent_read=True, include_vectors=True)
+        vectors = {doc["id"]: doc for doc in fetched.documents}
+        assert all(len(doc["mm"]) == 256 and len(doc["text"]) == 2048 for doc in vectors.values())
+        assert all(math.isfinite(value) for doc in vectors.values() for value in doc["mm"] + doc["text"])
+        assert vectors["direct"]["mm"] == pytest.approx(direct)
+        stage = "query with text, mixed inputs and a raw vector"
+        by_text = coll.query(query={"knn": {"field": "text", "queryText": "rain jacket", "k": 4}},
+                             size=1, consistent_read=True, retries=None)
+        assert by_text.documents[0]["id"] == "blue"
+        mixed = coll.query(size=1, consistent_read=True, retries=None, query={"knn": {
+            "field": "mm", "k": 4,
+            "queryInputs": [{"type": "text", "value": "red shoes"}, {"type": "image", "value": red}]}})
+        assert mixed.documents[0]["id"] == "red"
+        raw = coll.query(query={"knn": {"field": "mm", "queryVector": direct, "k": 4}},
+                         size=1, consistent_read=True, retries=None)
+        assert raw.documents[0]["id"] == "direct"
+        stage = "Cohere reranking"
+        for model in ("rerank-v5.0-pro", "rerank-v5.0-fast"):
+            response = coll.query(query={"knn": {"field": "text", "queryText": "shoes", "k": 4}},
+                                  size=2, consistent_read=True, retries=None,
+                                  rerank={"provider": "cohere", "model": model, "queryText": "running shoes",
+                                          "fields": ["title"]})
+            assert response.rerank.status == "applied"
+            assert response.rerank.criteria_version == "cohere-relevance-v1"
+            assert response.rerank.candidate_count == response.rerank.scored_count == 4
+            assert response.documents[0]["id"] == "red"
+            assert all(0 <= hit.score <= 1 and hit.retrieval_score is not None for hit in response.results)
+        stage = "bulk upsert with caller-supplied native vectors"
+        coll.docs.bulk_upsert_docs(retries=None, docs=[
+            {"id": "bulk", "title": "Canvas tote bag", "mm": [1.0] + [0.0] * 255, "text": [1.0] + [0.0] * 2047},
+        ])
+        deadline = time.monotonic() + 180
+        while not coll.docs.fetch(ids=["bulk"], consistent_read=True, retries=None).documents:
+            if time.monotonic() > deadline:
+                pytest.fail("Timed out waiting for bulk upsert visibility")
+            time.sleep(2)
+        bulk = coll.docs.fetch(ids=["bulk"], consistent_read=True, include_vectors=True, retries=None).documents[0]
+        assert bulk["mm"] == pytest.approx([1.0] + [0.0] * 255)
+        print("Cohere sources, image/text embeddings, queryInputs, direct vectors, bulk and rerank passed")
     except Exception as error:
         pytest.fail(f"{stage}: {type(error).__name__}; HTTP {getattr(error, 'status_code', 'n/a')}", pytrace=False)

@@ -119,9 +119,9 @@ native embedding configuration, including collection response parsing. See
 [vector configuration](vector-configuration.md) for scope and migration from
 previously accepted settings.
 
-Native fields use `knn.queryText`. The upstream raw `queryVector` description
-was corrected in docs PR #73, included in the pinned revision. The SDK preserves
-the server's `BadRequestError` for that unsupported combination.
+Native fields use `knn.queryText`. As of lambdadb OpenAPI `1c3e7d4`, native
+fields also accept `knn.queryInputs` and a raw `knn.queryVector`; see
+[native embedding sources](native-embedding-sources.md).
 
 A candidate budget of 1000 is a request-count maximum, not a guarantee that
 reranking finishes within a deployment's deadline. Production verification on

@@ -11,7 +11,7 @@ Generated from the [pinned contract](../../schemas/native-reranking.json).
 | `candidate_count` | `int` | Yes | Actual unique candidates in the logical stage; not a guaranteed count or billing unit. |
 | `scored_count` | `int` | Yes | Complete accepted scores; equals candidateCount on applied, zero on skipped/fallback. |
 | `took` | `int` | Yes | Rerank stage duration in milliseconds, excluding candidate hydration. |
-| `criteria_version` | `Optional[Literal['default-relevance-v1', 'custom']]` | No | Only on applied results when reported. custom identifies caller-supplied criteria, not a content hash or unique version. |
+| `criteria_version` | `Optional[Literal['default-relevance-v1', 'custom', 'cohere-relevance-v1']]` | No | Only on applied results when reported. TypeSafe/Jev uses default-relevance-v1 or custom; custom identifies caller-supplied criteria, not a content hash or unique version. Cohere uses cohere-relevance-v1. |
 | `reason` | `Optional[str]` | No | Skipped/fallback reason: noCandidates, timeout, rateLimit, unavailable, invalidResponse or credentials. |
 
 See [native reranking](../native-reranking.md) for examples and server validation.

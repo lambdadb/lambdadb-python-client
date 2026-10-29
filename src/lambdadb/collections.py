@@ -1057,7 +1057,7 @@ class Collections(BaseSDK):
         r"""Configure a collection.
 
         :param collection_name: Collection name.
-        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. None leaves it unchanged.
+        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
         :param description: Replacement collection description. Empty clears it; None leaves it unchanged.
         :param tags: Replacement metadata tags. An empty dict clears them; None leaves them unchanged.
         :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days. None leaves it unchanged.
@@ -1203,7 +1203,7 @@ class Collections(BaseSDK):
         r"""Configure a collection.
 
         :param collection_name: Collection name.
-        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. None leaves it unchanged.
+        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
         :param description: Replacement collection description. Empty clears it; None leaves it unchanged.
         :param tags: Replacement metadata tags. An empty dict clears them; None leaves them unchanged.
         :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days. None leaves it unchanged.

@@ -9,6 +9,26 @@
   without publishing; its GitHub Release still publishes to PyPI. After
   publication, a workflow opens the next development version pull request.
   Development packages remain manual GitHub Actions artifacts.
+- Follow the public OpenAPI now owned by `lambdadb/lambdadb`, pinned to `main`
+  `1c3e7d453cca296a7b2af85a375b4c5016504101` (Cohere support from PR #483 and
+  the server-managed `id` in `indexConfigs` from PR #515).
+- Add `Provider.COHERE` and ordered `EmbeddingConfig.sources` with
+  `EmbeddingSource` / `EmbeddingSourceType` (`text`, `image`). `source_field` is
+  now optional; exactly one of `source_field` or `sources` must be non-null.
+  Provider/model pairs, dimensions, duplicate paths and image limits stay server-side.
+  Following the OpenAPI pattern, a blank `source_field` now raises a local
+  validation error instead of a server HTTP 400.
+- Add Cohere reranking models `rerank-v5.0-pro` and `rerank-v5.0-fast`. The SDK
+  rejects mismatched provider/model pairs and Cohere `criteria`, and parses
+  `criteriaVersion` `cohere-relevance-v1`.
+- Document `knn.queryInputs`, direct vectors on native fields, and bulk upsert
+  for native embedding collections with caller-supplied vectors. See
+  [native embedding sources](docs/native-embedding-sources.md). A source pin
+  does not establish deployment.
+- Document that collection responses include the server-managed top-level `id`
+  as `{"type": "keyword"}` in `index_configs`, and that create and update
+  requests may omit it or send it back unchanged. The SDK has no local `id`
+  check; an id-only schema is passed through.
 
 ## 0.13.0
 
