@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.0
+
+Stable release of `0.14.0rc1` with no SDK changes. The release candidate
+passed the deployed live suite against production, which runs backend
+`1c3e7d453cca296a7b2af85a375b4c5016504101` including lambdadb/lambdadb#515.
+
 ## 0.14.0rc1
 
 - Releases are trunk-based on `main`; `develop` is retired. `main` carries the
