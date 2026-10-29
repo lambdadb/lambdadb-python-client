@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.14.0rc1
 
 - Releases are trunk-based on `main`; `develop` is retired. `main` carries the
   next version as `X.Y.Z.dev0` (now `0.14.0.dev0`), and
