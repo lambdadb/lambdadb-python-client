@@ -1,8 +1,9 @@
-# Verify RC/stable versions committed on main, and publish release candidates
-# and stable releases to PyPI from GitHub Releases using Trusted Publishing
-# (OIDC). Every run also runs the deployed live smoke tests: development main
-# pushes against the dev environment, release verification and Releases against
-# production. Development builds use dev-package.yaml and are never published here.
+# Verify untagged RC/stable versions committed on main, and publish release
+# candidates and stable releases to PyPI from GitHub Releases using Trusted
+# Publishing (OIDC). Every run also runs the deployed live smoke tests:
+# development main pushes against the dev environment, release verification and
+# Releases against production. Development builds use dev-package.yaml and are
+# never published here.
 
 name: Publish to PyPI
 
@@ -39,11 +40,12 @@ jobs:
       - name: Install validation dependencies
         run: python -m pip install --upgrade packaging
 
-      # A main push with the committed X.Y.Z.dev0 placeholder has nothing to
-      # publish; a main push with an RC/stable version (a release PR merge) is
-      # verified without publication; a GitHub Release publishes its version.
-      # Development pushes are smoke-tested against the dev environment, release
-      # verification and Releases against production.
+      # main always commits an RC or stable version. A main push whose version
+      # is already tagged on origin is a development commit with nothing to
+      # publish; an untagged one (a release PR merge) is verified without
+      # publication; a GitHub Release publishes its version. Development pushes
+      # are smoke-tested against the dev environment, release verification and
+      # Releases against production.
       - name: Select the run mode
         id: mode
         env:
@@ -52,11 +54,18 @@ jobs:
           VERSION=$(python scripts/version.py get)
           if [ "$PUBLISH_EVENT" != "push" ]; then
             MODE=release
+          elif ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(rc[1-9][0-9]*)?$ ]]; then
+            echo "Committed version $VERSION must be an RC or stable version" >&2
+            exit 1
           else
-            case "$VERSION" in
-              *.dev0) MODE=development ;;
-              *.dev*) echo "Committed version $VERSION must use the .dev0 placeholder" >&2; exit 1 ;;
-              *) MODE=verify ;;
+            # Query origin rather than local tags so a stale checkout cannot
+            # misclassify the commit. Exit status 2 means the tag does not exist.
+            STATUS=0
+            git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null || STATUS=$?
+            case "$STATUS" in
+              0) MODE=development ;;
+              2) MODE=verify ;;
+              *) echo "Could not query origin for tag v$VERSION" >&2; exit 1 ;;
             esac
           fi
           if [ "$MODE" = development ]; then SMOKE_PREFIX=LAMBDADB_DEV_; else SMOKE_PREFIX=LAMBDADB_PROD_; fi

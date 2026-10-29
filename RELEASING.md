@@ -4,10 +4,10 @@ This document defines the required packaging and release process for the
 `lambdadb` Python package.
 
 PyPI is the distribution channel. Releases are trunk-based: `main` is the only
-long-lived branch. A push to `main` with an RC or stable version is verified
-without publication, and a published GitHub Release for that version publishes
-it to PyPI. Development builds are GitHub Actions artifacts only; nothing
-publishes development versions to PyPI automatically.
+long-lived branch. A push to `main` whose RC or stable version is not tagged yet
+is verified without publication, and a published GitHub Release for that version
+publishes it to PyPI. Development builds are GitHub Actions artifacts only;
+nothing publishes development versions to PyPI automatically.
 
 Every `main` push and Release also runs the deployed
 [live smoke gate](#deployed-live-smoke-gate): development pushes against the dev
@@ -32,13 +32,16 @@ Every build must use the same canonical PEP 440 version in both locations:
 The workflows reject mismatched versions. Release tags add a leading `v` to the
 same package version.
 
-Between releases, `main` carries the next version with the development
-placeholder `X.Y.Z.dev0`. A release pull request sets the RC or stable version,
-and that exact merge commit is tagged with a leading `v`.
+The committed version is always an RC or stable version: the most recently
+released one, whose tag `v<version>` exists, or the next one set by a merged
+release pull request that is not tagged yet. Only a release pull request changes
+it, and that exact merge commit is tagged with a leading `v`. A development
+version is never committed; CI derives it from tags (see
+[Development packages](#development-packages)).
 
 | Channel | Committed version | Package version | Git tag | Destination |
 | :-- | :-- | :-- | :-- | :-- |
-| Development | `X.Y.Z.dev0` | `X.Y.Z.dev0` | None | GitHub Actions artifact |
+| Development | Last release (`X.Y.ZrcN` or `X.Y.Z`, tagged) | `X.Y.Z.devN` or `X.Y.(Z+1).devN`, derived in CI | None | GitHub Actions artifact |
 | Release candidate | `X.Y.ZrcN` | `X.Y.ZrcN` | `vX.Y.ZrcN` | Production PyPI |
 | Stable | `X.Y.Z` | `X.Y.Z` | `vX.Y.Z` | Production PyPI |
 
@@ -53,36 +56,48 @@ file's formatting and fails unless both sources agree afterwards:
 
 ```bash
 python scripts/version.py get                 # print the committed version
-python scripts/version.py set 0.14.0rc1       # release pull request
-python scripts/version.py set 0.14.0.dev0     # next development version
+python scripts/version.py set 0.15.0rc1       # release pull request
 ```
 
-It accepts only committed forms: `X.Y.Z.dev0`, `X.Y.ZrcN`, and `X.Y.Z`. The
-committed `X.Y.Z.dev0` must be newer than the latest stable release.
+`set` accepts only the committed forms `X.Y.ZrcN` and `X.Y.Z` and rejects
+development versions. `python scripts/version.py set-dev` writes the derived
+development version and is only for disposable CI checkouts; never commit its
+result.
 
 ## Development packages
 
 Development packages are for internal testing and must not be uploaded to
 production PyPI. They are built manually; merging into `main` does not publish
-or upload one. A `main` push with the `X.Y.Z.dev0` placeholder runs only the
-dev-environment live smoke gate in the **Publish to PyPI** workflow.
+or upload one. A `main` push whose committed version is already tagged runs only
+the dev-environment live smoke gate in the **Publish to PyPI** workflow.
+
+The **Build development package** workflow derives the development version in
+its disposable checkout and never commits it:
+
+- After an RC `X.Y.ZrcN`, the version is `X.Y.Z.devN`, which sorts below the RC.
+- After a stable `X.Y.Z`, the version is the next patch `X.Y.(Z+1).devN`.
+- `N` is the number of first-parent commits since the newest stable tag
+  `vA.B.C` reachable from the built commit, and must be at least 1. RC tags do
+  not reset it. For example, with `0.14.0` committed and tagged, the third
+  first-parent commit after `v0.14.0` builds `0.14.1.dev3`.
 
 1. Run the **Build development package** workflow with the exact branch, tag,
-   or commit as its `ref` input (default `main`).
+   or commit as its `ref` input (default `main`). A ref that is exactly a stable
+   release tag has no development version and fails.
 2. Download the wheel artifact whose name includes both the package version and
    commit SHA.
 3. Install that exact wheel in the target environment:
 
    ```bash
-   python -m pip install ./lambdadb-0.14.0.dev0-py3-none-any.whl
+   python -m pip install ./lambdadb-0.14.1.dev3-py3-none-any.whl
    ```
 
 4. Record the workflow run, commit SHA, package version, and test environment in
    the validation result.
 
-Every development artifact built from `main` carries the committed
-`X.Y.Z.dev0` placeholder, so the commit SHA in the artifact name, not the
-package version, identifies its contents.
+Builds of different branches can derive the same development version, so the
+commit SHA in the artifact name, not the package version, identifies its
+contents.
 
 ## Release candidates
 
@@ -94,7 +109,8 @@ stable installation does not upgrade to an RC unless the consumer opts in.
 2. Open a release pull request into `main` that sets the RC with
    `python scripts/version.py set 0.9.0rc1` and changes the `CHANGELOG.md`
    Unreleased heading to that exact package version.
-3. Merge it and record the exact merge commit. That `main` push runs the
+3. Merge it and record the exact merge commit. Because `v0.9.0rc1` does not
+   exist on `origin` yet, that `main` push runs the
    **Publish to PyPI** workflow in verification mode: metadata validation,
    tests on every supported Python version, distribution checks, and the
    production live smoke gate, with no publication. Do not merge other pull requests until the release is tagged,
@@ -147,14 +163,12 @@ accepted and all feedback is resolved.
 6. Create a non-prerelease GitHub Release for the tag.
 7. Verify the PyPI package and a clean installation.
 
-## Next development version
+## After a release
 
-When an RC or stable publication succeeds, the **Open next development
-version** workflow opens a pull request that restores the placeholder: the same
-`X.Y.Z.dev0` after an RC, or the next patch `X.Y.(Z+1).dev0` after a stable
-release. Change it with `python scripts/version.py set` if the next release is a
-minor or major version, then merge it. Pull requests opened by GitHub Actions do
-not trigger CI; CI runs on the `main` push after the merge.
+After the tag exists, `main` keeps the released version until the next release
+pull request; there is no follow-up version pull request. Later `main` pushes
+run in development mode, and development packages derive their versions from the
+tags.
 
 ## Validation checklist
 
@@ -182,20 +196,20 @@ See [docs/TESTING.md](docs/TESTING.md) for local and integration test commands.
 ## Workflow boundaries
 
 - `.github/workflows/dev-package.yaml` is the only workflow for development
-  artifacts. It is manually dispatched, requires an `X.Y.Z.devN` version, and
-  never receives PyPI credentials.
+  artifacts. It is manually dispatched, tests the committed tree, writes the
+  derived `X.Y.Z.devN` version into its disposable checkout, and never receives
+  PyPI credentials.
 - `.github/workflows/publish.yaml` runs for `main` pushes and published GitHub
-  Releases. A `main` push with the `X.Y.Z.dev0` placeholder runs only the
-  dev-environment live smoke gate, and any other committed development version
-  fails. A `main` push with an RC or stable version runs the validation, test,
-  build, and production live smoke jobs without publishing. A Release runs the
+  Releases. A `main` push must carry an RC or stable version; a committed
+  development version fails. It queries the tags on `origin` (not the local
+  checkout): when `v<version>` exists, the push is a development commit and runs
+  only the dev-environment live smoke gate. When it does not exist, the push is
+  a release commit and runs the validation, test, build, and production live
+  smoke jobs without publishing. A Release runs the
   same jobs and publishes its RC or stable version only after all of them pass. The workflow rejects development
   versions, non-canonical versions, version mismatches, versions outside exact
   `X.Y.ZrcN` / `X.Y.Z` channels, mismatched release names or changelog headings,
   incorrect GitHub prerelease flags, and release commits outside `main`.
-- `.github/workflows/next-dev-version.yaml` runs after a successful Release
-  publication and opens the next development version pull request with
-  `contents: write` and `pull-requests: write`. It never publishes.
 - The production publish job uses PyPI Trusted Publishing with a short-lived
   OIDC credential.
 - `scripts/publish.sh` intentionally refuses direct token-based publishing.
@@ -214,8 +228,8 @@ and verifies their deletion. The run takes about three minutes.
 
 | Run mode | Event | Live target |
 | :-- | :-- | :-- |
-| development | `main` push with `X.Y.Z.dev0` | Dev environment; nothing is published |
-| verify | `main` push with `X.Y.ZrcN` or `X.Y.Z` | Production; nothing is published |
+| development | `main` push whose version is already tagged on `origin` | Dev environment; nothing is published |
+| verify | `main` push whose `X.Y.ZrcN` or `X.Y.Z` has no `v<version>` tag on `origin` yet | Production; nothing is published |
 | release | Published GitHub Release | Production, before the PyPI publish job |
 
 The job authenticates to AWS with a dedicated GitHub OIDC role, then reads the
