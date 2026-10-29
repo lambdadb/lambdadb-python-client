@@ -31,6 +31,10 @@ The following rules are mandatory:
   publish routine development releases to production PyPI.
 - Release candidates may reach production PyPI only through a GitHub Release
   marked as a prerelease. Stable releases must not be marked as prereleases.
+- Follow the branch and merge flow in `RELEASING.md`: feature and fix pull
+  requests target `develop` and are squash-merged; `develop` -> `main`
+  promotion and `main` -> `develop` synchronization pull requests use a merge
+  commit and are never squashed or rebased.
 - Never replace an existing PyPI version or move a published Git tag. Publish
   the next development, RC, or patch version instead.
 - Never create or push a tag, publish a GitHub Release, upload to PyPI, yank a
