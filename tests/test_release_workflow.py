@@ -88,12 +88,12 @@ def test_publish_runs_for_main_pushes_and_releases_only() -> None:
 @pytest.mark.parametrize(
     ("event", "version", "expected"),
     [
-        ("push", "0.13.1.dev0", "mode=development"),
-        ("push", "0.14.0rc1", "mode=verify"),
-        ("push", "0.14.0", "mode=verify"),
+        ("push", "0.13.1.dev0", "mode=development\nsmoke_prefix=LAMBDADB_DEV_"),
+        ("push", "0.14.0rc1", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_"),
+        ("push", "0.14.0", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_"),
         ("push", "0.14.0.dev3", None),
-        ("release", "0.14.0", "mode=release"),
-        ("release", "0.14.0rc1", "mode=release"),
+        ("release", "0.14.0", "mode=release\nsmoke_prefix=LAMBDADB_PROD_"),
+        ("release", "0.14.0rc1", "mode=release\nsmoke_prefix=LAMBDADB_PROD_"),
     ],
 )
 def test_run_mode_follows_the_committed_version(
@@ -146,12 +146,37 @@ def test_only_releases_publish_and_verification_runs_every_check() -> None:
             "|| github.event.release.tag_name }}" in job
         )
     publish = _job(PUBLISH, "pypi-publish")
-    assert "needs: [validate, test, build]" in publish
+    assert "needs: [validate, test, build, live-smoke]" in publish
     assert "if: needs.validate.outputs.mode == 'release'" in publish
     assert PUBLISH.count("pypa/gh-action-pypi-publish") == 1
     assert "pypa/gh-action-pypi-publish" in publish
     assert "id-token: write" in publish
-    assert "id-token" not in PUBLISH.replace(publish, "")
+    smoke = _job(PUBLISH, "live-smoke")
+    assert "id-token: write" in smoke
+    assert "id-token" not in PUBLISH.replace(publish, "").replace(smoke, "")
+
+
+def test_every_mode_runs_the_live_smoke_against_its_environment() -> None:
+    assert "smoke_prefix: ${{ steps.mode.outputs.smoke_prefix }}" in _job(PUBLISH, "validate")
+    smoke = _job(PUBLISH, "live-smoke")
+    assert "needs: validate\n" in smoke
+    assert "\n    if:" not in smoke
+    assert (
+        "ref: ${{ github.event_name == 'push' && github.sha "
+        "|| github.event.release.tag_name }}" in smoke
+    )
+    # Each value comes only from the selected environment's Variable; a missing
+    # Variable stays empty and fails instead of falling back.
+    for name in ("SMOKE_AWS_ROLE_ARN", "BASE_URL", "PROJECT_NAME", "SMOKE_SECRET_ARN"):
+        assert (
+            f"${{{{ vars[format('{{0}}{name}', needs.validate.outputs.smoke_prefix)] }}}}"
+            in smoke
+        )
+    assert "||" not in smoke.replace("github.sha || github.event.release.tag_name", "")
+    assert "secrets." not in PUBLISH
+    assert smoke.index("Authenticate smoke tests to AWS") < smoke.index(
+        "python scripts/run_live_smoke.py"
+    )
 
 
 def test_release_commits_must_be_on_main(tmp_path: Path) -> None:

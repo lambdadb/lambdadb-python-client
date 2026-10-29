@@ -194,13 +194,13 @@ def live_collection():
 
 @pytest.mark.integration
 @pytest.mark.parametrize("query_kind", ["omitted", "empty", "query_string"])
-@pytest.mark.parametrize("with_facets", [False, True])
 @pytest.mark.parametrize("async_mode", [False, True])
-@pytest.mark.parametrize("response_kind", ["inline", "docs_url", "facet_only"])
+# size=0 requires facets, so facet-only requests always include them.
+@pytest.mark.parametrize(("response_kind", "with_facets"), [
+    ("inline", False), ("inline", True), ("docs_url", False), ("docs_url", True),
+    ("facet_only", True)])
 def test_live_query_score_contract(live_collection, query_kind, with_facets,
                                   async_mode, response_kind, record_property):
-    if response_kind == "facet_only" and not with_facets:
-        pytest.skip("size=0 requires facets; not a valid score-contract request")
     config, name = _live_config(), live_collection
     args = dict(size=0 if response_kind == "facet_only" else 6, retries=None)
     if query_kind == "empty":

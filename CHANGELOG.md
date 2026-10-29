@@ -29,6 +29,10 @@
   as `{"type": "keyword"}` in `index_configs`, and that create and update
   requests may omit it or send it back unchanged. The SDK has no local `id`
   check; an id-only schema is passed through.
+- The publish workflow runs every deployed live test as a gate: development
+  `main` pushes against the dev environment, release verification and GitHub
+  Releases against production before PyPI publication. A skipped live test or
+  missing configuration fails the gate.
 
 ## 0.13.0
 
