@@ -1,0 +1,62 @@
+# After an RC/stable GitHub Release publishes, open a pull request that restores the
+# X.Y.Z.dev0 placeholder on main so the committed version moves past the release.
+name: Open next development version
+
+on:
+  workflow_run:
+    workflows: ["Publish to PyPI"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: next-dev-version
+  cancel-in-progress: false
+
+jobs:
+  open-pull-request:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Open the next development version pull request
+        env:
+          # For a release-triggered run, head_branch is the release tag.
+          RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(rc[1-9][0-9]*)?$ ]]; then
+            echo "Unexpected release tag $RELEASE_TAG" >&2
+            exit 1
+          fi
+          RELEASED="${RELEASE_TAG#v}"
+          CURRENT=$(python scripts/version.py get)
+          if [ "$CURRENT" != "$RELEASED" ]; then
+            echo "main is at $CURRENT, not the released $RELEASED; nothing to do"
+            exit 0
+          fi
+          NEXT=$(python scripts/version.py next-dev "$RELEASED")
+          BRANCH="chore/next-dev-$NEXT"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+            echo "$BRANCH already exists"
+            exit 0
+          fi
+          python scripts/version.py set "$NEXT"
+          git switch -c "$BRANCH"
+          git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -am "chore: start $NEXT development"
+          git push origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" --title "chore: start $NEXT development" --body \
+            "$RELEASE_TAG is published. This restores the development placeholder \`$NEXT\` so main carries a version above the release. Change it with \`python scripts/version.py set X.Y.Z.dev0\` if the next release is a minor or major version. Pull requests opened by GitHub Actions do not trigger CI; CI runs on the main push after this merges."

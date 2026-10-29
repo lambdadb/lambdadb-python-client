@@ -152,13 +152,16 @@ results.
 ## Workflow coverage
 
 - `.github/workflows/ci.yaml` runs imports and the existing test suite for
-  pushes and pull requests on `main` and `develop`.
+  pushes and pull requests on `main`.
 - `.github/workflows/dev-package.yaml` validates an `X.Y.Z.devN` version, runs
   non-integration tests, checks distributions, and uploads a commit-specific
   wheel artifact without publishing to PyPI.
-- `.github/workflows/publish.yaml` validates a published GitHub Release, tests
-  Python 3.10 through 3.13, checks the built distributions, verifies wheel
-  installation, and publishes through PyPI Trusted Publishing only after all
-  required jobs succeed.
+- `.github/workflows/publish.yaml` validates an RC or stable version committed on
+  `main` or a published GitHub Release, tests Python 3.10 through 3.13, checks
+  the built distributions, and verifies wheel installation. Only a GitHub
+  Release publishes, through PyPI Trusted Publishing, after all required jobs
+  succeed; a `main` push with the `X.Y.Z.dev0` placeholder skips these jobs.
+- `.github/workflows/next-dev-version.yaml` opens the next development version
+  pull request after a successful Release publication.
 
 See [RELEASING.md](../RELEASING.md) for the required release sequence.
