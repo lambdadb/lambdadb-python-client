@@ -105,15 +105,15 @@ def _origin_repo(tmp_path: Path, env: dict[str, str]) -> Path:
 @pytest.mark.parametrize(
     ("event", "version", "expected"),
     [
-        ("push", "0.14.0", "mode=development\nsmoke_prefix=LAMBDADB_DEV_"),
-        ("push", "0.14.0rc1", "mode=development\nsmoke_prefix=LAMBDADB_DEV_"),
-        ("push", "0.15.0rc1", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_"),
-        ("push", "0.15.0", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_"),
+        ("push", "0.14.0", "mode=development\nsmoke_prefix=LAMBDADB_DEV_\nenvironment=dev"),
+        ("push", "0.14.0rc1", "mode=development\nsmoke_prefix=LAMBDADB_DEV_\nenvironment=dev"),
+        ("push", "0.15.0rc1", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_\nenvironment=prod"),
+        ("push", "0.15.0", "mode=verify\nsmoke_prefix=LAMBDADB_PROD_\nenvironment=prod"),
         ("push", "0.14.1.dev0", None),
         ("push", "0.14.1.dev3", None),
         ("push", "0.15.0-rc.1", None),
-        ("release", "0.14.0", "mode=release\nsmoke_prefix=LAMBDADB_PROD_"),
-        ("release", "0.14.0rc1", "mode=release\nsmoke_prefix=LAMBDADB_PROD_"),
+        ("release", "0.14.0", "mode=release\nsmoke_prefix=LAMBDADB_PROD_\nenvironment=prod"),
+        ("release", "0.14.0rc1", "mode=release\nsmoke_prefix=LAMBDADB_PROD_\nenvironment=prod"),
     ],
 )
 def test_run_mode_follows_the_committed_version_tag_on_origin(
@@ -198,16 +198,22 @@ def test_only_releases_publish_and_verification_runs_every_check() -> None:
     assert "if: needs.validate.outputs.mode == 'release'" in publish
     assert PUBLISH.count("pypa/gh-action-pypi-publish") == 1
     assert "pypa/gh-action-pypi-publish" in publish
+    # Only the publishing job receives an OIDC token, for PyPI Trusted Publishing.
     assert "id-token: write" in publish
-    smoke = _job(PUBLISH, "live-smoke")
-    assert "id-token: write" in smoke
-    assert "id-token" not in PUBLISH.replace(publish, "").replace(smoke, "")
+    assert "id-token" not in PUBLISH.replace(publish, "")
 
 
 def test_every_mode_runs_the_live_smoke_against_its_environment() -> None:
-    assert "smoke_prefix: ${{ steps.mode.outputs.smoke_prefix }}" in _job(PUBLISH, "validate")
+    validate = _job(PUBLISH, "validate")
+    assert "smoke_prefix: ${{ steps.mode.outputs.smoke_prefix }}" in validate
+    assert "environment: ${{ steps.mode.outputs.environment }}" in validate
     smoke = _job(PUBLISH, "live-smoke")
-    assert "needs: validate\n" in smoke
+    assert smoke.startswith(
+        "    needs: validate\n"
+        "    runs-on: ubuntu-latest\n"
+        "    environment: ${{ needs.validate.outputs.environment }}\n"
+    )
+    assert "permissions:" not in smoke
     assert "\n    if:" not in smoke
     assert (
         "ref: ${{ github.event_name == 'push' && github.sha "
@@ -215,16 +221,16 @@ def test_every_mode_runs_the_live_smoke_against_its_environment() -> None:
     )
     # Each value comes only from the selected environment's Variable; a missing
     # Variable stays empty and fails instead of falling back.
-    for name in ("SMOKE_AWS_ROLE_ARN", "BASE_URL", "PROJECT_NAME", "SMOKE_SECRET_ARN"):
+    for name in ("BASE_URL", "PROJECT_NAME"):
         assert (
             f"${{{{ vars[format('{{0}}{name}', needs.validate.outputs.smoke_prefix)] }}}}"
             in smoke
         )
     assert "||" not in smoke.replace("github.sha || github.event.release.tag_name", "")
-    assert "secrets." not in PUBLISH
-    assert smoke.index("Authenticate smoke tests to AWS") < smoke.index(
-        "python scripts/run_live_smoke.py"
-    )
+    # The key comes only from the selected GitHub Environment's secret.
+    assert PUBLISH.count("secrets.") == 1
+    assert "LAMBDADB_PROJECT_API_KEY: ${{ secrets.LAMBDADB_PROJECT_API_KEY }}" in smoke
+    assert not re.search(r"(?i)aws-actions|configure-aws-credentials|_ARN\b|secretsmanager", PUBLISH)
 
 
 def test_release_commits_must_be_on_main(tmp_path: Path) -> None:
