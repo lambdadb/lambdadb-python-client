@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.14.1
 
 - `LAMBDADB_DEBUG` enables the default debug logger only when it is `true` or
   `1` (case-insensitive, surrounding whitespace ignored). Previously every
