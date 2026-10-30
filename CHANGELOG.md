@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `LAMBDADB_DEBUG` enables the default debug logger only when it is `true` or
+  `1` (case-insensitive, surrounding whitespace ignored). Previously every
+  non-empty value, including `false` and `0`, enabled it, and the logger writes
+  request headers, including the API key, to stderr.
 - Development versions are derived from tags instead of being committed. `main`
   keeps the last released version until the next release pull request, and
   `scripts/version.py set` accepts only RC and stable versions. A `main` push
