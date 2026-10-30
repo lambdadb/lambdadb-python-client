@@ -24,6 +24,12 @@ LEXICAL = {"queryString": {"query": "body:restore"}}
 VECTOR = {"knn": {"field": "vector", "queryVector": ([1, 0] + [0.0] * 62), "k": 30}}
 RERANK = {"provider": "typesafe", "model": "jev-1.13.0",
           "queryText": "How do I restore a previous version?", "fields": ["body"]}
+# Provider timeouts, rate limits and outages are transient under shared load; with
+# onFailure "returnOriginal" they arrive as a fallback naming the reason. Retry only
+# those, a bounded number of times. Credential, invalid-response and any other
+# fallback fails at once, and a fallback never counts as applied reranking.
+TRANSIENT_RERANK_REASONS = {"timeout", "rateLimit", "unavailable"}
+RERANK_ATTEMPTS = 3
 
 
 def _wait_query(collection, expected, **kwargs):
@@ -38,6 +44,26 @@ def _wait_query(collection, expected, **kwargs):
                 raise
         time.sleep(2)
     pytest.fail("Timed out waiting for query visibility")
+
+
+def _rerank_query(collection, label, **kwargs):
+    request = {**kwargs, "rerank": {**kwargs["rerank"], "onFailure": "returnOriginal"}}
+    for attempt in range(1, RERANK_ATTEMPTS + 1):
+        response = collection.query(**request)
+        if response.rerank is None or response.rerank.status != "fallback":
+            return response
+        reason = response.rerank.reason
+        # Documented fallback shape: retrieval order without rerank scores or criteria.
+        if (response.rerank.scored_count != 0 or response.rerank.criteria_version is not None
+                or len(response.results) > request["size"]
+                or any(hit.retrieval_score is not None for hit in response.results)):
+            pytest.fail(f"{label} fallback with reason {reason} on attempt {attempt}/{RERANK_ATTEMPTS} "
+                        "does not match the documented shape", pytrace=False)
+        if reason not in TRANSIENT_RERANK_REASONS or attempt == RERANK_ATTEMPTS:
+            pytest.fail(f"{label} fell back with reason {reason} on attempt {attempt}/{RERANK_ATTEMPTS}",
+                        pytrace=False)
+        print(f"{label} fell back with reason {reason}; retrying ({attempt + 1}/{RERANK_ATTEMPTS})")
+        time.sleep(attempt * 5)
 
 
 def _delete_and_verify(sdk, name):
@@ -317,10 +343,11 @@ def test_cohere_sources_query_inputs_direct_vectors_and_rerank(live_sdk):
         assert raw.documents[0]["id"] == "direct"
         stage = "Cohere reranking"
         for model in ("rerank-v5.0-pro", "rerank-v5.0-fast"):
-            response = coll.query(query={"knn": {"field": "text", "queryText": "shoes", "k": 4}},
-                                  size=2, consistent_read=True, retries=None,
-                                  rerank={"provider": "cohere", "model": model, "queryText": "running shoes",
-                                          "fields": ["title"]})
+            response = _rerank_query(coll, f"Cohere {model}",
+                                     query={"knn": {"field": "text", "queryText": "shoes", "k": 4}},
+                                     size=2, consistent_read=True, retries=None,
+                                     rerank={"provider": "cohere", "model": model, "queryText": "running shoes",
+                                             "fields": ["title"]})
             assert response.rerank.status == "applied"
             assert response.rerank.criteria_version == "cohere-relevance-v1"
             assert response.rerank.candidate_count == response.rerank.scored_count == 4
