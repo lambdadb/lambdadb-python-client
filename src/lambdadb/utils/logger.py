@@ -21,7 +21,9 @@ def get_body_content(req: httpx.Request) -> str:
 
 
 def get_default_logger() -> Logger:
-    if os.getenv("LAMBDADB_DEBUG"):
+    # Only "true" or "1" enable the logger. A plain truthiness check treated
+    # every non-empty value, including "false" and "0", as enabled.
+    if os.getenv("LAMBDADB_DEBUG", "").strip().lower() in ("true", "1"):
         logging.basicConfig(level=logging.DEBUG)
         return logging.getLogger("lambdadb")
     return NoOpLogger()

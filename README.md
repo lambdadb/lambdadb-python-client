@@ -739,7 +739,7 @@ client = LambdaDB(
 )
 ```
 
-You can also enable a default debug logger by setting an environment variable `LAMBDADB_DEBUG` to true.
+You can also enable a default debug logger by setting an environment variable `LAMBDADB_DEBUG` to `true` or `1` (case-insensitive). Any other value, including `false` and `0`, leaves it disabled.
 <!-- End Debugging [debug] -->
 
 <!-- Placeholder for Future Speakeasy SDK Sections -->
