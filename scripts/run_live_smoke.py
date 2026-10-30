@@ -1,9 +1,9 @@
 """Run every deployed LambdaDB live test as a release gate.
 
-The publish workflow runs this script after assuming the smoke OIDC role. It
-reads the dedicated project API key from AWS Secrets Manager, masks it in GitHub
-Actions, and passes it only in the pytest child process environment, never in
-command arguments or files.
+The publish workflow runs this script in the GitHub Environment that holds the
+dedicated smoke project API key. The key arrives in ``LAMBDADB_PROJECT_API_KEY``,
+which Actions masks in logs, and is passed only in the pytest child process
+environment, never in command arguments or files.
 
 The pytest child also loads this module as a plugin (``-p
 scripts.run_live_smoke``) so that a skipped live test fails the gate instead of
@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_CONFIGURATION = (
     "LAMBDADB_BASE_URL",
     "LAMBDADB_PROJECT_NAME",
-    "LAMBDADB_SMOKE_SECRET_ARN",
+    "LAMBDADB_PROJECT_API_KEY",
 )
 # Every live suite's opt-in flag. A suite whose flag is missing here skips,
 # which fails the gate.
@@ -56,45 +56,16 @@ class SmokeError(RuntimeError):
     """A live smoke failure that must block publication."""
 
 
-def _emit(line: str) -> None:
-    # Flush so the mask is registered before the child writes any output.
-    print(line, flush=True)
-
-
 def run_live_smoke(
     env: Mapping[str, str],
-    execute: Callable[..., Any] = subprocess.run,
     spawn: Callable[..., Any] = subprocess.run,
-    mask: Callable[[str], None] = _emit,
 ) -> None:
     for name in REQUIRED_CONFIGURATION:
         if not env.get(name, "").strip():
             raise SmokeError(f"Missing smoke configuration: {name}")
-    try:
-        result = execute(
-            [
-                "aws", "secretsmanager", "get-secret-value",
-                "--region", "ap-northeast-2",
-                "--secret-id", env["LAMBDADB_SMOKE_SECRET_ARN"],
-                "--query", "SecretString", "--output", "text",
-            ],
-            env=dict(env),
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-    except (OSError, subprocess.CalledProcessError):
-        # Do not include AWS command output or credentials in errors.
-        raise SmokeError(
-            "Unable to read the dedicated smoke project key from Secrets Manager"
-        ) from None
-    key = result.stdout.strip()
-    if not key or key == "None" or "\r" in key or "\n" in key:
-        raise SmokeError("Expected a single project API key in SecretString")
-    # A workflow command only works in GitHub Actions; elsewhere it would print the key.
-    if env.get("GITHUB_ACTIONS") == "true":
-        mask("::add-mask::" + key.replace("%", "%25"))
+    key = env["LAMBDADB_PROJECT_API_KEY"].strip()
+    if "\r" in key or "\n" in key:
+        raise SmokeError("Expected a single project API key")
     result = spawn(
         list(PYTEST_COMMAND),
         cwd=ROOT,

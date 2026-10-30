@@ -232,73 +232,63 @@ and verifies their deletion. The run takes about three minutes.
 | verify | `main` push whose `X.Y.ZrcN` or `X.Y.Z` has no `v<version>` tag on `origin` yet | Production; nothing is published |
 | release | Published GitHub Release | Production, before the PyPI publish job |
 
-The job authenticates to AWS with a dedicated GitHub OIDC role, then reads the
-smoke project API key from Secrets Manager. The key is masked in the workflow
-log and passed only in the pytest child process environment, never in command
-arguments, files, artifacts, or GitHub Secrets.
+The job reads the smoke project API key from the GitHub Environment secret
+`LAMBDADB_PROJECT_API_KEY`. The `validate` job selects the `dev` Environment for
+development pushes and `prod` for release verification and Releases, and the
+`live-smoke` job runs in it. Actions masks the key in the workflow log; it is
+passed only in the smoke step's and pytest child process's environment, never in
+command arguments, files, or artifacts.
 
 The following repository Variables configure the gate. The `LAMBDADB_DEV_`
 Variables serve development pushes; the `LAMBDADB_PROD_` Variables serve release
-verification and Releases. A missing Variable fails the run; it never falls back
-to the other environment.
+verification and Releases. A missing Variable or secret fails the run; it never
+falls back to the other environment.
 
 | Variable | Value |
 | :-- | :-- |
 | `LAMBDADB_DEV_BASE_URL` | `https://internal-dev-aws-apne2-v3-c05a2b5d492a.lambdadb.ai` |
 | `LAMBDADB_DEV_PROJECT_NAME` | Dedicated SDK smoke project in `dev-aws-apne2-v3` (`python-sdk-ci`) |
-| `LAMBDADB_DEV_SMOKE_AWS_ROLE_ARN` | Dev OIDC role (`lambdadb-python-sdk-smoke`) |
-| `LAMBDADB_DEV_SMOKE_SECRET_ARN` | Exact ARN of the dev project's API key secret |
 | `LAMBDADB_PROD_BASE_URL` | `https://aws-ap-northeast-2-v3.lambdadb.ai` |
 | `LAMBDADB_PROD_PROJECT_NAME` | Dedicated SDK smoke project in `prod-aws-apne2-v3` (`python-sdk-ci`) |
-| `LAMBDADB_PROD_SMOKE_AWS_ROLE_ARN` | Production OIDC role (`lambdadb-python-sdk-prod-smoke`) |
-| `LAMBDADB_PROD_SMOKE_SECRET_ARN` | Exact ARN of the production project's API key secret |
 
-Store each project key as a plain SecretString in `ap-northeast-2`. Use a
+Configure two GitHub Environments, each with the secret
+`LAMBDADB_PROJECT_API_KEY` set to its project's API key:
+
+| Environment | Deployment branches and tags | Key |
+| :-- | :-- | :-- |
+| `dev` | branch `main` | Dev smoke project |
+| `prod` | branch `main`, tag `v*` | Production smoke project |
+
+The deployment policy keeps the key away from other branches and tags. Use a
 dedicated project where test collections may be created and deleted, with a
-`rateLimit` of at least 100 requests per second. Do not grant the workflow the
-stack admin key, project creation, deployment, or secret write permissions. Key
-rotation updates the AWS secret without changing this workflow.
+`rateLimit` of at least 100 requests per second. Never use the stack admin key.
+Rotate a key by issuing a new project key and replacing the Environment secret
+(`gh secret set LAMBDADB_PROJECT_API_KEY --env <name>`).
 
-Each role trusts audience `sts.amazonaws.com` and only these subjects. The dev
-role:
-
-```text
-repo:lambdadb/lambdadb-python-client:ref:refs/heads/main
-```
-
-The production role (release verification on `main`, Releases on tags):
-
-```text
-repo:lambdadb/lambdadb-python-client:ref:refs/heads/main
-repo:lambdadb/lambdadb-python-client:ref:refs/tags/v*
-```
-
-Each role's permission policy allows only `secretsmanager:GetSecretValue` on its
-own environment's smoke secret ARN (plus `kms:Decrypt` on the exact key only if
-the secret uses a customer-managed KMS key).
-
-Run the same gate locally with AWS credentials that can read the secret, for
-example an SSO profile. Outside GitHub Actions the runner prints no mask
-command, so the key never reaches the terminal:
+For local runs, keep the dev smoke project's settings outside the repository in
+`~/.config/lambdadb/smoke/dev/python-sdk-ci.env` (mode `0600`) with
+`LAMBDADB_BASE_URL`, `LAMBDADB_PROJECT_NAME`, and `LAMBDADB_PROJECT_API_KEY`,
+load it into the shell, and run the same gate:
 
 ```bash
-AWS_PROFILE=dev \
-LAMBDADB_BASE_URL=https://internal-dev-aws-apne2-v3-c05a2b5d492a.lambdadb.ai \
-LAMBDADB_PROJECT_NAME=python-sdk-ci \
-LAMBDADB_SMOKE_SECRET_ARN=<dev smoke secret ARN> \
+set -a; . ~/.config/lambdadb/smoke/dev/python-sdk-ci.env; set +a
 poetry run python scripts/run_live_smoke.py
 ```
+
+Exported variables take precedence over a checkout's `.env` and `.env.local`.
 
 Production can lag dev. A live failure caused by an undeployed or changed
 server contract blocks the gate; report the exact error rather than skipping
 the test. Missing credentials or an untested endpoint are never a successful
 live validation.
 
-For additional administrative protection, configure a protected GitHub
-Environment for production PyPI publishing and update the PyPI Trusted
-Publisher configuration to require the same environment. Coordinate those two
-external changes before adding `environment:` to the workflow; changing only
-one side will break publishing.
+PyPI Trusted Publishing for this project does not require a GitHub
+Environment, and the `pypi-publish` job declares none. For additional
+administrative protection, configure a protected GitHub Environment for
+production PyPI publishing and update the PyPI Trusted Publisher configuration
+to require the same environment. Coordinate those two external changes before
+adding `environment:` to the `pypi-publish` job; changing only one side will
+break publishing.
 
 ## Failed releases
 

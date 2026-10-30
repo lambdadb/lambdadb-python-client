@@ -23,9 +23,7 @@ SPEC.loader.exec_module(SMOKE)
 ENV = {
     "LAMBDADB_BASE_URL": "https://test.example",
     "LAMBDADB_PROJECT_NAME": "sdk-smoke",
-    "LAMBDADB_SMOKE_SECRET_ARN": (
-        "arn:aws:secretsmanager:ap-northeast-2:123456789012:secret:smoke-key"
-    ),
+    "LAMBDADB_PROJECT_API_KEY": "synthetic-test-key",
     "LAMBDADB_RUN_BAYESIAN_SMOKE": "0",
     "PATH": "/bin",
 }
@@ -41,34 +39,19 @@ def _unexpected(*_args: Any, **_kwargs: Any) -> Any:
     pytest.fail("must not start the smoke")
 
 
-def _secret(value: str) -> Any:
-    return lambda *_args, **_kwargs: SimpleNamespace(stdout=value)
-
-
-@pytest.mark.parametrize("actions", [True, False])
-def test_key_is_read_through_aws_masked_and_passed_only_to_the_child(actions: bool) -> None:
-    env = {**ENV, **({"GITHUB_ACTIONS": "true"} if actions else {})}
-    calls: list[str] = []
-
-    def execute(args: list[str], **options: Any) -> Any:
-        calls.append("aws")
-        assert args == [
-            "aws", "secretsmanager", "get-secret-value", "--region", "ap-northeast-2",
-            "--secret-id", ENV["LAMBDADB_SMOKE_SECRET_ARN"],
-            "--query", "SecretString", "--output", "text",
-        ]
-        assert options["capture_output"] and options["check"]
-        return SimpleNamespace(stdout="synthetic%test-key\n")
+def test_the_live_suite_runs_with_the_configured_key_in_the_child_environment() -> None:
+    env = {**ENV, "LAMBDADB_PROJECT_API_KEY": " synthetic-test-key\n"}
+    calls: list[list[str]] = []
 
     def spawn(args: list[str], **options: Any) -> Any:
-        calls.append("pytest")
+        calls.append(args)
         assert args[:3] == [sys.executable, "-m", "pytest"]
         assert args[3:7] == LIVE_FILES
         assert args[7:9] == ["-p", "scripts.run_live_smoke"]
         assert not any("synthetic" in arg for arg in args)
         assert options["cwd"] == ROOT
         child = options["env"]
-        assert child["LAMBDADB_PROJECT_API_KEY"] == "synthetic%test-key"
+        assert child["LAMBDADB_PROJECT_API_KEY"] == "synthetic-test-key"
         assert child["LAMBDADB_BASE_URL"] == ENV["LAMBDADB_BASE_URL"]
         # Every suite is enabled, even when the caller disabled one.
         for flag in (
@@ -80,14 +63,11 @@ def test_key_is_read_through_aws_masked_and_passed_only_to_the_child(actions: bo
             assert child[flag] == "1"
         return SimpleNamespace(returncode=0)
 
-    def mask(line: str) -> None:
-        calls.append("mask")
-        assert line == "::add-mask::synthetic%25test-key"
+    SMOKE.run_live_smoke(env, spawn)
 
-    SMOKE.run_live_smoke(env, execute, spawn, mask)
-
-    assert calls == (["aws", "mask", "pytest"] if actions else ["aws", "pytest"])
-    assert "LAMBDADB_PROJECT_API_KEY" not in env
+    assert len(calls) == 1
+    # The caller's environment is not modified.
+    assert env == {**ENV, "LAMBDADB_PROJECT_API_KEY": " synthetic-test-key\n"}
 
 
 def test_every_live_suite_flag_is_enabled() -> None:
@@ -100,32 +80,17 @@ def test_every_live_suite_flag_is_enabled() -> None:
 
 
 @pytest.mark.parametrize("name", SMOKE.REQUIRED_CONFIGURATION)
-def test_missing_configuration_fails_before_reading_the_key(name: str) -> None:
-    for value in ("", "  "):
+def test_missing_configuration_fails_before_starting_the_smoke(name: str) -> None:
+    missing = {key: value for key, value in ENV.items() if key != name}
+    for env in (missing, {**ENV, name: ""}, {**ENV, name: "  "}):
         with pytest.raises(SMOKE.SmokeError, match=f"Missing smoke configuration: {name}"):
-            SMOKE.run_live_smoke({**ENV, name: value}, _unexpected, _unexpected, _unexpected)
+            SMOKE.run_live_smoke(env, _unexpected)
 
 
-@pytest.mark.parametrize(
-    "error",
-    [subprocess.CalledProcessError(255, ["aws"], "sensitive", "sensitive"), OSError("sensitive")],
-)
-def test_secret_read_failures_hide_aws_output(error: Exception) -> None:
-    def execute(*_args: Any, **_kwargs: Any) -> Any:
-        raise error
-
-    with pytest.raises(SMOKE.SmokeError) as raised:
-        SMOKE.run_live_smoke(ENV, execute, _unexpected, _unexpected)
-    assert str(raised.value) == (
-        "Unable to read the dedicated smoke project key from Secrets Manager"
-    )
-    assert raised.value.__cause__ is None and raised.value.__suppress_context__
-
-
-@pytest.mark.parametrize("value", ["", "\n", "None", "key\nother-key", "key\rother"])
-def test_invalid_keys_fail_before_starting_the_smoke(value: str) -> None:
+@pytest.mark.parametrize("value", ["key\nother-key", "key\rother"])
+def test_multi_line_keys_fail_before_starting_the_smoke(value: str) -> None:
     with pytest.raises(SMOKE.SmokeError, match="single project API key"):
-        SMOKE.run_live_smoke(ENV, _secret(value), _unexpected, _unexpected)
+        SMOKE.run_live_smoke({**ENV, "LAMBDADB_PROJECT_API_KEY": value}, _unexpected)
 
 
 @pytest.mark.parametrize("returncode", [1, 2, 5, -15])
@@ -134,7 +99,7 @@ def test_failed_smoke_blocks_publication(returncode: int) -> None:
         return SimpleNamespace(returncode=returncode)
 
     with pytest.raises(SMOKE.SmokeError, match="Deployed live smoke failed"):
-        SMOKE.run_live_smoke(ENV, _secret("key"), spawn, lambda _line: None)
+        SMOKE.run_live_smoke(ENV, spawn)
 
 
 def _run_plugin(tmp_path: Path, source: str) -> subprocess.CompletedProcess[str]:
@@ -182,19 +147,3 @@ def test_plugin_fails_skipped_or_empty_runs(
     assert result.returncode == status, result.stdout + result.stderr
     if message:
         assert message in result.stdout
-
-
-def test_mask_is_flushed_before_the_child_starts(tmp_path: Path) -> None:
-    script = (
-        "import importlib.util, sys\n"
-        f"spec = importlib.util.spec_from_file_location('smoke', {str(ROOT / 'scripts/run_live_smoke.py')!r})\n"
-        "smoke = importlib.util.module_from_spec(spec); spec.loader.exec_module(smoke)\n"
-        "class R: stdout = 'key'; returncode = 0\n"
-        "def spawn(*a, **k):\n"
-        "    import os; os.write(1, b'child output\\n'); return R\n"
-        "smoke.run_live_smoke(" + repr({**ENV, "GITHUB_ACTIONS": "true"}) + ", lambda *a, **k: R, spawn)\n"
-    )
-    result = subprocess.run(
-        [sys.executable, "-c", script], capture_output=True, text=True, check=True
-    )
-    assert result.stdout == "::add-mask::key\nchild output\n"

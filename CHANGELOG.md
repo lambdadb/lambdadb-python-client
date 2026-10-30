@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- The publish workflow's deployed live smoke gate reads its project API key
+  from the `LAMBDADB_PROJECT_API_KEY` secret of the `dev` or `prod` GitHub
+  Environment, selected by the run mode, instead of AWS Secrets Manager through
+  a GitHub OIDC role. The `live-smoke` job no longer receives an OIDC token.
+
 ## 0.14.1
 
 - `LAMBDADB_DEBUG` enables the default debug logger only when it is `true` or

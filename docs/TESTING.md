@@ -63,8 +63,8 @@ python -m venv /tmp/lambdadb-wheel-check
 one sequential pytest process with all suite flags enabled, and fails if any
 live test is skipped. The publish workflow runs it against the dev environment
 for development `main` pushes and against production for release verification
-and Releases. It reads the project API key from AWS Secrets Manager itself; see
-[Deployed live smoke gate](../RELEASING.md#deployed-live-smoke-gate) for the
+and Releases, with the project API key from the selected GitHub Environment;
+see [Deployed live smoke gate](../RELEASING.md#deployed-live-smoke-gate) for the
 required configuration and a local invocation.
 
 To run the same suite with a key you already hold, export the three connection

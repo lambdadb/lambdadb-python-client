@@ -26,6 +26,7 @@ jobs:
     outputs:
       mode: ${{ steps.mode.outputs.mode }}
       smoke_prefix: ${{ steps.mode.outputs.smoke_prefix }}
+      environment: ${{ steps.mode.outputs.environment }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -71,6 +72,9 @@ jobs:
           if [ "$MODE" = development ]; then SMOKE_PREFIX=LAMBDADB_DEV_; else SMOKE_PREFIX=LAMBDADB_PROD_; fi
           echo "mode=$MODE" >> "$GITHUB_OUTPUT"
           echo "smoke_prefix=$SMOKE_PREFIX" >> "$GITHUB_OUTPUT"
+          # The GitHub Environment that holds the matching smoke project API key.
+          if [ "$MODE" = development ]; then ENVIRONMENT=dev; else ENVIRONMENT=prod; fi
+          echo "environment=$ENVIRONMENT" >> "$GITHUB_OUTPUT"
           echo "Committed version $VERSION; run mode $MODE; live smoke Variables $SMOKE_PREFIX*"
 
       - name: Validate committed release versions
@@ -158,12 +162,13 @@ jobs:
           path: dist/
           if-no-files-found: error
 
+  # The GitHub Environment holds the smoke project API key. Its deployment
+  # policy admits only main (dev, prod) and v* tags (prod), so other refs
+  # cannot read the key.
   live-smoke:
     needs: validate
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    environment: ${{ needs.validate.outputs.environment }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -180,20 +185,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install . pytest
 
-      # A missing Variable stays empty and fails; it never falls back to the
-      # other environment.
-      - name: Authenticate smoke tests to AWS
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ vars[format('{0}SMOKE_AWS_ROLE_ARN', needs.validate.outputs.smoke_prefix)] }}
-          aws-region: ap-northeast-2
-          role-session-name: python-sdk-smoke-${{ github.run_id }}
-
+      # A missing Variable or secret stays empty and fails; it never falls back
+      # to the other environment.
       - name: Run deployed live smoke tests
         env:
           LAMBDADB_BASE_URL: ${{ vars[format('{0}BASE_URL', needs.validate.outputs.smoke_prefix)] }}
           LAMBDADB_PROJECT_NAME: ${{ vars[format('{0}PROJECT_NAME', needs.validate.outputs.smoke_prefix)] }}
-          LAMBDADB_SMOKE_SECRET_ARN: ${{ vars[format('{0}SMOKE_SECRET_ARN', needs.validate.outputs.smoke_prefix)] }}
+          LAMBDADB_PROJECT_API_KEY: ${{ secrets.LAMBDADB_PROJECT_API_KEY }}
         run: |
           echo "Live smoke target: $LAMBDADB_BASE_URL"
           python scripts/run_live_smoke.py
