@@ -46,10 +46,17 @@ def _wait_query(collection, expected, **kwargs):
     pytest.fail("Timed out waiting for query visibility")
 
 
-def _rerank_query(collection, label, **kwargs):
-    request = {**kwargs, "rerank": {**kwargs["rerank"], "onFailure": "returnOriginal"}}
+def _rerank_query(send, /, **request):
+    """Run a rerank query, retrying transient provider fallbacks a bounded number of times.
+
+    A request that sets onFailure explicitly is sent unchanged, once, to keep its contract coverage.
+    """
+    if "onFailure" in request["rerank"]:
+        return send(**request)
+    request["rerank"] = {**request["rerank"], "onFailure": "returnOriginal"}
+    label = f"{request['rerank']['provider']} {request['rerank']['model']}"
     for attempt in range(1, RERANK_ATTEMPTS + 1):
-        response = collection.query(**request)
+        response = send(**request)
         if response.rerank is None or response.rerank.status != "fallback":
             return response
         reason = response.rerank.reason
@@ -166,18 +173,18 @@ def test_bayesian_and_rerank(live_sdk):
         for async_mode in (False, True):
             request = dict(query=query, size=2, consistent_read=True, rerank={**RERANK, "candidateSize": 30}, retries=None)
             if async_mode:
-                async def run():
+                async def run(**kwargs):
                     async with LambdaDB(
                         base_url=os.environ["LAMBDADB_BASE_URL"],
                         project_name=os.environ["LAMBDADB_PROJECT_NAME"],
                         project_api_key=os.environ["LAMBDADB_PROJECT_API_KEY"],
                         timeout_ms=60_000,
                     ) as async_sdk:
-                        return await async_sdk.collection(name).query_async(**request)
-                response = asyncio.run(run())
+                        return await async_sdk.collection(name).query_async(**kwargs)
+                response = _rerank_query(lambda **kwargs: asyncio.run(run(**kwargs)), **request)
             else:
                 # Omit the rerank candidate budget to exercise its server default.
-                response = coll.query(**{**request, "rerank": RERANK})
+                response = _rerank_query(coll.query, **{**request, "rerank": RERANK})
             assert response.rerank.status == "applied"
             assert response.rerank.candidate_count == response.rerank.scored_count == 3
             assert len(response.results) == 2
@@ -191,7 +198,7 @@ def test_bayesian_and_rerank(live_sdk):
             assert len(coll.query(**expanded, retries=None).results) == 3
         expanded = {**args, "size": 1000, "candidate_size": None,
                     "rerank": {**RERANK, "candidateSize": 1000}}
-        assert len(coll.query(**expanded, retries=None).results) == 3
+        assert len(_rerank_query(coll.query, **expanded, retries=None).results) == 3
         print("Query size and Bayesian/rerank candidate budgets of 1000 accepted; actual candidate set has 3 documents")
     except Exception as error:
         # SDK errors can contain response bodies and URLs; never print those in live logs.
@@ -256,7 +263,7 @@ def test_unindexed_native_source_and_rerank_paths(live_sdk, nested):
         assert all(math.isfinite(value) for value in vector)
         stage = "query text and rerank using unindexed path"
         query = {"knn": {"field": "vector", "queryText": "Restore a version", "k": 1000}}
-        response = coll.query(query=query, size=101, consistent_read=True, retries=None,
+        response = _rerank_query(coll.query, query=query, size=101, consistent_read=True, retries=None,
             rerank={**RERANK, "fields": [path], "candidateSize": 1000})
         assert response.rerank.status == "applied"
         assert response.rerank.candidate_count == response.rerank.scored_count == 1
@@ -343,8 +350,7 @@ def test_cohere_sources_query_inputs_direct_vectors_and_rerank(live_sdk):
         assert raw.documents[0]["id"] == "direct"
         stage = "Cohere reranking"
         for model in ("rerank-v5.0-pro", "rerank-v5.0-fast"):
-            response = _rerank_query(coll, f"Cohere {model}",
-                                     query={"knn": {"field": "text", "queryText": "shoes", "k": 4}},
+            response = _rerank_query(coll.query, query={"knn": {"field": "text", "queryText": "shoes", "k": 4}},
                                      size=2, consistent_read=True, retries=None,
                                      rerank={"provider": "cohere", "model": model, "queryText": "running shoes",
                                              "fields": ["title"]})
