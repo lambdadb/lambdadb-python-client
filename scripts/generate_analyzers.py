@@ -8,6 +8,13 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# Optional field description from the public OpenAPI FieldDescription component.
+FIELD_DESCRIPTION = (
+    "Optional free-form explanation of what the field holds, up to 255 characters. Returned in "
+    "collection reads only when set and never affects indexing. On update, omitting it or `None` "
+    "keeps the stored description, `\"\"` clears it, and any other value replaces it without "
+    "reindexing. Not accepted on the server-managed `id` field."
+)
 
 
 def generated_files() -> dict[Path, str]:
@@ -46,6 +53,9 @@ def generated_files() -> dict[Path, str]:
         "| `type` | [models.TypeText](typetext.md) | :heavy_check_mark: | N/A |\n"
         "| `analyzers` | List[[models.Analyzer](analyzer.md)] | :heavy_minus_sign: | "
         + description
+        + " |\n"
+        "| `description` | *Optional[str]* | :heavy_minus_sign: | "
+        + FIELD_DESCRIPTION
         + " |\n"
     )
     return {

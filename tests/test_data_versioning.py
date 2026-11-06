@@ -64,7 +64,7 @@ def _text_index(analyzer: models.Analyzer) -> Dict[
 
 
 def test_contract_revision_is_pinned() -> None:
-    assert API_CONTRACT_REVISION == "c44180406c05b1a9043d8516e7c7f60df91fc9a7"
+    assert API_CONTRACT_REVISION == "1714009a2659a18b26cb68193dd7a071fd6efb42"
 
 
 def test_final_contract_collection_validation_and_null_patch_semantics() -> None:
@@ -1082,7 +1082,7 @@ def test_read_ref_errors_map_to_typed_exceptions_async() -> None:
     assert len(requests) == 6
 
 
-def test_consistent_read_rejects_tag_and_alias_before_network() -> None:
+def test_consistent_read_rejects_tag_before_network() -> None:
     requests: List[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -1092,17 +1092,17 @@ def test_consistent_read_rejects_tag_and_alias_before_network() -> None:
     with httpx.Client(transport=httpx.MockTransport(handler)) as transport:
         client = LambdaDB(project_api_key="secret", client=transport)
         collection = client.collection("catalog")
-        with pytest.raises(ValueError, match="direct branch ref"):
+        with pytest.raises(ValueError, match="not a tag"):
             collection.query(
                 query={"queryString": {"query": "title:seed"}},
                 consistent_read=True,
                 ref=Ref.tag("release-1"),
             )
-        with pytest.raises(ValueError, match="direct branch ref"):
+        with pytest.raises(ValueError, match="not a tag"):
             collection.docs.fetch(
                 ids=["1"],
                 consistent_read=True,
-                ref=Ref.alias("production-read"),
+                ref=Ref.tag("release-1"),
             )
 
     assert not requests
@@ -1115,23 +1115,26 @@ def test_consistent_read_rejects_tag_and_alias_before_network() -> None:
         (models.FetchDocsRequestBody, {"ids": ["1"]}),
     ],
 )
-@pytest.mark.parametrize("ref", [Ref.tag("release-1"), Ref.alias("production-read")])
-def test_consistent_read_request_models_require_branch_ref(
-    body_type: Any, required: Dict[str, Any], ref: Ref
+def test_consistent_read_request_models_allow_branch_and_alias_refs(
+    body_type: Any, required: Dict[str, Any]
 ) -> None:
-    with pytest.raises(ValidationError, match="direct branch ref"):
-        body_type(**required, consistent_read=True, ref=ref)
+    tag = Ref.tag("release-1")
+    with pytest.raises(ValidationError, match="not a tag"):
+        body_type(**required, consistent_read=True, ref=tag)
 
-    assert body_type(
-        **required, consistent_read=False, ref=ref
-    ).ref == ref
-    assert body_type(
-        **required, consistent_read=True, ref=Ref.branch("main")
-    ).ref == Ref.branch("main")
+    assert body_type(**required, consistent_read=False, ref=tag).ref == tag
+    # An alias is accepted locally; the server rejects one that targets a tag.
+    for ref in (Ref.branch("main"), Ref.alias("production-read")):
+        body = body_type(**required, consistent_read=True, ref=ref)
+        assert body.ref == ref
+        assert body.model_dump(mode="json", by_alias=True)["ref"] == {
+            "kind": ref.kind.value,
+            "name": ref.name,
+        }
     assert body_type(**required, consistent_read=True).ref is None
 
 
-def test_consistent_read_async_methods_reject_non_branch_before_network() -> None:
+def test_consistent_read_async_methods_reject_tag_before_network() -> None:
     requests: List[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -1144,17 +1147,76 @@ def test_consistent_read_async_methods_reject_non_branch_before_network() -> Non
         ) as transport:
             client = LambdaDB(project_api_key="secret", async_client=transport)
             collection = client.collection("catalog")
-            with pytest.raises(ValueError, match="direct branch ref"):
+            with pytest.raises(ValueError, match="not a tag"):
                 await collection.query_async(
-                    query={}, consistent_read=True, ref=Ref.alias("production-read")
+                    query={}, consistent_read=True, ref=Ref.tag("release-1")
                 )
-            with pytest.raises(ValueError, match="direct branch ref"):
+            with pytest.raises(ValueError, match="not a tag"):
                 await collection.docs.fetch_async(
                     ids=["1"], consistent_read=True, ref=Ref.tag("release-1")
                 )
 
     asyncio.run(run())
     assert not requests
+
+
+def test_consistent_read_through_alias_is_sent_sync_and_async() -> None:
+    requests: List[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return _response(
+            request, 200, {"took": 1, "total": 0, "docs": [], "isDocsInline": True}
+        )
+
+    alias = Ref.alias("production-read")
+    with httpx.Client(transport=httpx.MockTransport(handler)) as transport:
+        client = LambdaDB(
+            project_api_key="secret",
+            base_url="https://api.example",
+            project_name="project",
+            client=transport,
+        )
+        collection = client.collection("catalog")
+        collection.query(
+            query={"queryString": {"query": "title:seed"}},
+            consistent_read=True,
+            ref=alias,
+        )
+        collection.docs.fetch(ids=["1"], consistent_read=True, ref=alias)
+
+    async def run() -> None:
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(handler)
+        ) as transport:
+            client = LambdaDB(
+                project_api_key="secret",
+                base_url="https://api.example",
+                project_name="project",
+                async_client=transport,
+            )
+            collection = client.collection("catalog")
+            await collection.query_async(
+                query={"queryString": {"query": "title:seed"}},
+                consistent_read=True,
+                ref=alias,
+            )
+            await collection.docs.fetch_async(
+                ids=["1"], consistent_read=True, ref=alias
+            )
+
+    asyncio.run(run())
+
+    assert [request.url.path.rsplit("/", 1)[1] for request in requests] == [
+        "query",
+        "fetch",
+        "query",
+        "fetch",
+    ]
+    for request in requests:
+        body = json.loads(request.content)
+        assert body["consistentRead"] is True
+        assert body["ref"] == {"kind": "alias", "name": "production-read"}
 
 
 def test_list_pages_and_iter_all_preserve_ref_on_every_page_sync_and_async() -> None:

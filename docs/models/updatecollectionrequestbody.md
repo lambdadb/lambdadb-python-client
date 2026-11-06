@@ -7,7 +7,7 @@ Provide at least one non-null field. Omitted fields and `None` are unchanged;
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `index_configs` | `Dict[str, IndexConfig]`, `None`, or `Unset` | No | Nonempty complete schema; preserve all existing field definitions. The server-managed `id` (`{"type": "keyword"}`) may be omitted or sent back as returned. |
+| `index_configs` | `Dict[str, IndexConfig]`, `None`, or `Unset` | No | Nonempty complete schema; preserve all existing field definitions. Only a field's optional `description` may change: omitted keeps the stored one, `""` clears it, and a new value replaces it without reindexing. The server-managed `id` (`{"type": "keyword"}`) may be omitted or sent back as returned. |
 | `description` | `str`, `None`, or `Unset` | No | Replacement description; empty clears it. |
 | `tags` | `Dict[str, str]`, `None`, or `Unset` | No | Replaces the whole metadata map; `{}` clears it. |
 | `snapshot_retention_in_days` | `int`, `None`, or `Unset` | No | Retention, 1-31 days. |
