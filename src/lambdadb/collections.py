@@ -1057,7 +1057,7 @@ class Collections(BaseSDK):
         r"""Configure a collection.
 
         :param collection_name: Collection name.
-        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
+        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. Only a field's optional description may change: omitted keeps the stored one, an empty string clears it, and a new value replaces it. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
         :param description: Replacement collection description. Empty clears it; None leaves it unchanged.
         :param tags: Replacement metadata tags. An empty dict clears them; None leaves them unchanged.
         :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days. None leaves it unchanged.
@@ -1203,7 +1203,7 @@ class Collections(BaseSDK):
         r"""Configure a collection.
 
         :param collection_name: Collection name.
-        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
+        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. Only a field's optional description may change: omitted keeps the stored one, an empty string clears it, and a new value replaces it. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
         :param description: Replacement collection description. Empty clears it; None leaves it unchanged.
         :param tags: Replacement metadata tags. An empty dict clears them; None leaves them unchanged.
         :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days. None leaves it unchanged.
@@ -1360,7 +1360,7 @@ class Collections(BaseSDK):
         :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 1000). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
         :param rerank: Optional per-query native reranking. The server runs reranking and handles provider credentials. Omitted/null preserves search behavior; no provider API key is required.
         :param size: Number of documents to return. The maximum number of documents is 1000; zero requires at least one facet.
-        :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
+        :param consistent_read: Overlay eligible pending writes on the selected Branch. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag reject true with 400; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
@@ -1371,8 +1371,8 @@ class Collections(BaseSDK):
         :param http_headers: Additional headers to set or replace on requests.
         """
         ref_model = None if ref is None else models.Ref.model_validate(ref)
-        if consistent_read and ref_model is not None and ref_model.kind is not models.RefKind.BRANCH:
-            raise ValueError("consistent_read=True requires a direct branch ref")
+        if consistent_read and ref_model is not None and ref_model.kind is models.RefKind.TAG:
+            raise ValueError("consistent_read=True requires a branch ref or an alias that targets a branch, not a tag")
 
         base_url = None
         url_variables = None
@@ -1527,7 +1527,7 @@ class Collections(BaseSDK):
         :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 1000). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
         :param rerank: Optional per-query native reranking. The server runs reranking and handles provider credentials. Omitted/null preserves search behavior; no provider API key is required.
         :param size: Number of documents to return. The maximum number of documents is 1000; zero requires at least one facet.
-        :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
+        :param consistent_read: Overlay eligible pending writes on the selected Branch. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag reject true with 400; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
@@ -1538,8 +1538,8 @@ class Collections(BaseSDK):
         :param http_headers: Additional headers to set or replace on requests.
         """
         ref_model = None if ref is None else models.Ref.model_validate(ref)
-        if consistent_read and ref_model is not None and ref_model.kind is not models.RefKind.BRANCH:
-            raise ValueError("consistent_read=True requires a direct branch ref")
+        if consistent_read and ref_model is not None and ref_model.kind is models.RefKind.TAG:
+            raise ValueError("consistent_read=True requires a branch ref or an alias that targets a branch, not a tag")
 
         base_url = None
         url_variables = None

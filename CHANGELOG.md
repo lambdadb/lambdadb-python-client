@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- Aligned with the public OpenAPI contract, `reference/api/openapi.json` in
+  [lambdadb/docs](https://github.com/lambdadb/docs) at commit
+  [`1714009a2659a18b26cb68193dd7a071fd6efb42`](https://github.com/lambdadb/docs/commit/1714009a2659a18b26cb68193dd7a071fd6efb42)
+  (SHA-256 `604e6fdcf0e0a5af2c9ac8714e60d282d0ebfb9847a49371ff0452fac48be070`).
+  The contract is owned by the backend; the public reference copy is pinned by
+  commit and SHA-256. `API_CONTRACT_REVISION` now reports this commit. A source
+  pin does not establish deployment.
+- Add an optional `description` (up to 255 characters) to every index field
+  configuration model (`IndexConfigs`, `IndexConfigsText`, `IndexConfigsVector`,
+  `IndexConfigsObject` and their TypedDicts), including nested object children.
+  An omitted or `None` description is not sent, so existing payloads are
+  unchanged. On `update`, omitting it keeps the stored description, `""` clears
+  it, and a new value replaces it without reindexing; a description-only change
+  on an existing field is allowed while its other settings stay immutable.
+  Collection reads return `description` only when set. The server rejects a
+  description on the server-managed `id` field.
+- `consistent_read=True` now accepts an Alias ref in addition to a directly
+  selected Branch; the server resolves the Alias and rejects one that targets a
+  Tag with HTTP 400. Tag refs are still rejected locally before any request is
+  sent; that `ValueError` now reads "requires a branch ref or an alias that
+  targets a branch, not a tag".
 - The publish workflow's deployed live smoke gate reads its project API key
   from the `LAMBDADB_PROJECT_API_KEY` secret of the `dev` or `prod` GitHub
   Environment, selected by the run mode, instead of AWS Secrets Manager through

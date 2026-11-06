@@ -26,7 +26,7 @@ class QueryCollectionRequestBodyTypedDict(TypedDict):
     size: NotRequired[int]
     r"""Number of documents to return, up to 1000. Zero requires at least one facet."""
     consistent_read: NotRequired[bool]
-    r"""Overlay eligible pending writes on a directly selected branch. Tags and aliases reject true, and pending bulk imports are excluded."""
+    r"""Overlay eligible pending writes on the selected branch. Allowed when ref selects a branch directly or an alias that currently targets a branch; the server resolves the alias. Tag reads and an alias that targets a tag reject true with 400. Pending bulk imports are excluded."""
     include_vectors: NotRequired[bool]
     r"""If your application need to include vector values in the response, set includeVectors to true."""
     sort: NotRequired[List[Dict[str, Any]]]
@@ -53,7 +53,7 @@ class QueryCollectionRequestBody(BaseModel):
     consistent_read: Annotated[
         Optional[bool], pydantic.Field(alias="consistentRead")
     ] = False
-    r"""Overlay eligible pending writes on a directly selected branch. Tags and aliases reject true, and pending bulk imports are excluded."""
+    r"""Overlay eligible pending writes on the selected branch. Allowed when ref selects a branch directly or an alias that currently targets a branch; the server resolves the alias. Tag reads and an alias that targets a tag reject true with 400. Pending bulk imports are excluded."""
 
     include_vectors: Annotated[
         Optional[bool], pydantic.Field(alias="includeVectors")
@@ -74,12 +74,9 @@ class QueryCollectionRequestBody(BaseModel):
 
     @model_validator(mode="after")
     def validate_consistent_read_ref(self) -> "QueryCollectionRequestBody":
-        if (
-            self.consistent_read
-            and self.ref is not None
-            and self.ref.kind is not RefKind.BRANCH
-        ):
-            raise ValueError("consistent_read=True requires a direct branch ref")
+        # An alias is allowed; the server rejects one that targets a tag.
+        if self.consistent_read and self.ref is not None and self.ref.kind is RefKind.TAG:
+            raise ValueError("consistent_read=True requires a branch ref or an alias that targets a branch, not a tag")
         return self
 
     @model_validator(mode="after")

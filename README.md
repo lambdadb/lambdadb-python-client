@@ -203,6 +203,10 @@ inside `embedding`; caller-provided vectors keep top-level `dimensions`. See the
 pinned contract, update examples, and server requirements. Cohere embeddings,
 ordered text/image `sources`, `knn.queryInputs`, and direct vectors on native
 fields are described in [native embedding sources](docs/native-embedding-sources.md).
+Any field, including nested object children, accepts an optional `description`
+(up to 255 characters) that collection reads return when set. It never affects
+indexing: on `update`, omitting it keeps the stored description, `""` clears it,
+and a new value replaces it without reindexing.
 
 ```python
 from lambdadb import LambdaDB, models
@@ -218,6 +222,7 @@ with LambdaDB(
             "body": {
                 "type": models.TypeText.TEXT,
                 "analyzers": [models.Analyzer.ENGLISH],
+                "description": "Article body as published",
             },
             "bodyEmbedding": {
                 "type": models.TypeVector.VECTOR,

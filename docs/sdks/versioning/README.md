@@ -52,10 +52,12 @@ epoch-millisecond cutoff. `AliasTarget` accepts a Branch or Tag; an
 Alias cannot target another Alias. Invalid kinds, names, and combinations raise
 a Pydantic `ValidationError` or `ValueError` before any request is sent. Query
 and Fetch also raise `ValueError` locally when `consistent_read=True` is
-combined with a Tag or Alias ref. On a directly selected Branch, a consistent
-read overlays eligible pending writes on the committed head. It excludes
-pending bulk imports and can return HTTP 429 when the pending payload exceeds
-the overlay limit.
+combined with a Tag ref. A consistent read is allowed on a directly selected
+Branch or through an Alias that currently targets a Branch; the server
+resolves the Alias when the request is admitted and rejects an Alias that
+targets a Tag with HTTP 400. The read overlays eligible pending writes on the
+Branch's committed head. It excludes pending bulk imports and can return HTTP
+429 when the pending payload exceeds the overlay limit.
 
 `parent_branch` is the direct source Branch's fixed identity and name, not the
 Branch that committed the selected snapshot. It is present even when both

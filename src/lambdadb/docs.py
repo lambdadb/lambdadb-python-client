@@ -1781,7 +1781,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param ids: A list of 1-1000 nonblank document IDs. The server also enforces response byte limits.
-        :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
+        :param consistent_read: Overlay eligible pending writes on the selected Branch. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag reject true with 400; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
         :param partition_filter:
@@ -1791,8 +1791,8 @@ class Docs(BaseSDK):
         :param http_headers: Additional headers to set or replace on requests.
         """
         ref_model = None if ref is None else models.Ref.model_validate(ref)
-        if consistent_read and ref_model is not None and ref_model.kind is not models.RefKind.BRANCH:
-            raise ValueError("consistent_read=True requires a direct branch ref")
+        if consistent_read and ref_model is not None and ref_model.kind is models.RefKind.TAG:
+            raise ValueError("consistent_read=True requires a branch ref or an alias that targets a branch, not a tag")
 
         base_url = None
         url_variables = None
@@ -1927,7 +1927,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param ids: A list of 1-1000 nonblank document IDs. The server also enforces response byte limits.
-        :param consistent_read: Overlay eligible pending writes on a directly selected Branch. Tag and Alias refs reject true; pending bulk imports are excluded and a large pending payload can return 429.
+        :param consistent_read: Overlay eligible pending writes on the selected Branch. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag reject true with 400; pending bulk imports are excluded and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
         :param partition_filter:
@@ -1937,8 +1937,8 @@ class Docs(BaseSDK):
         :param http_headers: Additional headers to set or replace on requests.
         """
         ref_model = None if ref is None else models.Ref.model_validate(ref)
-        if consistent_read and ref_model is not None and ref_model.kind is not models.RefKind.BRANCH:
-            raise ValueError("consistent_read=True requires a direct branch ref")
+        if consistent_read and ref_model is not None and ref_model.kind is models.RefKind.TAG:
+            raise ValueError("consistent_read=True requires a branch ref or an alias that targets a branch, not a tag")
 
         base_url = None
         url_variables = None

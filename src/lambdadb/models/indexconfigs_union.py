@@ -22,6 +22,8 @@ class TypeObject(str, Enum):
 class IndexConfigsObjectTypedDict(TypedDict):
     type: TypeObject
     object_index_configs: Dict[str, Any]
+    description: NotRequired[Optional[str]]
+    r"""Optional free-form explanation of what the field holds, up to 255 characters. Returned in collection reads only when set; it never affects indexing. On create, omitting it means no description. On update, omitting it or sending None keeps the stored description, an empty string clears it, and any other value replaces it without reindexing. Not accepted on the server-managed id field."""
 
 
 class IndexConfigsObject(BaseModel):
@@ -30,6 +32,25 @@ class IndexConfigsObject(BaseModel):
     object_index_configs: Annotated[
         Dict[str, Any], pydantic.Field(alias="objectIndexConfigs")
     ]
+
+    description: Optional[str] = pydantic.Field(default=None, max_length=255)
+    r"""Optional free-form explanation of what the field holds, up to 255 characters. Returned in collection reads only when set; it never affects indexing. On create, omitting it means no description. On update, omitting it or sending None keeps the stored description, an empty string clears it, and any other value replaces it without reindexing. Not accepted on the server-managed id field."""
+
+    @model_serializer(mode="wrap")
+    def serialize_model(self, handler):
+        optional_fields = set(["description"])
+        serialized = handler(self)
+        m = {}
+
+        for n, f in type(self).model_fields.items():
+            k = f.alias or n
+            val = self._get_serialized_value(serialized, n, f.alias)
+
+            if val != UNSET_SENTINEL:
+                if val is not None or k not in optional_fields:
+                    m[k] = val
+
+        return m
 
 
 class Type(str, Enum):
@@ -45,12 +66,33 @@ class IndexConfigsTypedDict(TypedDict):
     r"""Types that do not need additional parameters."""
 
     type: Type
+    description: NotRequired[Optional[str]]
+    r"""Optional free-form explanation of what the field holds, up to 255 characters. Returned in collection reads only when set; it never affects indexing. On create, omitting it means no description. On update, omitting it or sending None keeps the stored description, an empty string clears it, and any other value replaces it without reindexing. Not accepted on the server-managed id field."""
 
 
 class IndexConfigs(BaseModel):
     r"""Types that do not need additional parameters."""
 
     type: Type
+
+    description: Optional[str] = pydantic.Field(default=None, max_length=255)
+    r"""Optional free-form explanation of what the field holds, up to 255 characters. Returned in collection reads only when set; it never affects indexing. On create, omitting it means no description. On update, omitting it or sending None keeps the stored description, an empty string clears it, and any other value replaces it without reindexing. Not accepted on the server-managed id field."""
+
+    @model_serializer(mode="wrap")
+    def serialize_model(self, handler):
+        optional_fields = set(["description"])
+        serialized = handler(self)
+        m = {}
+
+        for n, f in type(self).model_fields.items():
+            k = f.alias or n
+            val = self._get_serialized_value(serialized, n, f.alias)
+
+            if val != UNSET_SENTINEL:
+                if val is not None or k not in optional_fields:
+                    m[k] = val
+
+        return m
 
 
 class TypeVector(str, Enum):
@@ -182,6 +224,8 @@ class IndexConfigsVectorTypedDict(TypedDict):
     r"""Vector similarity metric for caller-provided vector fields."""
     embedding: NotRequired[EmbeddingConfigTypedDict]
     r"""Native embedding configuration for vector fields."""
+    description: NotRequired[Optional[str]]
+    r"""Optional free-form explanation of what the field holds, up to 255 characters. Returned in collection reads only when set; it never affects indexing. On create, omitting it means no description. On update, omitting it or sending None keeps the stored description, an empty string clears it, and any other value replaces it without reindexing. Not accepted on the server-managed id field."""
 
 
 class IndexConfigsVector(BaseModel):
@@ -200,6 +244,9 @@ class IndexConfigsVector(BaseModel):
 
     embedding: Optional[EmbeddingConfig] = None
     r"""Native embedding configuration for vector fields."""
+
+    description: Optional[str] = pydantic.Field(default=None, max_length=255)
+    r"""Optional free-form explanation of what the field holds, up to 255 characters. Returned in collection reads only when set; it never affects indexing. On create, omitting it means no description. On update, omitting it or sending None keeps the stored description, an empty string clears it, and any other value replaces it without reindexing. Not accepted on the server-managed id field."""
 
     @model_validator(mode="after")
     def validate_vector_type(self):
@@ -237,7 +284,7 @@ class IndexConfigsVector(BaseModel):
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
         optional_fields = set(
-            ["managedEmbedding", "dimensions", "similarity", "embedding"]
+            ["managedEmbedding", "dimensions", "similarity", "embedding", "description"]
         )
         serialized = handler(self)
         m = {}
@@ -316,6 +363,8 @@ class IndexConfigsTextTypedDict(TypedDict):
     type: TypeText
     analyzers: NotRequired[List[Analyzer]]
     r"""Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to ["standard"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs. All names are fixed presets for text fields; keyword is an analyzer, not the keyword field type. Custom pipelines and analyzer options are not supported. Nepali, Tamil, and Telugu are Lucene extensions, not shared Elasticsearch/OpenSearch support."""
+    description: NotRequired[Optional[str]]
+    r"""Optional free-form explanation of what the field holds, up to 255 characters. Returned in collection reads only when set; it never affects indexing. On create, omitting it means no description. On update, omitting it or sending None keeps the stored description, an empty string clears it, and any other value replaces it without reindexing. Not accepted on the server-managed id field."""
 
 
 class IndexConfigsText(BaseModel):
@@ -324,9 +373,12 @@ class IndexConfigsText(BaseModel):
     analyzers: Optional[List[Analyzer]] = None
     r"""Text analyzers to apply to this field. Use the lowercase names listed below and avoid duplicates. Defaults to ["standard"] when omitted. Each selected analyzer indexes the field separately; language detection is not automatic. An empty array does not use the default. See the Choose text analyzers guide for Chinese and CJK tradeoffs. All names are fixed presets for text fields; keyword is an analyzer, not the keyword field type. Custom pipelines and analyzer options are not supported. Nepali, Tamil, and Telugu are Lucene extensions, not shared Elasticsearch/OpenSearch support."""
 
+    description: Optional[str] = pydantic.Field(default=None, max_length=255)
+    r"""Optional free-form explanation of what the field holds, up to 255 characters. Returned in collection reads only when set; it never affects indexing. On create, omitting it means no description. On update, omitting it or sending None keeps the stored description, an empty string clears it, and any other value replaces it without reindexing. Not accepted on the server-managed id field."""
+
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
-        optional_fields = set(["analyzers"])
+        optional_fields = set(["analyzers", "description"])
         serialized = handler(self)
         m = {}
 

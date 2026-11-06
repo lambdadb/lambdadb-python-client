@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | `project_name` | `str` | Yes | Project name. |
 | `collection_name` | `str` | Yes | Collection name. |
-| `index_configs` | `Dict[str, IndexConfigsUnion]` | Yes | Nonempty field configuration map, including the server-managed top-level `id` as `{"type": "keyword"}`. |
+| `index_configs` | `Dict[str, IndexConfigsUnion]` | Yes | Nonempty field configuration map, including the server-managed top-level `id` as `{"type": "keyword"}`. A field's `description` is present only when set. |
 | `description` | `str` | Yes | Collection description. |
 | `tags` | `Dict[str, str]` | Yes | Collection metadata tags. |
 | `partition_config` | `Optional[PartitionConfig]` | No | Partitions. |

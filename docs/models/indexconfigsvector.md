@@ -10,6 +10,7 @@
 | `dimensions`                                           | *Optional[int]*                                        | :heavy_minus_sign:                                     | Vector dimensions for caller-provided vector fields.         |
 | `similarity`                                           | [Optional[models.Similarity]](../models/similarity.md) | :heavy_minus_sign:                                     | Vector similarity metric for caller-provided vector fields.  |
 | `embedding`                                            | [Optional[models.EmbeddingConfig]](../models/embeddingconfig.md) | :heavy_minus_sign:                            | Native embedding configuration for vector fields.     |
+| `description`                                          | *Optional[str]*                                        | :heavy_minus_sign:                                     | Optional free-form explanation of what the field holds, up to 255 characters. Returned in collection reads only when set and never affects indexing. On update, omitting it or `None` keeps the stored description, `""` clears it, and any other value replaces it without reindexing. Not accepted on the server-managed `id` field. |
 
 ## Validation
 

@@ -18,7 +18,7 @@ class FetchDocsRequestBodyTypedDict(TypedDict):
     ids: List[str]
     r"""A list of 1-1000 nonblank document IDs. The server also enforces response byte limits."""
     consistent_read: NotRequired[bool]
-    r"""Overlay eligible pending writes on a directly selected branch. Tags and aliases reject true, and pending bulk imports are excluded."""
+    r"""Overlay eligible pending writes on the selected branch. Allowed when ref selects a branch directly or an alias that currently targets a branch; the server resolves the alias. Tag reads and an alias that targets a tag reject true with 400. Pending bulk imports are excluded."""
     include_vectors: NotRequired[bool]
     r"""If your application need to include vector values in the response, set includeVectors to true."""
     fields: NotRequired[FieldsSelectorUnionTypedDict]
@@ -36,7 +36,7 @@ class FetchDocsRequestBody(BaseModel):
     consistent_read: Annotated[
         Optional[bool], pydantic.Field(alias="consistentRead")
     ] = False
-    r"""Overlay eligible pending writes on a directly selected branch. Tags and aliases reject true, and pending bulk imports are excluded."""
+    r"""Overlay eligible pending writes on the selected branch. Allowed when ref selects a branch directly or an alias that currently targets a branch; the server resolves the alias. Tag reads and an alias that targets a tag reject true with 400. Pending bulk imports are excluded."""
 
     include_vectors: Annotated[
         Optional[bool], pydantic.Field(alias="includeVectors")
@@ -54,12 +54,9 @@ class FetchDocsRequestBody(BaseModel):
 
     @model_validator(mode="after")
     def validate_consistent_read_ref(self) -> "FetchDocsRequestBody":
-        if (
-            self.consistent_read
-            and self.ref is not None
-            and self.ref.kind is not RefKind.BRANCH
-        ):
-            raise ValueError("consistent_read=True requires a direct branch ref")
+        # An alias is allowed; the server rejects one that targets a tag.
+        if self.consistent_read and self.ref is not None and self.ref.kind is RefKind.TAG:
+            raise ValueError("consistent_read=True requires a branch ref or an alias that targets a branch, not a tag")
         return self
 
     @model_serializer(mode="wrap")
