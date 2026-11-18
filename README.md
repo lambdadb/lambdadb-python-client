@@ -176,6 +176,7 @@ from lambdadb import AliasTarget, BranchSource, Ref, RefSource
 
 branch = coll.branches.create("experiment", source=BranchSource.branch("main"))
 direct_parent = branch.branch.parent_branch  # fixed branch_id/name, or None
+schema = coll.branches.get("experiment").branch.index_configs  # a Branch owns its schema
 coll.tags.create("validated-2026-09", source=RefSource.branch("experiment"))
 coll.aliases.create(
     "production-read", target=AliasTarget.tag("validated-2026-09")
@@ -192,7 +193,9 @@ See the [Data Versioning SDK guide](docs/sdks/versioning/README.md) for sync and
 async lifecycle, pagination, and signed bulk-upload examples.
 If upgrading from stable `0.8.2`, review the
 [0.9.0 migration notes](CHANGELOG.md#090) for changed Collection models,
-timestamp units, HTTP statuses, and Branch source rules before upgrading.
+timestamp units, and HTTP statuses before upgrading. Later entries supersede two
+of its notes: a Branch can be created from a Tag again, and Collection creation
+returns the full `CollectionResponse`.
 
 ### Create a collection with native embeddings
 
@@ -333,7 +336,7 @@ documents. `query_async()` accepts the same arguments. Existing data must be
 rebuilt into a new Collection before using this index format. See
 [keyword facets](docs/keyword-facets.md) for query support, limits, and migration.
 
-### List all collections (sync / async)
+### List collections, one page (sync / async)
 
 ```python
 # Synchronous
@@ -412,11 +415,11 @@ response parsing. Review the linked upgrade requirements for legacy schemas.
 
 ### [Collections](docs/sdks/collections/README.md)
 
-* [list](docs/sdks/collections/README.md#list) - List all collections in an existing project.
+* [list](docs/sdks/collections/README.md#list) - List one page of collections in an existing project.
 * [create](docs/sdks/collections/README.md#create) - Create a collection.
 * [delete](docs/sdks/collections/README.md#delete) - Delete an existing collection.
 * [get](docs/sdks/collections/README.md#get) - Get metadata of an existing collection.
-* [update](docs/sdks/collections/README.md#update) - Configure a collection.
+* [update](docs/sdks/collections/README.md#update) - Configure a collection: description, metadata tags and snapshot retention.
 * [query](docs/sdks/collections/README.md#query) - Search a collection with a query and return the most similar documents.
 
 #### [Collections.Docs](docs/sdks/docs/README.md)
@@ -434,7 +437,8 @@ response parsing. Review the linked upgrade requirements for legacy schemas.
 
 #### [Data Versioning](docs/sdks/versioning/README.md)
 
-* Collection-scoped Branch, Tag, and Alias lifecycle operations.
+* Collection-scoped Branch, Tag, and Alias lifecycle operations, single reads, and complete or page-by-page listings.
+* Branch-scoped index schema updates.
 * Ref-scoped Query, Fetch, List, and pagination helpers.
 * Branch-scoped document writes and signed bulk uploads.
 

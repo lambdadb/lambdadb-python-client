@@ -4,18 +4,24 @@
 
 ### Available Operations
 
-* [list](#list) - List all collections in an existing project.
+* [list](#list) - List one page of collections in an existing project.
 * [list_pages](#list_pages) - Iterate pages of collections (each page up to `size`).
 * [iter_all](#iter_all) - Iterate over all collections (handles pagination).
 * [create](#create) - Create a collection.
 * [delete](#delete) - Delete an existing collection.
 * [get](#get) - Get metadata of an existing collection.
-* [update](#update) - Configure a collection.
+* [update](#update) - Configure a collection: description, metadata tags and snapshot retention.
 * [query](#query) - Search a collection with a query and return the most similar documents.
 
 ## list
 
-List all collections in an existing project.
+List collections in an existing project, one page at a time in name order. A
+response with more collections to return carries `next_page_token`; pass it as
+`page_token` to get the next page, or use [list_pages](#list_pages) or
+[iter_all](#iter_all). `size` and `page_token` are sent only when set, and an
+empty `page_token` is not sent, because the server rejects it. An out-of-range
+`size` raises a Pydantic `ValidationError` before any request is sent; a
+malformed token returns `BadRequestError`.
 
 ### Example Usage
 
@@ -35,6 +41,8 @@ with LambdaDB(
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `size`                                                              | *Optional[int]*                                                     | :heavy_minus_sign:                                                  | Max number of collections to return at once (1-100). The server defaults to 10 when omitted. |
+| `page_token`                                                        | *Optional[str]*                                                     | :heavy_minus_sign:                                                  | Opaque token returned by the previous page. Omit it for the first page. |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
 ### Response
@@ -45,6 +53,7 @@ with LambdaDB(
 
 | Error Type                   | Status Code                  | Content Type                 |
 | ---------------------------- | ---------------------------- | ---------------------------- |
+| errors.BadRequestError       | 400                          | application/json             |
 | errors.UnauthenticatedError  | 401                          | application/json             |
 | errors.ResourceNotFoundError | 404                          | application/json             |
 | errors.TooManyRequestsError  | 429                          | application/json             |
@@ -96,7 +105,9 @@ for coll in client.collections.iter_all(page_size=50):
 
 ## create
 
-Create a collection.
+Create a collection. The response returns the created collection in the same
+shape as [get](#get), including the normalized `index_configs` of its main
+Branch.
 
 ### Example Usage
 
@@ -242,7 +253,12 @@ with LambdaDB(
 
 ## update
 
-Configure a collection.
+Configure a collection: description, metadata tags and snapshot retention.
+`index_configs` on this method is deprecated: it updates the default `main`
+Branch's schema only, exactly as
+`client.collection(name).branches.update("main", index_configs=...)` does. It
+still works; use the [Branch update](../versioning/README.md#branch-schema)
+instead. The response keeps returning the default Branch's `index_configs`.
 
 ### Example Usage
 
@@ -259,14 +275,19 @@ with LambdaDB(
         description="Updated product catalog",
         tags={"environment": "production"},
         snapshot_retention_in_days=14,
-        # Preserve existing fields/settings; nested children may be added.
+    )
+    print(res)
+
+    # Schema changes go through the Branch update.
+    # Preserve existing fields/settings; nested children may be added.
+    branch = client.collection("my_collection").branches.update(
+        "main",
         index_configs={
             "example-field1": {"type": models.TypeText.TEXT, "analyzers": [models.Analyzer.ENGLISH]},
             "example-field2": {"type": models.TypeVector.VECTOR, "dimensions": 128, "similarity": models.Similarity.COSINE},
             "example-field3": {"type": models.Type.KEYWORD},
         },
     )
-    print(res)
 ```
 
 ### Parameters
@@ -274,7 +295,7 @@ with LambdaDB(
 | Parameter                                                                | Type                                                                     | Required                                                                 | Description                                                              |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | `collection_name`                                                        | *str*                                                                    | :heavy_check_mark:                                                       | Collection name.                                                         |
-| `index_configs` | Dict[str, [models.IndexConfigsUnion](../../models/indexconfigsunion.md)], `None`, or `Unset` | :heavy_minus_sign: | Nonempty complete schema; preserve existing fields/settings. New fields may be added at any object depth. Only a field's optional `description` may change: omitted keeps the stored one, `""` clears it, and a new value replaces it without reindexing. The server-managed `id` (`{"type": "keyword"}`) may be omitted or sent back as returned by `get()`. `None` leaves it unchanged. |
+| `index_configs` | Dict[str, [models.IndexConfigsUnion](../../models/indexconfigsunion.md)], `None`, or `Unset` | :heavy_minus_sign: | **Deprecated**: updates the default `main` Branch only; use `branches.update("main", index_configs=...)`. Nonempty complete schema; preserve existing fields/settings. New fields may be added at any object depth. Only a field's optional `description` may change: omitted keeps the stored one, `""` clears it, and a new value replaces it without reindexing. The server-managed `id` (`{"type": "keyword"}`) may be omitted or sent back as returned by `get()`. `None` leaves it unchanged. |
 | `description` | `str`, `None`, or `Unset` | :heavy_minus_sign: | Replacement description. Empty clears it; `None` leaves it unchanged. |
 | `tags` | `Dict[str, str]`, `None`, or `Unset` | :heavy_minus_sign: | Replaces all metadata tags. `{}` clears them; `None` leaves them unchanged. |
 | `snapshot_retention_in_days` | `int`, `None`, or `Unset` | :heavy_minus_sign: | Retention from 1 through 31 days. `None` leaves it unchanged. |
@@ -322,7 +343,7 @@ with LambdaDB(
 | `query`                                                                                                                                                                                                                     | Dict[str, *Any*]                                                                                                                                                                                                            | :heavy_check_mark:                                                                                                                                                                                                          | Query object.                                                                                                                                                                                                               |
 | `candidate_size` | *Optional[int]* | :heavy_minus_sign: | Bayesian budget without rerank: size <= candidate_size <= 1000. With rerank, omit and use rerank.candidate_size. Unsupported for other queries. |
 | `size`                                                                                                                                                                                                                      | *Optional[int]*                                                                                                                                                                                                             | :heavy_minus_sign:                                                                                                                                                                                                          | Number of documents to return. The maximum number of documents is 1000; zero requires at least one facet.                                                                                                                                            |
-| `consistent_read` | *Optional[bool]* | :heavy_minus_sign: | Overlay eligible pending writes on the selected Branch. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag reject true with 400; pending bulk imports are excluded and a large pending payload can return 429. |
+| `consistent_read` | *Optional[bool]* | :heavy_minus_sign: | Overlay eligible inherited and own pending writes on the selected Branch's committed snapshot; ordinary Branch reads use only the snapshot. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag already include their fixed inherited writes but reject true with 400; pending bulk imports are excluded until a background build materializes them, and a large pending payload can return 429. |
 | `include_vectors`                                                                                                                                                                                                           | *Optional[bool]*                                                                                                                                                                                                            | :heavy_minus_sign:                                                                                                                                                                                                          | If your application need to include vector values in the response, set includeVectors to true.                                                                                                                              |
 | `sort`                                                                                                                                                                                                                      | List[Dict[str, *Any*]]                                                                                                                                                                                                      | :heavy_minus_sign:                                                                                                                                                                                                          | List of field name, sort direction pairs.                                                                                                                                                                                   |
 | `fields`                                                                                                                                                                                                                    | [Optional[models.FieldsSelectorUnion]](../../models/fieldsselectorunion.md)                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                                                                          | An object to specify a list of field names to include and/or exclude in the result.                                                                                                                                         |

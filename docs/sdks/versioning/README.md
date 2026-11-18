@@ -1,8 +1,8 @@
 # Data Versioning
 
 The Python SDK implements the collection-scoped Data Versioning contract from
-docs revision
-[`c44180406c05b1a9043d8516e7c7f60df91fc9a7`](https://github.com/lambdadb/docs/commit/c44180406c05b1a9043d8516e7c7f60df91fc9a7).
+`reference/api/openapi.json` (API version 1.3.0) at docs revision
+[`7be299af9cac4195b75feb6e38b5cd7f8989f5a0`](https://github.com/lambdadb/docs/commit/7be299af9cac4195b75feb6e38b5cd7f8989f5a0).
 
 ## Branch, Tag, and Alias lifecycle
 
@@ -29,9 +29,16 @@ with LambdaDB(project_api_key="...") as client:
         target=AliasTarget.branch("main"),
     )
 
+    # Single reads return the same shape as create and list entries.
+    branch = collection.branches.get("experiment")
+    tag = collection.tags.get("validated-2026-09")
+    alias = collection.aliases.get("production-read")
+
+    # list() returns every entry; list_page() and list_pages() read page by page.
     branches = collection.branches.list().branches
-    tags = collection.tags.list().tags
-    aliases = collection.aliases.list().aliases
+    first_page = collection.tags.list_page(size=20)
+    for page in collection.aliases.list_pages(size=50):
+        ...
 
     # Branches expose current-head and fixed source-lineage metadata.
     current_head = branch.branch.head_snapshot
@@ -40,36 +47,117 @@ with LambdaDB(project_api_key="...") as client:
     pinned_at = tag.tag.snapshot_committed_at_dt
 ```
 
-Lifecycle methods have matching async forms: `create_async`, `list_async`,
+Lifecycle methods have matching async forms: `create_async`, `get_async`,
+`update_async`, `list_async`, `list_page_async`, `list_pages_async`,
 `delete_async`, and `retarget_async`.
 
-Branch creation accepts only a Branch source. Use `BranchSource.branch(...)`,
-or omit `source` to use `main`; existing `RefSource.branch(...)` calls remain
-valid. A Tag or Alias source is rejected before a request is sent. Tag creation
-accepts `RefSource.branch(...)` or `RefSource.tag(...)`; a Tag source pins the
-same snapshot. Only a Branch source accepts the optional `as_of`
-epoch-millisecond cutoff. `AliasTarget` accepts a Branch or Tag; an
-Alias cannot target another Alias. Invalid kinds, names, and combinations raise
-a Pydantic `ValidationError` or `ValueError` before any request is sent. Query
-and Fetch also raise `ValueError` locally when `consistent_read=True` is
+Branch and Tag creation accept a Branch or Tag source: `RefSource.branch(...)`
+(or `BranchSource.branch(...)`) and `RefSource.tag(...)`. Omit `source` to use
+`main`. An Alias source is rejected before a request is sent. Without `as_of`,
+creation pins the source snapshot together with the source's fixed inherited
+and pending write ranges, without copying them or waiting for the source build.
+A Branch created from a Tag inherits the Tag's pinned schema and every write
+captured when the Tag was created; later writes to the original Branch are
+excluded. Only a Branch source accepts the optional `as_of` epoch-millisecond
+cutoff, which selects the latest retained committed snapshot at or before the
+cutoff with no pending or inherited writes; it is not an exact-time restore.
+A Tag source copies the Tag's fixed state, not a chain of Tags. `AliasTarget`
+accepts a Branch or Tag; an Alias cannot target another Alias. Invalid kinds,
+names, and combinations raise a Pydantic `ValidationError` or `ValueError`
+before any request is sent.
+
+Query and Fetch also raise `ValueError` locally when `consistent_read=True` is
 combined with a Tag ref. A consistent read is allowed on a directly selected
 Branch or through an Alias that currently targets a Branch; the server
 resolves the Alias when the request is admitted and rejects an Alias that
-targets a Tag with HTTP 400. The read overlays eligible pending writes on the
-Branch's committed head. It excludes pending bulk imports and can return HTTP
-429 when the pending payload exceeds the overlay limit.
+targets a Tag with HTTP 400. The read overlays eligible inherited and own
+pending writes on the Branch's committed snapshot; an ordinary Branch read
+uses only the snapshot. It excludes pending bulk imports until a background
+build materializes them and can return HTTP 429 when the eligible pending
+payload exceeds the overlay limit. Query and Fetch on a Tag, or on an Alias
+that targets a Tag, already include the Tag's eligible fixed inherited writes
+without `consistent_read`.
 
 `parent_branch` is the direct source Branch's fixed identity and name, not the
 Branch that committed the selected snapshot. It is present even when both
-snapshot fields are `None` for an empty source. `main` and older Branches with
-no recorded parent return `None`. This is historical metadata: deleting or
-recreating the parent does not change it and does not block deletion.
+snapshot fields are `None` for an empty source. `main`, Branches created from a
+Tag, and older Branches with no recorded parent return `None`. This is
+historical metadata: deleting or recreating the parent does not change it and
+does not block deletion.
+
+## Ref details
+
+Every response carries the same object per kind: create, Alias retarget,
+single read, Branch update, and list entries.
+
+| Model | Added fields |
+| --- | --- |
+| `BranchDetails` | `index_configs` (the Branch's own schema), `num_docs` (0 for an empty Branch), `data_updated_at` (`None` for an empty Branch) and `data_updated_at_dt` |
+| `TagDetails` | `index_configs` (the schema pinned by the Tag), `num_docs`, `data_updated_at` and `data_updated_at_dt` of the pinned snapshot |
+| `AliasDetails` | `index_configs` of the target's version; `None` for a dangling Alias |
+
+`aliases.get(name)` on a dangling Alias still succeeds, with `dangling=True`
+and `index_configs=None`. A name that is not a ref of the requested kind raises
+`ResourceNotFoundError`.
+
+## Listings
+
+`branches.list()`, `tags.list()`, and `aliases.list()` keep their signature and
+return the complete listing in name order. The server pages these listings, so
+`list()` follows `next_page_token` with the server's default page size until the
+last page; the returned `next_page_token` is always `None`. A failure on any
+page raises, and no partial list is returned.
+
+`list_page(size=..., page_token=...)` returns one page: the entries plus
+`next_page_token`, which is `None` on the last page. `list_pages(size=...)`
+iterates the pages on top of it and yields each page's entries:
+
+```python
+page = collection.branches.list_page(size=50)
+while page.next_page_token:
+    page = collection.branches.list_page(size=50, page_token=page.next_page_token)
+
+for tags in collection.tags.list_pages(size=50):
+    ...
+```
+
+`size` is 1-100 and the server defaults to 10 when it is omitted. `size` and
+`page_token` are sent only when set, and an empty `page_token` is never sent:
+it is treated as the first page. An out-of-range `size` raises a Pydantic
+`ValidationError` before any request is sent; a malformed token returns
+`BadRequestError`.
+
+## Branch schema
+
+A Branch owns its `index_configs`. A new Branch inherits the source Branch's
+current schema, the Tag's pinned schema, or the origin snapshot's schema with
+`as_of`; later schema updates of other Branches, including `main`, do not
+change it.
+
+```python
+current = collection.branches.get("experiment").branch.index_configs
+updated = collection.branches.update(
+    "experiment",
+    index_configs={**current, "year": {"type": "long"}},
+)
+```
+
+`branches.update(name, index_configs=...)` changes that Branch only; updating
+`main` also updates the collection's `index_configs`, which mirror `main`. Send
+the Branch's complete nonempty schema: existing fields and settings must be
+preserved (the server-managed `id` field may be included as returned or
+omitted), new fields may be added at any object depth, and a field
+`description` may be set, replaced, or cleared with `""`. Concurrent additive
+updates of the same Branch are merged. Naming a Tag or an Alias returns
+`BadRequestError`. Promoting a Branch's schema to `main` is a manual step:
+apply the same additive change to `main`. `index_configs` on
+`client.collections.update()` is deprecated; it updates `main` only.
 
 Deleting a Branch or Tag referenced by an Alias is blocked with
 `RefDeleteConflictError` (409). Retarget or delete every referencing Alias
 before retrying. An Alias that is already dangling remains visible in
-`aliases.list()` with `dangling=True`; reading through it raises
-`BadRequestError`. Selecting a ref that does not exist raises
+`aliases.list()` and `aliases.get()` with `dangling=True`; reading documents
+through it raises `BadRequestError`. Selecting a ref that does not exist raises
 `ResourceNotFoundError`.
 
 ## Ref-scoped reads
@@ -98,6 +186,9 @@ async for document in collection.docs.iter_all_async(
 Query and Fetch send `ref` in the JSON body. The simple List endpoint sends the
 paired `refKind` and `refName` query parameters; filtered/extended List sends
 `ref` in the JSON body. Pagination helpers preserve the same ref on every page.
+Document listing through any ref, including a Tag or an Alias that targets a
+Tag, returns only the currently published snapshot: pending writes appear after
+a background build publishes one, and listing applies no overlay.
 Page tokens are opaque search positions, not Snapshot pins. For a stable export,
 use one immutable Tag and unchanged filter/projection options across all pages.
 

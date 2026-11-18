@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 import pydantic
 from pydantic import ConfigDict, model_validator
 from typing_extensions import Annotated
 
 from lambdadb.types import BaseModel
+
+from .indexconfigs_union import IndexConfigsUnion
 
 _REF_NAME = pydantic.StringConstraints(
     min_length=3,
@@ -29,7 +31,7 @@ class RefKind(str, Enum):
 
 
 class RefSourceKind(str, Enum):
-    """Kinds accepted as a new Tag source; Branches require Branch sources."""
+    """Kinds accepted as the source of a new Branch or Tag."""
 
     BRANCH = "branch"
     TAG = "tag"
@@ -81,10 +83,11 @@ RefContext = Ref
 
 
 class RefSource(BaseModel):
-    """Source for a new tag; ``as_of`` is valid only for branch sources.
+    """Source for a new Branch or Tag; ``as_of`` is valid only for branch sources.
 
-    ``RefSource.branch(...)`` remains accepted by Branch creation for
-    compatibility. A Tag source cannot be used to create a Branch.
+    Without ``as_of``, creation pins the source snapshot together with the fixed
+    inherited and pending write ranges of the source. A Tag source carries the
+    Tag's pinned schema and every write captured when the Tag was created.
     """
 
     kind: RefSourceKind
@@ -105,17 +108,25 @@ class RefSource(BaseModel):
 
     @classmethod
     def branch(cls, name: str, *, as_of: Optional[int] = None) -> "RefSource":
-        """Use a branch head, optionally at an epoch-millisecond cutoff."""
+        """Use a branch, optionally at an epoch-millisecond cutoff.
+
+        ``as_of`` selects the latest retained committed snapshot at or before
+        the cutoff. Inherited and pending writes are excluded; it is not an
+        exact-time restore.
+        """
         return cls(kind=RefSourceKind.BRANCH, name=name, as_of=as_of)
 
     @classmethod
     def tag(cls, name: str) -> "RefSource":
-        """Use a tag snapshot."""
+        """Use a tag's fixed state."""
         return cls(kind=RefSourceKind.TAG, name=name)
 
 
 class BranchSource(BaseModel):
-    """Branch-only source for a new Branch, optionally at an as-of cutoff."""
+    """Branch-only source, optionally at an as-of cutoff.
+
+    Branch creation also accepts a Tag source; use ``RefSource.tag(...)`` for it.
+    """
 
     kind: Literal[RefSourceKind.BRANCH]
     name: RefName
@@ -129,7 +140,12 @@ class BranchSource(BaseModel):
 
     @classmethod
     def branch(cls, name: str, *, as_of: Optional[int] = None) -> "BranchSource":
-        """Use a Branch head, optionally at an epoch-millisecond cutoff."""
+        """Use a Branch, optionally at an epoch-millisecond cutoff.
+
+        ``as_of`` selects the latest retained committed snapshot at or before
+        the cutoff. Inherited and pending writes are excluded; it is not an
+        exact-time restore.
+        """
         return cls(kind=RefSourceKind.BRANCH, name=name, as_of=as_of)
 
 
@@ -195,24 +211,40 @@ class ParentBranchDetails(BaseModel):
 
 
 class BranchDetails(BaseModel):
-    """Branch details with its current head and fixed source lineage."""
+    """Branch details with its current head, schema and fixed source lineage."""
 
     name: str
     parent_branch: Annotated[
         Optional[ParentBranchDetails], pydantic.Field(alias="parentBranch")
     ]
+    """Direct source Branch; ``None`` for main, a Branch created from a Tag, or when no parent was recorded."""
     head_snapshot: Annotated[
         Optional[SnapshotDetails], pydantic.Field(alias="headSnapshot")
     ]
     parent_snapshot: Annotated[
         Optional[SnapshotDetails], pydantic.Field(alias="parentSnapshot")
     ]
+    num_docs: Annotated[int, pydantic.Field(alias="numDocs")]
+    """Document count in this Branch's committed head; 0 for an empty Branch."""
+    data_updated_at: Annotated[Optional[int], pydantic.Field(alias="dataUpdatedAt")]
+    """Last data update of this Branch's committed head in Unix epoch milliseconds; ``None`` for an empty Branch."""
+    index_configs: Annotated[
+        Dict[str, IndexConfigsUnion], pydantic.Field(alias="indexConfigs")
+    ]
+    """The Branch's own index schema."""
     created_at: Annotated[int, pydantic.Field(alias="createdAt")]
 
     @property
     def snapshot_id(self) -> Optional[str]:
         """Current head snapshot ID, retained for compatibility with RefDetails."""
         return None if self.head_snapshot is None else self.head_snapshot.snapshot_id
+
+    @property
+    def data_updated_at_dt(self) -> Optional[datetime]:
+        """Last data update as a timezone-aware UTC datetime, if any."""
+        if self.data_updated_at is None:
+            return None
+        return datetime.fromtimestamp(self.data_updated_at / 1000, tz=timezone.utc)
 
     @property
     def created_at_dt(self) -> datetime:
@@ -228,6 +260,14 @@ class TagDetails(BaseModel):
     snapshot_committed_at: Annotated[
         int, pydantic.Field(alias="snapshotCommittedAt")
     ]
+    num_docs: Annotated[int, pydantic.Field(alias="numDocs")]
+    """Document count in the pinned snapshot."""
+    data_updated_at: Annotated[int, pydantic.Field(alias="dataUpdatedAt")]
+    """Last data update of the pinned snapshot in Unix epoch milliseconds."""
+    index_configs: Annotated[
+        Dict[str, IndexConfigsUnion], pydantic.Field(alias="indexConfigs")
+    ]
+    """Index schema pinned by the Tag."""
     created_at: Annotated[int, pydantic.Field(alias="createdAt")]
 
     @property
@@ -236,6 +276,11 @@ class TagDetails(BaseModel):
         return datetime.fromtimestamp(
             self.snapshot_committed_at / 1000, tz=timezone.utc
         )
+
+    @property
+    def data_updated_at_dt(self) -> datetime:
+        """Last data update as a timezone-aware UTC datetime."""
+        return datetime.fromtimestamp(self.data_updated_at / 1000, tz=timezone.utc)
 
     @property
     def created_at_dt(self) -> datetime:
@@ -258,6 +303,10 @@ class AliasDetails(BaseModel):
             description="Whether the bound target identity is currently missing."
         ),
     ]
+    index_configs: Annotated[
+        Optional[Dict[str, IndexConfigsUnion]], pydantic.Field(alias="indexConfigs")
+    ]
+    """Index schema of the target's version; ``None`` for a dangling Alias."""
     created_at: Annotated[int, pydantic.Field(alias="createdAt")]
 
     @property
@@ -266,12 +315,27 @@ class AliasDetails(BaseModel):
         return datetime.fromtimestamp(self.created_at / 1000, tz=timezone.utc)
 
 
+class UpdateBranchRequestBody(BaseModel):
+    """Body of a Branch update. A Branch owns its index schema only."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    index_configs: Annotated[
+        Dict[str, IndexConfigsUnion],
+        pydantic.Field(alias="indexConfigs", min_length=1),
+    ]
+
+
 class BranchResponse(BaseModel):
     branch: BranchDetails
 
 
 class BranchListResponse(BaseModel):
     branches: List[BranchDetails]
+    next_page_token: Annotated[
+        Optional[str], pydantic.Field(alias="nextPageToken")
+    ] = None
+    """Opaque token for the next page. Absent on the last page."""
 
 
 class TagResponse(BaseModel):
@@ -280,6 +344,10 @@ class TagResponse(BaseModel):
 
 class TagListResponse(BaseModel):
     tags: List[TagDetails]
+    next_page_token: Annotated[
+        Optional[str], pydantic.Field(alias="nextPageToken")
+    ] = None
+    """Opaque token for the next page. Absent on the last page."""
 
 
 class AliasResponse(BaseModel):
@@ -288,3 +356,7 @@ class AliasResponse(BaseModel):
 
 class AliasListResponse(BaseModel):
     aliases: List[AliasDetails]
+    next_page_token: Annotated[
+        Optional[str], pydantic.Field(alias="nextPageToken")
+    ] = None
+    """Opaque token for the next page. Absent on the last page."""

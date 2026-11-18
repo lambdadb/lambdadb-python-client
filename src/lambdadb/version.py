@@ -4,9 +4,9 @@ from __future__ import annotations
 
 TITLE: str = "lambdadb"
 SDK_VERSION: str = "0.15.0"
-OPENAPI_DOC_VERSION: str = "1.1.1"
+OPENAPI_DOC_VERSION: str = "1.3.0"
 GEN_VERSION: str = "2.798.0"
-API_CONTRACT_REVISION: str = "1714009a2659a18b26cb68193dd7a071fd6efb42"
+API_CONTRACT_REVISION: str = "7be299af9cac4195b75feb6e38b5cd7f8989f5a0"
 
 
 def get_version() -> str:

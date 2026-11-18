@@ -112,13 +112,18 @@ def test_analyzers_create_and_get_round_trip(names, use_model, use_async) -> Non
         # Exercise string inputs through the SDK's dictionary conversion path.
         field = expected_field.copy()
 
-    created_body = {
+    collection_body = {
+        "projectName": "project",
         "collectionName": "articles",
+        "indexConfigs": {"content": expected_field},
+        "numPartitions": 1,
+        "numDocs": 0,
         "description": "",
         "tags": {},
         "defaultBranchName": "main",
         "snapshotRetentionInDays": 7,
         "createdAt": 1788336000123,
+        "updatedAt": 1788336000123,
     }
     methods = []
 
@@ -130,22 +135,10 @@ def test_analyzers_create_and_get_round_trip(names, use_model, use_async) -> Non
                 "collectionName": "articles",
                 "indexConfigs": {"content": expected_field},
             }
-            return httpx.Response(201, json={"collection": created_body})
+            return httpx.Response(201, json={"collection": collection_body})
         assert request.method == "GET"
         assert request.url.path == "/projects/project/collections/articles"
-        return httpx.Response(
-            200,
-            json={
-                "collection": {
-                    **created_body,
-                    "projectName": "project",
-                    "indexConfigs": {"content": expected_field},
-                    "numPartitions": 1,
-                    "numDocs": 0,
-                    "updatedAt": 1788336000123,
-                }
-            },
-        )
+        return httpx.Response(200, json={"collection": collection_body})
 
     options = {
         "project_api_key": "test-key",

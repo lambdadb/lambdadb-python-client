@@ -169,6 +169,7 @@ if TYPE_CHECKING:
         TagDetails,
         TagListResponse,
         TagResponse,
+        UpdateBranchRequestBody,
     )
 
 __all__ = [
@@ -311,6 +312,7 @@ __all__ = [
     "TagDetails",
     "TagListResponse",
     "TagResponse",
+    "UpdateBranchRequestBody",
 ]
 
 _dynamic_imports: dict[str, str] = {
@@ -453,6 +455,7 @@ _dynamic_imports: dict[str, str] = {
     "TagDetails": ".versioning",
     "TagListResponse": ".versioning",
     "TagResponse": ".versioning",
+    "UpdateBranchRequestBody": ".versioning",
 }
 
 

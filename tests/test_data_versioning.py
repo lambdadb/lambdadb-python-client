@@ -1,4 +1,4 @@
-"""Data Versioning contract tests pinned to docs revision c441804."""
+"""Data Versioning contract tests for the pinned public OpenAPI revision."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from pydantic import ValidationError
 
 from lambdadb import (
     API_CONTRACT_REVISION,
+    OPENAPI_DOC_VERSION,
     AliasTarget,
     BranchSource,
     LambdaDB,
@@ -47,6 +48,19 @@ def _collection_body(name: str = "catalog") -> Dict[str, Any]:
     }
 
 
+_INDEX_CONFIGS: Dict[str, Any] = {"title": {"type": "text", "analyzers": ["english"]}}
+_EMPTY_STATS: Dict[str, Any] = {
+    "numDocs": 0,
+    "dataUpdatedAt": None,
+    "indexConfigs": _INDEX_CONFIGS,
+}
+_STATS: Dict[str, Any] = {
+    "numDocs": 3,
+    "dataUpdatedAt": 1788335999000,
+    "indexConfigs": _INDEX_CONFIGS,
+}
+
+
 def _text_index(analyzer: models.Analyzer) -> Dict[
     str,
     Union[
@@ -64,7 +78,8 @@ def _text_index(analyzer: models.Analyzer) -> Dict[
 
 
 def test_contract_revision_is_pinned() -> None:
-    assert API_CONTRACT_REVISION == "1714009a2659a18b26cb68193dd7a071fd6efb42"
+    assert API_CONTRACT_REVISION == "7be299af9cac4195b75feb6e38b5cd7f8989f5a0"
+    assert OPENAPI_DOC_VERSION == "1.3.0"
 
 
 def test_final_contract_collection_validation_and_null_patch_semantics() -> None:
@@ -276,6 +291,7 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
                 "snapshotCommittedAt": 1788336000123,
             },
             "createdAt": 1788336000234,
+            **_STATS,
         }
     )
     assert branch.snapshot_id == "snapshot-2"
@@ -298,6 +314,7 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
             "headSnapshot": None,
             "parentSnapshot": None,
             "createdAt": 1788336000123,
+            **_EMPTY_STATS,
         }
     )
     assert empty_main.snapshot_id is None
@@ -310,6 +327,7 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
             "headSnapshot": None,
             "parentSnapshot": None,
             "createdAt": 1788336000124,
+            **_EMPTY_STATS,
         }
     )
     assert empty_child.parent_branch is not None
@@ -336,6 +354,7 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
             "snapshotId": "snapshot-2",
             "snapshotCommittedAt": 1788336000456,
             "createdAt": 1788336000789,
+            **_STATS,
         }
     )
     assert tag.snapshot_committed_at_dt == datetime.fromtimestamp(
@@ -357,7 +376,7 @@ def test_ref_validation_and_millisecond_round_trip() -> None:
         Ref.model_validate({"kind": "branch", "name": "main", "asOf": 1})
 
 
-def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
+def test_branch_and_tag_sources_sync_async() -> None:
     requests: List[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -375,6 +394,7 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
                             "headSnapshot": None,
                             "parentSnapshot": None,
                             "createdAt": 1788336000000,
+                            **_EMPTY_STATS,
                         },
                         {
                             "name": "empty-child",
@@ -382,6 +402,7 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
                             "headSnapshot": None,
                             "parentSnapshot": None,
                             "createdAt": 1788336000001,
+                            **_EMPTY_STATS,
                         },
                     ]
                 },
@@ -394,10 +415,15 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
                 {
                     "branch": {
                         "name": body["branchName"],
-                        "parentBranch": {"branchId": "dev-id", "name": "dev"},
+                        "parentBranch": (
+                            None
+                            if body.get("source", {}).get("kind") == "tag"
+                            else {"branchId": "dev-id", "name": "dev"}
+                        ),
                         "headSnapshot": None,
                         "parentSnapshot": None,
                         "createdAt": 1788336000002,
+                        **_EMPTY_STATS,
                     }
                 },
             )
@@ -410,6 +436,7 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
                     "snapshotId": "snapshot-1",
                     "snapshotCommittedAt": 1788336000000,
                     "createdAt": 1788336000003,
+                    **_STATS,
                 }
             },
         )
@@ -418,11 +445,10 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
         client = LambdaDB(project_api_key="secret", client=transport)
         collection = client.collection("catalog")
         for invalid in (
-            RefSource.tag("release-1"),
-            {"kind": "tag", "name": "release-1"},
             {"kind": "alias", "name": "production-read"},
+            {"kind": "tag", "name": "release-1", "asOf": 1788336000123},
         ):
-            with pytest.raises(ValueError, match="Branch source must be a branch"):
+            with pytest.raises(ValidationError):
                 collection.branches.create("candidate", source=invalid)
         assert not requests
 
@@ -442,6 +468,13 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
         )
         collection.tags.create("from-branch", source=RefSource.branch("dev"))
         collection.tags.create("from-tag", source=RefSource.tag("release-1"))
+        from_tag = collection.branches.create(
+            "from-tag", source=RefSource.tag("release-1")
+        )
+        assert from_tag.branch.parent_branch is None
+        collection.branches.create(
+            "from-tag-dict", source={"kind": "tag", "name": "release-1"}
+        )
 
     assert json.loads(requests[0].content)["source"] == {
         "kind": "branch",
@@ -453,10 +486,12 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
         "kind": "branch",
         "name": "dev",
     }
-    assert json.loads(requests[4].content)["source"] == {
-        "kind": "tag",
-        "name": "release-1",
-    }
+    for index in (4, 5, 6):
+        assert json.loads(requests[index].content)["source"] == {
+            "kind": "tag",
+            "name": "release-1",
+        }
+    assert requests[5].url.path.endswith("/collections/catalog/branches")
 
     requests.clear()
 
@@ -467,11 +502,10 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
             client = LambdaDB(project_api_key="secret", async_client=transport)
             collection = client.collection("catalog")
             for invalid in (
-                RefSource.tag("release-1"),
-                {"kind": "tag", "name": "release-1"},
                 {"kind": "alias", "name": "production-read"},
+                {"kind": "tag", "name": "release-1", "asOf": 1788336000123},
             ):
-                with pytest.raises(ValueError, match="Branch source must be a branch"):
+                with pytest.raises(ValidationError):
                     await collection.branches.create_async("candidate", source=invalid)
             assert not requests
             created = await collection.branches.create_async(
@@ -486,6 +520,10 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
             await collection.tags.create_async(
                 "from-tag", source=RefSource.tag("release-1")
             )
+            from_tag = await collection.branches.create_async(
+                "from-tag", source=RefSource.tag("release-1")
+            )
+            assert from_tag.branch.parent_branch is None
 
     asyncio.run(run())
     assert json.loads(requests[0].content)["source"] == {
@@ -493,10 +531,12 @@ def test_branch_source_restriction_and_tag_sources_sync_async() -> None:
         "name": "dev",
         "asOf": 1788336000123,
     }
-    assert json.loads(requests[2].content)["source"] == {
-        "kind": "tag",
-        "name": "release-1",
-    }
+    for index in (2, 3):
+        assert json.loads(requests[index].content)["source"] == {
+            "kind": "tag",
+            "name": "release-1",
+        }
+    assert requests[3].url.path.endswith("/collections/catalog/branches")
 
 
 def test_list_page_token_stays_opaque_while_ref_name_is_validated() -> None:
@@ -528,12 +568,11 @@ def test_collection_metadata_and_create_delete_status_contract() -> None:
                 201,
                 {
                     "collection": {
-                        "collectionName": payload["collectionName"],
-                        "description": payload["description"],
-                        "tags": payload["tags"],
-                        "defaultBranchName": "main",
-                        "snapshotRetentionInDays": payload["snapshotRetentionInDays"],
-                        "createdAt": 1788336000123,
+                        key: value
+                        for key, value in _collection_body(
+                            payload["collectionName"]
+                        ).items()
+                        if key != "dataUpdatedAt"
                     }
                 },
             )
@@ -567,8 +606,15 @@ def test_collection_metadata_and_create_delete_status_contract() -> None:
     create_body = json.loads(requests[0].content)
     assert create_body["description"] == "Product catalog"
     assert create_body["tags"] == {"environment": "test"}
+    assert isinstance(created.collection, models.CollectionResponse)
     assert created.collection.default_branch_name == "main"
     assert created.collection.created_at == 1788336000123
+    assert created.collection.project_name == "project"
+    assert created.collection.num_docs == 0
+    assert created.collection.data_updated_at is None
+    assert isinstance(
+        created.collection.index_configs["title"], models.IndexConfigsText
+    )
     assert json.loads(requests[1].content) == {
         "tags": {},
         "snapshotRetentionInDays": 14,
@@ -578,15 +624,18 @@ def test_collection_metadata_and_create_delete_status_contract() -> None:
 
     with pytest.raises(ValidationError, match="at least one collection field"):
         models.UpdateCollectionRequestBody()
+    assert models.CreatedCollection is models.CollectionResponse
     with pytest.raises(ValidationError):
-        models.CreatedCollection.model_validate(
+        models.CreateCollectionResponse.model_validate(
             {
-                "collectionName": "catalog",
-                "description": "",
-                "tags": {},
-                "defaultBranchName": "develop",
-                "snapshotRetentionInDays": 30,
-                "createdAt": 1788336000123,
+                "collection": {
+                    "collectionName": "catalog",
+                    "description": "",
+                    "tags": {},
+                    "defaultBranchName": "main",
+                    "snapshotRetentionInDays": 30,
+                    "createdAt": 1788336000123,
+                }
             }
         )
     with pytest.raises(ValidationError):
@@ -607,12 +656,11 @@ def test_collection_metadata_and_status_contract_async() -> None:
                 201,
                 {
                     "collection": {
-                        "collectionName": payload["collectionName"],
-                        "description": payload["description"],
-                        "tags": payload["tags"],
-                        "defaultBranchName": "main",
-                        "snapshotRetentionInDays": payload["snapshotRetentionInDays"],
-                        "createdAt": 1788336000123,
+                        key: value
+                        for key, value in _collection_body(
+                            payload["collectionName"]
+                        ).items()
+                        if key != "dataUpdatedAt"
                     }
                 },
             )
@@ -646,6 +694,7 @@ def test_collection_metadata_and_status_contract_async() -> None:
             )
             deleted = await client.collections.delete_async(collection_name="catalog")
             assert created.collection.default_branch_name == "main"
+            assert created.collection.num_partitions == 1
             assert updated.collection.snapshot_retention_in_days == 14
             assert deleted.message == "Collection deleted"
 
@@ -681,6 +730,7 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
                         "headSnapshot": None,
                         "parentSnapshot": None,
                         "createdAt": 1788336000001,
+                        **_EMPTY_STATS,
                     }
                 },
             )
@@ -705,6 +755,7 @@ def test_lifecycle_sync_paths_bodies_and_error_mapping() -> None:
                         "snapshotId": "s1",
                         "snapshotCommittedAt": 1788335999999,
                         "createdAt": 1788336000002,
+                        **_STATS,
                     }
                 },
             )
@@ -815,6 +866,7 @@ def test_all_lifecycle_endpoints_work_async() -> None:
                             "snapshotCommittedAt": 1788335999999,
                         },
                         "createdAt": 1788336000001,
+                        **_STATS,
                     }
                 },
             )
@@ -837,6 +889,7 @@ def test_all_lifecycle_endpoints_work_async() -> None:
                         "snapshotId": "snapshot-1",
                         "snapshotCommittedAt": 1788335999999,
                         "createdAt": 1788336000002,
+                        **_STATS,
                     }
                 },
             )
@@ -934,6 +987,7 @@ def _alias_body(
         "targetId": "target-id",
         "aliasRevision": revision,
         "dangling": dangling,
+        "indexConfigs": None if dangling else _INDEX_CONFIGS,
         "createdAt": 1788336000003,
     }
 
@@ -1493,6 +1547,7 @@ def test_async_lifecycle_read_and_bulk_upload_match_sync_behavior() -> None:
                         "headSnapshot": None,
                         "parentSnapshot": None,
                         "createdAt": 1788336000001,
+                        **_EMPTY_STATS,
                     }
                 },
             )
@@ -1572,16 +1627,30 @@ def test_sync_async_public_signatures_stay_aligned() -> None:
         (collection.docs.bulk_upsert, collection.docs.bulk_upsert_async),
         (collection.docs.bulk_upsert_docs, collection.docs.bulk_upsert_docs_async),
         (collection.branches.create, collection.branches.create_async),
+        (collection.branches.get, collection.branches.get_async),
+        (collection.branches.update, collection.branches.update_async),
         (collection.branches.list, collection.branches.list_async),
+        (collection.branches.list_page, collection.branches.list_page_async),
+        (collection.branches.list_pages, collection.branches.list_pages_async),
         (collection.branches.delete, collection.branches.delete_async),
         (collection.tags.create, collection.tags.create_async),
+        (collection.tags.get, collection.tags.get_async),
         (collection.tags.list, collection.tags.list_async),
+        (collection.tags.list_page, collection.tags.list_page_async),
+        (collection.tags.list_pages, collection.tags.list_pages_async),
         (collection.tags.delete, collection.tags.delete_async),
         (collection.aliases.create, collection.aliases.create_async),
+        (collection.aliases.get, collection.aliases.get_async),
         (collection.aliases.list, collection.aliases.list_async),
+        (collection.aliases.list_page, collection.aliases.list_page_async),
+        (collection.aliases.list_pages, collection.aliases.list_pages_async),
         (collection.aliases.retarget, collection.aliases.retarget_async),
         (collection.aliases.delete, collection.aliases.delete_async),
     ]
+    for refs in (collection.branches, collection.tags, collection.aliases):
+        # The complete listing keeps its pre-paging signature.
+        assert list(inspect.signature(refs.list).parameters) == ["options"]
+        assert not hasattr(refs, "iter_all")
     for sync_method, async_method in pairs:
         assert list(inspect.signature(sync_method).parameters) == list(
             inspect.signature(async_method).parameters

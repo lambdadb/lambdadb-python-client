@@ -17,6 +17,7 @@ from lambdadb.utils import FieldMetadata, PathParamMetadata, RequestMetadata
 
 class UpdateCollectionRequestBodyTypedDict(TypedDict):
     index_configs: NotRequired[Optional[Dict[str, IndexConfigsUnionTypedDict]]]
+    r"""Deprecated: updates the index schema of the default main branch only. Use ``collection.branches.update("main", index_configs=...)``."""
     description: NotRequired[Optional[str]]
     tags: NotRequired[Optional[Dict[str, str]]]
     snapshot_retention_in_days: NotRequired[Optional[int]]
@@ -29,6 +30,7 @@ class UpdateCollectionRequestBody(BaseModel):
         Union[Optional[Dict[str, IndexConfigsUnion]], Unset],
         pydantic.Field(alias="indexConfigs"),
     ] = UNSET
+    r"""Deprecated: updates the index schema of the default main branch only, exactly as a Branch update of main does. Use ``collection.branches.update("main", index_configs=...)``."""
     description: Union[Optional[str], Unset] = UNSET
     tags: Union[Optional[Dict[str, str]], Unset] = UNSET
     snapshot_retention_in_days: Annotated[

@@ -6,4 +6,4 @@ Created collection response returned with HTTP 201.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `collection` | [models.CreatedCollection](createdcollection.md) | Yes | Newly created collection summary. |
+| `collection` | [models.CollectionResponse](collectionresponse.md) | Yes | The created collection, in the same shape as a collection read, including the normalized `index_configs` of its main Branch. |

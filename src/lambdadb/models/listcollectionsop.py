@@ -14,7 +14,7 @@ class ListCollectionsRequestTypedDict(TypedDict):
     size: NotRequired[int]
     r"""Max number of collections to return at once."""
     page_token: NotRequired[str]
-    r"""Next page token."""
+    r"""Opaque token returned by the previous page. Omit it for the first page; the server rejects an empty value."""
 
 
 class ListCollectionsRequest(BaseModel):
@@ -30,7 +30,7 @@ class ListCollectionsRequest(BaseModel):
         pydantic.Field(alias="pageToken"),
         FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
     ] = None
-    r"""Next page token."""
+    r"""Opaque token returned by the previous page. Omit it for the first page; the server rejects an empty value."""
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):

@@ -3,7 +3,19 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Generic, Mapping, Optional, Type, TypeVar, Union
+from typing import (
+    Any,
+    AsyncIterator,
+    Dict,
+    Generic,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
 from urllib.parse import quote
 
 from lambdadb import errors, models, utils
@@ -22,8 +34,13 @@ from lambdadb.utils.unmarshal_json_response import unmarshal_json_response
 ResponseT = TypeVar("ResponseT", bound=BaseModel)
 RefResponseT = TypeVar("RefResponseT", bound=BaseModel)
 RefListResponseT = TypeVar("RefListResponseT", bound=BaseModel)
+RefDetailsT = TypeVar("RefDetailsT", bound=BaseModel)
 SourceInput = Union[models.RefSource, models.BranchSource, Mapping[str, Any]]
 TargetInput = Union[models.AliasTarget, Mapping[str, Any]]
+IndexConfigsInput = Union[
+    Dict[str, models.IndexConfigsUnion],
+    Dict[str, models.IndexConfigsUnionTypedDict],
+]
 
 
 class _VersioningTransport(BaseSDK):
@@ -111,6 +128,7 @@ class _VersioningTransport(BaseSDK):
         expected_status: int,
         *,
         body: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -126,6 +144,7 @@ class _VersioningTransport(BaseSDK):
         request = client.build_request(
             method,
             self._url(path, server_url),
+            params=params or None,
             content=None if body is None else json.dumps(body).encode("utf-8"),
             headers=self._headers(http_headers),
             timeout=None if timeout is None else timeout / 1000,
@@ -161,6 +180,7 @@ class _VersioningTransport(BaseSDK):
         expected_status: int,
         *,
         body: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
@@ -176,6 +196,7 @@ class _VersioningTransport(BaseSDK):
         request = client.build_request(
             method,
             self._url(path, server_url),
+            params=params or None,
             content=None if body is None else json.dumps(body).encode("utf-8"),
             headers=self._headers(http_headers),
             timeout=None if timeout is None else timeout / 1000,
@@ -214,7 +235,20 @@ def _options(options: Optional[RequestOptions]) -> Dict[str, Any]:
     }
 
 
-class _Refs(Generic[RefResponseT, RefListResponseT]):
+def _page_params(size: Optional[int], page_token: Optional[str]) -> Dict[str, Any]:
+    """Validate ref listing parameters; unset or empty values are not sent.
+
+    Ref listings page exactly like the collection listing, so its request model
+    supplies the size bounds (1-100).
+    """
+    return models.ListCollectionsRequest(
+        size=size, page_token=page_token or None
+    ).model_dump(by_alias=True)
+
+
+class _RefReads(Generic[RefResponseT, RefListResponseT, RefDetailsT]):
+    """Single read and paged listing shared by Branches, Tags, and Aliases."""
+
     kind: str
     plural: str
     response_type: Type[RefResponseT]
@@ -228,16 +262,145 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
         collection = quote(self._transport.collection_name, safe="")
         return f"/collections/{collection}/{self.plural}"
 
-    def _validate_source(
-        self, source: SourceInput
-    ) -> Union[models.BranchSource, models.RefSource]:
+    def _ref_path(self, name: str) -> str:
+        safe_name = quote(models.Ref.branch(name).name, safe="")
+        return f"{self._base_path}/{safe_name}"
+
+    def get(
+        self, name: str, *, options: Optional[RequestOptions] = None
+    ) -> RefResponseT:
+        """Get one ref with its index schema.
+
+        A name that is not a ref of this kind raises ``ResourceNotFoundError``.
+        """
+        return self._transport.request(
+            "GET",
+            self._ref_path(name),
+            f"get{self.kind.title()}",
+            self.response_type,
+            200,
+            **_options(options),
+        )
+
+    async def get_async(
+        self, name: str, *, options: Optional[RequestOptions] = None
+    ) -> RefResponseT:
+        """Get one ref with its index schema asynchronously."""
+        return await self._transport.request_async(
+            "GET",
+            self._ref_path(name),
+            f"get{self.kind.title()}",
+            self.response_type,
+            200,
+            **_options(options),
+        )
+
+    def list(self, *, options: Optional[RequestOptions] = None) -> RefListResponseT:
+        """List every ref of this kind in name order.
+
+        Follows ``next_page_token`` with the server's default page size until
+        the last page and returns the complete listing. A failure on any page
+        raises; no partial list is returned. Use ``list_page`` for one page.
+        """
+        response = self.list_page(options=options)
+        entries = list(getattr(response, self.plural))
+        while getattr(response, "next_page_token"):
+            response = self.list_page(
+                page_token=getattr(response, "next_page_token"), options=options
+            )
+            entries.extend(getattr(response, self.plural))
+        return self.list_response_type.model_validate({self.plural: entries})
+
+    async def list_async(
+        self, *, options: Optional[RequestOptions] = None
+    ) -> RefListResponseT:
+        """List every ref of this kind in name order asynchronously."""
+        response = await self.list_page_async(options=options)
+        entries = list(getattr(response, self.plural))
+        while getattr(response, "next_page_token"):
+            response = await self.list_page_async(
+                page_token=getattr(response, "next_page_token"), options=options
+            )
+            entries.extend(getattr(response, self.plural))
+        return self.list_response_type.model_validate({self.plural: entries})
+
+    def list_page(
+        self,
+        *,
+        size: Optional[int] = None,
+        page_token: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> RefListResponseT:
+        """List one page of refs in name order.
+
+        A response with more refs to return carries ``next_page_token``; pass it
+        as ``page_token`` to get the next page, or use ``list_pages``. It is
+        ``None`` on the last page. Each entry has the same shape as a single read.
+
+        :param size: Max number of refs to return at once (1-100, default 10).
+        :param page_token: Opaque token returned by the previous page. Omit it for the first page; an empty value is not sent.
+        """
+        return self._transport.request(
+            "GET",
+            self._base_path,
+            f"list{self.plural.title()}",
+            self.list_response_type,
+            200,
+            params=_page_params(size, page_token),
+            **_options(options),
+        )
+
+    async def list_page_async(
+        self,
+        *,
+        size: Optional[int] = None,
+        page_token: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> RefListResponseT:
+        """List one page of refs in name order asynchronously."""
+        return await self._transport.request_async(
+            "GET",
+            self._base_path,
+            f"list{self.plural.title()}",
+            self.list_response_type,
+            200,
+            params=_page_params(size, page_token),
+            **_options(options),
+        )
+
+    def list_pages(
+        self, *, size: Optional[int] = None, options: Optional[RequestOptions] = None
+    ) -> Iterator[List[RefDetailsT]]:
+        """Iterate pages of refs, each with up to `size` refs (server default 10)."""
+        page_token: Optional[str] = None
+        while True:
+            resp = self.list_page(size=size, page_token=page_token, options=options)
+            yield getattr(resp, self.plural)
+            page_token = getattr(resp, "next_page_token")
+            if not page_token:
+                break
+
+    async def list_pages_async(
+        self, *, size: Optional[int] = None, options: Optional[RequestOptions] = None
+    ) -> AsyncIterator[List[RefDetailsT]]:
+        """Iterate pages of refs asynchronously."""
+        page_token: Optional[str] = None
+        while True:
+            resp = await self.list_page_async(
+                size=size, page_token=page_token, options=options
+            )
+            yield getattr(resp, self.plural)
+            page_token = getattr(resp, "next_page_token")
+            if not page_token:
+                break
+
+
+class _Refs(_RefReads[RefResponseT, RefListResponseT, RefDetailsT]):
+    @staticmethod
+    def _validate_source(source: SourceInput) -> models.RefSource:
         """Validate the source before either sync or async transport is used."""
         if isinstance(source, BaseModel):
             source = source.model_dump(mode="json", by_alias=True, exclude_none=True)
-        if self.kind == "branch":
-            if isinstance(source, Mapping) and source.get("kind") != "branch":
-                raise ValueError("Branch source must be a branch")
-            return models.BranchSource.model_validate(source)
         return models.RefSource.model_validate(source)
 
     def create(
@@ -247,6 +410,14 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
         source: Optional[SourceInput] = None,
         options: Optional[RequestOptions] = None,
     ) -> RefResponseT:
+        """Create a ref from a Branch or Tag source; omit ``source`` to use main.
+
+        Without ``as_of``, creation pins the source snapshot and the fixed
+        inherited and pending write ranges of the source, without copying them
+        or waiting for the source build. ``as_of`` is valid only for a Branch
+        source and selects the latest retained committed snapshot at or before
+        the cutoff, with no pending or inherited writes.
+        """
         source_model = None if source is None else self._validate_source(source)
         body: Dict[str, Any] = {f"{self.kind}Name": models.Ref.branch(name).name}
         if source_model is not None:
@@ -270,6 +441,7 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
         source: Optional[SourceInput] = None,
         options: Optional[RequestOptions] = None,
     ) -> RefResponseT:
+        """Create a ref from a Branch or Tag source asynchronously."""
         source_model = None if source is None else self._validate_source(source)
         body: Dict[str, Any] = {f"{self.kind}Name": models.Ref.branch(name).name}
         if source_model is not None:
@@ -283,28 +455,6 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
             self.response_type,
             201,
             body=body,
-            **_options(options),
-        )
-
-    def list(self, *, options: Optional[RequestOptions] = None) -> RefListResponseT:
-        return self._transport.request(
-            "GET",
-            self._base_path,
-            f"list{self.kind.title()}s",
-            self.list_response_type,
-            200,
-            **_options(options),
-        )
-
-    async def list_async(
-        self, *, options: Optional[RequestOptions] = None
-    ) -> RefListResponseT:
-        return await self._transport.request_async(
-            "GET",
-            self._base_path,
-            f"list{self.kind.title()}s",
-            self.list_response_type,
-            200,
             **_options(options),
         )
 
@@ -337,7 +487,9 @@ class _Refs(Generic[RefResponseT, RefListResponseT]):
         )
 
 
-class Branches(_Refs[models.BranchResponse, models.BranchListResponse]):
+class Branches(
+    _Refs[models.BranchResponse, models.BranchListResponse, models.BranchDetails]
+):
     """Branch lifecycle operations for one collection."""
 
     kind = "branch"
@@ -345,8 +497,62 @@ class Branches(_Refs[models.BranchResponse, models.BranchListResponse]):
     response_type = models.BranchResponse
     list_response_type = models.BranchListResponse
 
+    @staticmethod
+    def _update_body(index_configs: IndexConfigsInput) -> Dict[str, Any]:
+        return models.UpdateBranchRequestBody(
+            index_configs=utils.get_pydantic_model(
+                index_configs, Dict[str, models.IndexConfigsUnion]
+            )
+        ).model_dump(mode="json", by_alias=True, exclude_none=True)
 
-class Tags(_Refs[models.TagResponse, models.TagListResponse]):
+    def update(
+        self,
+        name: str,
+        *,
+        index_configs: IndexConfigsInput,
+        options: Optional[RequestOptions] = None,
+    ) -> models.BranchResponse:
+        """Update the index schema of one Branch.
+
+        The change applies to this Branch only; updating main also updates the
+        collection's index configs, which mirror main. ``index_configs`` must
+        be the Branch's complete nonempty schema: preserve existing fields and
+        settings (the server-managed id field may be included as returned or
+        omitted), add new fields at any object depth, and set, replace, or
+        clear (``""``) a field description. Concurrent additive updates of the
+        same Branch are merged. Naming a Tag or an Alias raises
+        ``BadRequestError``.
+        """
+        return self._transport.request(
+            "PATCH",
+            self._ref_path(name),
+            "updateBranch",
+            models.BranchResponse,
+            200,
+            body=self._update_body(index_configs),
+            **_options(options),
+        )
+
+    async def update_async(
+        self,
+        name: str,
+        *,
+        index_configs: IndexConfigsInput,
+        options: Optional[RequestOptions] = None,
+    ) -> models.BranchResponse:
+        """Update the index schema of one Branch asynchronously."""
+        return await self._transport.request_async(
+            "PATCH",
+            self._ref_path(name),
+            "updateBranch",
+            models.BranchResponse,
+            200,
+            body=self._update_body(index_configs),
+            **_options(options),
+        )
+
+
+class Tags(_Refs[models.TagResponse, models.TagListResponse, models.TagDetails]):
     """Tag lifecycle operations for one collection."""
 
     kind = "tag"
@@ -355,16 +561,15 @@ class Tags(_Refs[models.TagResponse, models.TagListResponse]):
     list_response_type = models.TagListResponse
 
 
-class Aliases:
+class Aliases(
+    _RefReads[models.AliasResponse, models.AliasListResponse, models.AliasDetails]
+):
     """Alias lifecycle operations for one collection."""
 
-    def __init__(self, transport: _VersioningTransport) -> None:
-        self._transport = transport
-
-    @property
-    def _base_path(self) -> str:
-        collection = quote(self._transport.collection_name, safe="")
-        return f"/collections/{collection}/aliases"
+    kind = "alias"
+    plural = "aliases"
+    response_type = models.AliasResponse
+    list_response_type = models.AliasListResponse
 
     @staticmethod
     def _target(target: TargetInput) -> Dict[str, Any]:
@@ -403,30 +608,6 @@ class Aliases:
             models.AliasResponse,
             201,
             body={"aliasName": alias_name, "target": self._target(target)},
-            **_options(options),
-        )
-
-    def list(
-        self, *, options: Optional[RequestOptions] = None
-    ) -> models.AliasListResponse:
-        return self._transport.request(
-            "GET",
-            self._base_path,
-            "listAliases",
-            models.AliasListResponse,
-            200,
-            **_options(options),
-        )
-
-    async def list_async(
-        self, *, options: Optional[RequestOptions] = None
-    ) -> models.AliasListResponse:
-        return await self._transport.request_async(
-            "GET",
-            self._base_path,
-            "listAliases",
-            models.AliasListResponse,
-            200,
             **_options(options),
         )
 
