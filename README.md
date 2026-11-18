@@ -193,7 +193,9 @@ See the [Data Versioning SDK guide](docs/sdks/versioning/README.md) for sync and
 async lifecycle, pagination, and signed bulk-upload examples.
 If upgrading from stable `0.8.2`, review the
 [0.9.0 migration notes](CHANGELOG.md#090) for changed Collection models,
-timestamp units, HTTP statuses, and Branch source rules before upgrading.
+timestamp units, and HTTP statuses before upgrading. Later entries supersede two
+of its notes: a Branch can be created from a Tag again, and Collection creation
+returns the full `CollectionResponse`.
 
 ### Create a collection with native embeddings
 
@@ -334,7 +336,7 @@ documents. `query_async()` accepts the same arguments. Existing data must be
 rebuilt into a new Collection before using this index format. See
 [keyword facets](docs/keyword-facets.md) for query support, limits, and migration.
 
-### List all collections (sync / async)
+### List collections, one page (sync / async)
 
 ```python
 # Synchronous
@@ -413,11 +415,11 @@ response parsing. Review the linked upgrade requirements for legacy schemas.
 
 ### [Collections](docs/sdks/collections/README.md)
 
-* [list](docs/sdks/collections/README.md#list) - List all collections in an existing project.
+* [list](docs/sdks/collections/README.md#list) - List one page of collections in an existing project.
 * [create](docs/sdks/collections/README.md#create) - Create a collection.
 * [delete](docs/sdks/collections/README.md#delete) - Delete an existing collection.
 * [get](docs/sdks/collections/README.md#get) - Get metadata of an existing collection.
-* [update](docs/sdks/collections/README.md#update) - Configure a collection.
+* [update](docs/sdks/collections/README.md#update) - Configure a collection: description, metadata tags and snapshot retention.
 * [query](docs/sdks/collections/README.md#query) - Search a collection with a query and return the most similar documents.
 
 #### [Collections.Docs](docs/sdks/docs/README.md)
