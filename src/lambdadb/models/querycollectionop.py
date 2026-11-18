@@ -26,7 +26,7 @@ class QueryCollectionRequestBodyTypedDict(TypedDict):
     size: NotRequired[int]
     r"""Number of documents to return, up to 1000. Zero requires at least one facet."""
     consistent_read: NotRequired[bool]
-    r"""Overlay eligible pending writes on the selected branch. Allowed when ref selects a branch directly or an alias that currently targets a branch; the server resolves the alias. Tag reads and an alias that targets a tag reject true with 400. Pending bulk imports are excluded."""
+    r"""Overlay eligible inherited and own pending writes on the selected branch's committed snapshot; ordinary branch reads use only the snapshot. Allowed for a branch or an alias that targets a branch; the server resolves the alias. Tag and tag-alias reads already include the eligible fixed inherited writes, but reject true with 400. Pending bulk imports are excluded until a background build materializes them."""
     include_vectors: NotRequired[bool]
     r"""If your application need to include vector values in the response, set includeVectors to true."""
     sort: NotRequired[List[Dict[str, Any]]]
@@ -53,7 +53,7 @@ class QueryCollectionRequestBody(BaseModel):
     consistent_read: Annotated[
         Optional[bool], pydantic.Field(alias="consistentRead")
     ] = False
-    r"""Overlay eligible pending writes on the selected branch. Allowed when ref selects a branch directly or an alias that currently targets a branch; the server resolves the alias. Tag reads and an alias that targets a tag reject true with 400. Pending bulk imports are excluded."""
+    r"""Overlay eligible inherited and own pending writes on the selected branch's committed snapshot; ordinary branch reads use only the snapshot. Allowed for a branch or an alias that targets a branch; the server resolves the alias. Tag and tag-alias reads already include the eligible fixed inherited writes, but reject true with 400. Pending bulk imports are excluded until a background build materializes them."""
 
     include_vectors: Annotated[
         Optional[bool], pydantic.Field(alias="includeVectors")

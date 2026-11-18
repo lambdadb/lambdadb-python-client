@@ -17,6 +17,7 @@ class CollectionResponseTypedDict(TypedDict):
     collection_name: str
     r"""Collection name."""
     index_configs: Dict[str, IndexConfigsUnionTypedDict]
+    r"""Index schema of the default main branch. Other branches carry their own schema."""
     num_partitions: int
     r"""Total number of partitions including the default partition."""
     num_docs: int
@@ -45,6 +46,7 @@ class CollectionResponse(BaseModel):
         Dict[str, IndexConfigsUnion],
         pydantic.Field(alias="indexConfigs", min_length=1),
     ]
+    r"""Index schema of the default main branch, as a read-only summary like num_docs and data_updated_at. Other branches carry their own schema: read it with ``collection.branches.get(name)``."""
 
     num_partitions: Annotated[int, pydantic.Field(alias="numPartitions")]
     r"""Total number of partitions including the default partition."""

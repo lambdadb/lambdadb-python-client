@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Dict, Literal, Optional
+from typing import Dict, Optional
 
 import pydantic
 from pydantic import ConfigDict, field_validator, model_serializer
 from typing_extensions import Annotated, NotRequired, TypedDict
 
+from .collectionresponse import CollectionResponse, CollectionResponseTypedDict
 from .indexconfigs_union import IndexConfigsUnion, IndexConfigsUnionTypedDict
 from .partitionconfig import PartitionConfig, PartitionConfigTypedDict
 from ._collection_validators import validate_metadata_tags
@@ -66,36 +66,18 @@ class CreateCollectionRequest(BaseModel):
         return result
 
 
-class CreatedCollectionTypedDict(TypedDict):
-    collection_name: str
-    description: str
-    tags: Dict[str, str]
-    default_branch_name: Literal["main"]
-    snapshot_retention_in_days: int
-    created_at: int
+CreatedCollectionTypedDict = CollectionResponseTypedDict
+CreatedCollection = CollectionResponse
+"""Deprecated alias of :class:`CollectionResponse`.
 
-
-class CreatedCollection(BaseModel):
-    collection_name: Annotated[str, pydantic.Field(alias="collectionName")]
-    description: str
-    tags: Dict[str, str]
-    default_branch_name: Annotated[
-        Literal["main"], pydantic.Field(alias="defaultBranchName")
-    ]
-    snapshot_retention_in_days: Annotated[
-        int, pydantic.Field(alias="snapshotRetentionInDays", ge=1, le=31)
-    ]
-    created_at: Annotated[int, pydantic.Field(alias="createdAt")]
-
-    @property
-    def created_at_dt(self) -> datetime:
-        """Creation time as a timezone-aware UTC datetime."""
-        return datetime.fromtimestamp(self.created_at / 1000, tz=timezone.utc)
+Collection creation returns the same shape as a collection read.
+"""
 
 
 class CreateCollectionResponseTypedDict(TypedDict):
-    collection: CreatedCollectionTypedDict
+    collection: CollectionResponseTypedDict
 
 
 class CreateCollectionResponse(BaseModel):
-    collection: CreatedCollection
+    collection: CollectionResponse
+    """The created collection, in the same shape as a collection read."""

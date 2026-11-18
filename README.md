@@ -176,6 +176,7 @@ from lambdadb import AliasTarget, BranchSource, Ref, RefSource
 
 branch = coll.branches.create("experiment", source=BranchSource.branch("main"))
 direct_parent = branch.branch.parent_branch  # fixed branch_id/name, or None
+schema = coll.branches.get("experiment").branch.index_configs  # a Branch owns its schema
 coll.tags.create("validated-2026-09", source=RefSource.branch("experiment"))
 coll.aliases.create(
     "production-read", target=AliasTarget.tag("validated-2026-09")
@@ -434,7 +435,8 @@ response parsing. Review the linked upgrade requirements for legacy schemas.
 
 #### [Data Versioning](docs/sdks/versioning/README.md)
 
-* Collection-scoped Branch, Tag, and Alias lifecycle operations.
+* Collection-scoped Branch, Tag, and Alias lifecycle operations, single reads, and paged listings.
+* Branch-scoped index schema updates.
 * Ref-scoped Query, Fetch, List, and pagination helpers.
 * Branch-scoped document writes and signed bulk uploads.
 

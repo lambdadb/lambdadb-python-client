@@ -70,6 +70,7 @@ def test_data_versioning_live_smoke() -> None:
     collection_name = f"python-sdk-versioning-{suffix}"
     branch_name = f"candidate-{suffix}"
     empty_branch_name = f"empty-{suffix}"
+    from_tag_branch_name = f"from-tag-{suffix}"
     tag_name = f"validated-{suffix}"
     alias_name = f"production-{suffix}"
     seed_id = f"seed-{suffix}"
@@ -97,6 +98,7 @@ def test_data_versioning_live_smoke() -> None:
         )
         assert created.collection.default_branch_name == "main"
         assert created.collection.created_at > 1_000_000_000_000
+        assert "title" in created.collection.index_configs
 
         updated = client.collections.update(
             collection_name=collection_name,
@@ -114,6 +116,9 @@ def test_data_versioning_live_smoke() -> None:
         assert empty_branch.parent_branch is not None
         assert empty_branch.parent_branch.name == "main"
         assert empty_branch.parent_branch.branch_id
+        assert empty_branch.num_docs == 0
+        assert empty_branch.data_updated_at is None
+        assert "title" in empty_branch.index_configs
         collection.branches.delete(empty_branch_name)
 
         collection.docs.upsert(docs=[{"id": seed_id, "title": "seed"}])
@@ -147,6 +152,26 @@ def test_data_versioning_live_smoke() -> None:
             if item.name == branch_name
         )
         assert listed_branch.parent_branch == branch.parent_branch
+
+        fetched_branch = collection.branches.get(branch_name).branch
+        assert fetched_branch.name == branch_name
+        assert "title" in fetched_branch.index_configs
+        first_page = collection.branches.list(size=1)
+        assert len(first_page.branches) == 1
+        assert first_page.next_page_token
+        assert {"main", branch_name} <= {
+            item.name for item in collection.branches.iter_all(page_size=1)
+        }
+
+        updated_branch = collection.branches.update(
+            branch_name,
+            index_configs={
+                **fetched_branch.index_configs,
+                "note": models.IndexConfigs(type=models.Type.KEYWORD),
+            },
+        ).branch
+        assert "note" in updated_branch.index_configs
+        assert "note" not in collection.branches.get("main").branch.index_configs
 
         with pytest.raises(errors.ResourceAlreadyExistsError):
             collection.branches.create(branch_name)
@@ -188,10 +213,20 @@ def test_data_versioning_live_smoke() -> None:
 
         tag = collection.tags.create(tag_name, source=RefSource.branch(branch_name)).tag
         assert tag.snapshot_id
+        assert "title" in tag.index_configs
+        assert collection.tags.get(tag_name).tag.name == tag_name
+        from_tag = collection.branches.create(
+            from_tag_branch_name, source=RefSource.tag(tag_name)
+        ).branch
+        assert from_tag.parent_branch is None
+        collection.branches.delete(from_tag_branch_name)
         alias = collection.aliases.create(
             alias_name, target=AliasTarget.tag(tag_name)
         ).alias
         assert alias.target_name == tag_name
+        fetched_alias = collection.aliases.get(alias_name).alias
+        assert fetched_alias.dangling is False
+        assert fetched_alias.index_configs is not None
 
         listed_ids = {
             document.get("id")

@@ -230,6 +230,8 @@ class CollectionDocs:
 
         A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
         ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        Every ref lists only the currently published snapshot; pending writes
+        appear after a background build publishes one.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         if filter_ is not None or partition_filter is not None or fields is not None:
@@ -354,6 +356,8 @@ class CollectionDocs:
         Presigned result payloads are fetched automatically.
         A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
         ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
+        Every ref lists only the currently published snapshot; pending writes
+        appear after a background build publishes one.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
         if filter_ is not None or partition_filter is not None or fields is not None:

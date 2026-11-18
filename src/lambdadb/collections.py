@@ -35,10 +35,15 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListCollectionsResponse:
-        r"""List all collections in an existing project.
+        r"""List collections in an existing project, one page at a time in name order.
 
-        :param size: Max number of collections to return at once (1-100).
-        :param page_token: Next page token.
+        A response with more collections to return carries ``next_page_token``;
+        pass it as ``page_token`` to get the next page. An out-of-range size or
+        an empty or malformed page token raises ``BadRequestError``; an empty
+        ``page_token`` is rejected locally before any request is sent.
+
+        :param size: Max number of collections to return at once (1-100, default 10).
+        :param page_token: Opaque token returned by the previous page. Omit it for the first page.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -95,13 +100,18 @@ class Collections(BaseSDK):
                 ),
             ),
             request=req,
-            error_status_codes=["401", "404", "429", "4XX", "500", "5XX"],
+            error_status_codes=["400", "401", "404", "429", "4XX", "500", "5XX"],
             retry_config=retry_config,
         )
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
             return unmarshal_json_response(models.ListCollectionsResponse, http_res)
+        if utils.match_response(http_res, "400", "application/json"):
+            response_data = unmarshal_json_response(
+                errors.BadRequestErrorData, http_res
+            )
+            raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
@@ -185,10 +195,15 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListCollectionsResponse:
-        r"""List all collections in an existing project.
+        r"""List collections in an existing project, one page at a time in name order.
 
-        :param size: Max number of collections to return at once (1-100).
-        :param page_token: Next page token.
+        A response with more collections to return carries ``next_page_token``;
+        pass it as ``page_token`` to get the next page. An out-of-range size or
+        an empty or malformed page token raises ``BadRequestError``; an empty
+        ``page_token`` is rejected locally before any request is sent.
+
+        :param size: Max number of collections to return at once (1-100, default 10).
+        :param page_token: Opaque token returned by the previous page. Omit it for the first page.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
@@ -245,13 +260,18 @@ class Collections(BaseSDK):
                 ),
             ),
             request=req,
-            error_status_codes=["401", "404", "429", "4XX", "500", "5XX"],
+            error_status_codes=["400", "401", "404", "429", "4XX", "500", "5XX"],
             retry_config=retry_config,
         )
 
         response_data: Any = None
         if utils.match_response(http_res, "200", "application/json"):
             return unmarshal_json_response(models.ListCollectionsResponse, http_res)
+        if utils.match_response(http_res, "400", "application/json"):
+            response_data = unmarshal_json_response(
+                errors.BadRequestErrorData, http_res
+            )
+            raise errors.BadRequestError(response_data, http_res)
         if utils.match_response(http_res, "401", "application/json"):
             response_data = unmarshal_json_response(
                 errors.UnauthenticatedErrorData, http_res
@@ -346,6 +366,9 @@ class Collections(BaseSDK):
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.CreateCollectionResponse:
         r"""Create a collection.
+
+        The response returns the created collection in the same shape as
+        ``get``, including the normalized index configs of its main branch.
 
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
         :param index_configs:
@@ -485,6 +508,9 @@ class Collections(BaseSDK):
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.CreateCollectionResponse:
         r"""Create a collection.
+
+        The response returns the created collection in the same shape as
+        ``get``, including the normalized index configs of its main branch.
 
         :param collection_name: Collection name must be unique within a project and the supported maximum length is 52.
         :param index_configs:
@@ -1054,10 +1080,12 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.UpdateCollectionResponse:
-        r"""Configure a collection.
+        r"""Configure a collection: description, metadata tags and snapshot retention.
+
+        The response keeps returning the default main branch's index configs.
 
         :param collection_name: Collection name.
-        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. Only a field's optional description may change: omitted keeps the stored one, an empty string clears it, and a new value replaces it. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
+        :param index_configs: Deprecated: updates the default main branch's schema only, exactly as ``collection.branches.update("main", index_configs=...)`` does; use that instead. Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. Only a field's optional description may change: omitted keeps the stored one, an empty string clears it, and a new value replaces it. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
         :param description: Replacement collection description. Empty clears it; None leaves it unchanged.
         :param tags: Replacement metadata tags. An empty dict clears them; None leaves them unchanged.
         :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days. None leaves it unchanged.
@@ -1200,10 +1228,12 @@ class Collections(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.UpdateCollectionResponse:
-        r"""Configure a collection.
+        r"""Configure a collection: description, metadata tags and snapshot retention.
+
+        The response keeps returning the default main branch's index configs.
 
         :param collection_name: Collection name.
-        :param index_configs: Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. Only a field's optional description may change: omitted keeps the stored one, an empty string clears it, and a new value replaces it. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
+        :param index_configs: Deprecated: updates the default main branch's schema only, exactly as ``collection.branches.update("main", index_configs=...)`` does; use that instead. Complete nonempty schema. Preserve existing fields and settings; new fields may be added at any object depth. Only a field's optional description may change: omitted keeps the stored one, an empty string clears it, and a new value replaces it. The server-managed id field may be omitted or sent back as returned. None leaves it unchanged.
         :param description: Replacement collection description. Empty clears it; None leaves it unchanged.
         :param tags: Replacement metadata tags. An empty dict clears them; None leaves them unchanged.
         :param snapshot_retention_in_days: Snapshot retention from 1 through 31 days. None leaves it unchanged.
@@ -1360,7 +1390,7 @@ class Collections(BaseSDK):
         :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 1000). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
         :param rerank: Optional per-query native reranking. The server runs reranking and handles provider credentials. Omitted/null preserves search behavior; no provider API key is required.
         :param size: Number of documents to return. The maximum number of documents is 1000; zero requires at least one facet.
-        :param consistent_read: Overlay eligible pending writes on the selected Branch. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag reject true with 400; pending bulk imports are excluded and a large pending payload can return 429.
+        :param consistent_read: Overlay eligible inherited and own pending writes on the selected Branch's committed snapshot; ordinary Branch reads use only the snapshot. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag already include their fixed inherited writes but reject true with 400; pending bulk imports are excluded until a background build materializes them, and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
@@ -1527,7 +1557,7 @@ class Collections(BaseSDK):
         :param candidate_size: Bayesian candidate budget without rerank (size <= candidate_size <= 1000). With rerank, omit and use rerank.candidate_size; unsupported for other queries.
         :param rerank: Optional per-query native reranking. The server runs reranking and handles provider credentials. Omitted/null preserves search behavior; no provider API key is required.
         :param size: Number of documents to return. The maximum number of documents is 1000; zero requires at least one facet.
-        :param consistent_read: Overlay eligible pending writes on the selected Branch. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag reject true with 400; pending bulk imports are excluded and a large pending payload can return 429.
+        :param consistent_read: Overlay eligible inherited and own pending writes on the selected Branch's committed snapshot; ordinary Branch reads use only the snapshot. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag already include their fixed inherited writes but reject true with 400; pending bulk imports are excluded until a background build materializes them, and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param sort: List of field name, sort direction pairs.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.

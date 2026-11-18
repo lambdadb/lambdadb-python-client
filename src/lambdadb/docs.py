@@ -25,6 +25,10 @@ class Docs(BaseSDK):
     ) -> models.ListDocsResponse:
         r"""List documents in a collection.
 
+        Every ref, including a Tag and an Alias that targets a Tag, lists only the
+        currently published snapshot. Pending writes become visible to listing
+        after a background build publishes a snapshot; listing applies no overlay.
+
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once (1-1000, default 100).
         :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
@@ -148,6 +152,10 @@ class Docs(BaseSDK):
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
         r"""List documents in a collection.
+
+        Every ref, including a Tag and an Alias that targets a Tag, lists only the
+        currently published snapshot. Pending writes become visible to listing
+        after a background build publishes a snapshot; listing applies no overlay.
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once (1-1000, default 100).
@@ -279,6 +287,10 @@ class Docs(BaseSDK):
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
         r"""List documents in a collection with optional filters, field selection, and vector inclusion.
+
+        Every ref, including a Tag and an Alias that targets a Tag, lists only the
+        currently published snapshot. Pending writes become visible to listing
+        after a background build publishes a snapshot; listing applies no overlay.
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once (1-1000, default 100).
@@ -418,6 +430,10 @@ class Docs(BaseSDK):
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
         r"""List documents in a collection with optional filters, field selection, and vector inclusion.
+
+        Every ref, including a Tag and an Alias that targets a Tag, lists only the
+        currently published snapshot. Pending writes become visible to listing
+        after a background build publishes a snapshot; listing applies no overlay.
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once (1-1000, default 100).
@@ -1781,7 +1797,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param ids: A list of 1-1000 nonblank document IDs. The server also enforces response byte limits.
-        :param consistent_read: Overlay eligible pending writes on the selected Branch. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag reject true with 400; pending bulk imports are excluded and a large pending payload can return 429.
+        :param consistent_read: Overlay eligible inherited and own pending writes on the selected Branch's committed snapshot; ordinary Branch reads use only the snapshot. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag already include their fixed inherited writes but reject true with 400; pending bulk imports are excluded until a background build materializes them, and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
         :param partition_filter:
@@ -1927,7 +1943,7 @@ class Docs(BaseSDK):
 
         :param collection_name: Collection name.
         :param ids: A list of 1-1000 nonblank document IDs. The server also enforces response byte limits.
-        :param consistent_read: Overlay eligible pending writes on the selected Branch. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag reject true with 400; pending bulk imports are excluded and a large pending payload can return 429.
+        :param consistent_read: Overlay eligible inherited and own pending writes on the selected Branch's committed snapshot; ordinary Branch reads use only the snapshot. Allowed on a directly selected Branch or an Alias that currently targets a Branch; the server resolves the Alias. Tag refs and an Alias that targets a Tag already include their fixed inherited writes but reject true with 400; pending bulk imports are excluded until a background build materializes them, and a large pending payload can return 429.
         :param include_vectors: If your application need to include vector values in the response, set includeVectors to true.
         :param fields: An object to specify a list of field names to include and/or exclude in the result.
         :param partition_filter:

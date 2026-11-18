@@ -1,5 +1,53 @@
 # Changelog
 
+## Unreleased
+
+- Aligned with the public OpenAPI contract 1.3.0, `reference/api/openapi.json`
+  in [lambdadb/docs](https://github.com/lambdadb/docs) at commit
+  [`7be299af9cac4195b75feb6e38b5cd7f8989f5a0`](https://github.com/lambdadb/docs/commit/7be299af9cac4195b75feb6e38b5cd7f8989f5a0)
+  (SHA-256 `ec499bb6ad4fd7359c1854359e9ecfd4cd8609420f440f7dcbf75566ccda8f32`),
+  synced from backend commit
+  [`f9aa63c79cbac2ac477a76ec45e5015ce665afd1`](https://github.com/lambdadb/lambdadb/commit/f9aa63c79cbac2ac477a76ec45e5015ce665afd1).
+  `API_CONTRACT_REVISION` now reports the docs commit and `OPENAPI_DOC_VERSION`
+  is `1.3.0`. A source pin does not establish deployment.
+- Add single reads `collection.branches.get(name)`, `collection.tags.get(name)`
+  and `collection.aliases.get(name)`, with `get_async` forms. A dangling Alias
+  is still returned, with `dangling=True` and `index_configs=None`.
+- Add `collection.branches.update(name, index_configs=...)` and `update_async`
+  to update the index schema of one Branch. The body carries `indexConfigs`
+  only, validated by the new strict `models.UpdateBranchRequestBody`; an empty
+  schema is rejected before any request is sent.
+- `BranchDetails` gains `index_configs`, `num_docs` and `data_updated_at`
+  (`None` for an empty Branch), `TagDetails` gains `index_configs`, `num_docs`
+  and `data_updated_at`, and `AliasDetails` gains `index_configs` (`None` for a
+  dangling Alias). `BranchDetails` and `TagDetails` add `data_updated_at_dt`.
+  The contract requires these fields in every Branch, Tag and Alias response,
+  so a response without them fails validation.
+- **Behaviour change:** `branches.list()`, `tags.list()` and `aliases.list()`
+  are paged. They accept `size` (1-100) and `page_token`, return
+  `next_page_token`, and with no arguments return the server's default page of
+  10 entries instead of every entry. Use the new `list_pages()` or `iter_all()`
+  helpers (and their async forms) to read all entries.
+- `size` and `page_token` are sent only when set, on the ref listings and on
+  `collections.list()`. An empty `page_token` is rejected locally with a
+  Pydantic `ValidationError`, because the server now rejects it with HTTP 400.
+  `collections.list()` maps HTTP 400 to `BadRequestError`.
+- Branch creation accepts a Tag source, `RefSource.tag(name)`. `as_of` stays
+  valid only for a Branch source, and `parent_branch` is `None` for a Branch
+  created from a Tag. The local "Branch source must be a branch" `ValueError`
+  is removed; an Alias source still fails validation before any request.
+- **Behaviour change:** `collections.create()` returns the full collection
+  shape. `CreateCollectionResponse.collection` is a `CollectionResponse`, and
+  `CreatedCollection` and `CreatedCollectionTypedDict` are now aliases of
+  `CollectionResponse` and `CollectionResponseTypedDict`.
+- Deprecate `index_configs` on `collections.update()` and
+  `UpdateCollectionRequestBody`. It still works and updates the default `main`
+  Branch only; use `collection.branches.update("main", index_configs=...)`.
+  No runtime warning is emitted.
+- Docstrings and the Data Versioning guide follow the contract wording for
+  what Branch and Tag creation capture, `as_of`, consistent reads, Tag reads
+  and document listing.
+
 ## 0.15.0
 
 - Aligned with the public OpenAPI contract, `reference/api/openapi.json` in
