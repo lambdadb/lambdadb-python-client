@@ -23,15 +23,18 @@
   dangling Alias). `BranchDetails` and `TagDetails` add `data_updated_at_dt`.
   The contract requires these fields in every Branch, Tag and Alias response,
   so a response without them fails validation.
-- **Behaviour change:** `branches.list()`, `tags.list()` and `aliases.list()`
-  are paged. They accept `size` (1-100) and `page_token`, return
-  `next_page_token`, and with no arguments return the server's default page of
-  10 entries instead of every entry. Use the new `list_pages()` or `iter_all()`
-  helpers (and their async forms) to read all entries.
+- The server now pages the Branch, Tag and Alias listings. `branches.list()`,
+  `tags.list()` and `aliases.list()` keep their signatures and return types and
+  still return the complete listing: they follow `nextPageToken` with the
+  server's default page size until the last page, and a failure on any page
+  raises. Add `list_page(size=..., page_token=...)` for one page (entries plus
+  `next_page_token`, `None` on the last page) and the `list_pages(size=...)`
+  page iterator, with `list_page_async` and `list_pages_async`. The list
+  response models gain `next_page_token`.
 - `size` and `page_token` are sent only when set, on the ref listings and on
-  `collections.list()`. An empty `page_token` is rejected locally with a
-  Pydantic `ValidationError`, because the server now rejects it with HTTP 400.
-  `collections.list()` maps HTTP 400 to `BadRequestError`.
+  `collections.list()`. An empty `page_token` is never sent, because the server
+  now rejects it with HTTP 400; it reads the first page. `collections.list()`
+  maps HTTP 400 to `BadRequestError`.
 - Branch creation accepts a Tag source, `RefSource.tag(name)`. `as_of` stays
   valid only for a Branch source, and `parent_branch` is `None` for a Branch
   created from a Tag. The local "Branch source must be a branch" `ValueError`

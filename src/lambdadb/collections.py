@@ -39,8 +39,8 @@ class Collections(BaseSDK):
 
         A response with more collections to return carries ``next_page_token``;
         pass it as ``page_token`` to get the next page. An out-of-range size or
-        an empty or malformed page token raises ``BadRequestError``; an empty
-        ``page_token`` is rejected locally before any request is sent.
+        a malformed page token raises ``BadRequestError``. An empty
+        ``page_token`` is not sent, because the server rejects it.
 
         :param size: Max number of collections to return at once (1-100, default 10).
         :param page_token: Opaque token returned by the previous page. Omit it for the first page.
@@ -59,7 +59,9 @@ class Collections(BaseSDK):
         else:
             base_url = self._get_url(base_url, url_variables)
 
-        request = models.ListCollectionsRequest(size=size, page_token=page_token)
+        request = models.ListCollectionsRequest(
+            size=size, page_token=page_token or None
+        )
         req = self._build_request(
             method="GET",
             path="/collections",
@@ -199,8 +201,8 @@ class Collections(BaseSDK):
 
         A response with more collections to return carries ``next_page_token``;
         pass it as ``page_token`` to get the next page. An out-of-range size or
-        an empty or malformed page token raises ``BadRequestError``; an empty
-        ``page_token`` is rejected locally before any request is sent.
+        a malformed page token raises ``BadRequestError``. An empty
+        ``page_token`` is not sent, because the server rejects it.
 
         :param size: Max number of collections to return at once (1-100, default 10).
         :param page_token: Opaque token returned by the previous page. Omit it for the first page.
@@ -219,7 +221,9 @@ class Collections(BaseSDK):
         else:
             base_url = self._get_url(base_url, url_variables)
 
-        request = models.ListCollectionsRequest(size=size, page_token=page_token)
+        request = models.ListCollectionsRequest(
+            size=size, page_token=page_token or None
+        )
         req = self._build_request_async(
             method="GET",
             path="/collections",

@@ -10,7 +10,7 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
-from lambdadb import LambdaDB, errors, models
+from lambdadb import LambdaDB, RequestOptions, errors, models
 
 INDEX_CONFIGS: Dict[str, Any] = {
     "title": {"type": "text", "analyzers": ["english"], "description": "Book title"},
@@ -279,35 +279,54 @@ def test_branch_update_sends_only_index_configs_sync_and_async() -> None:
 
 
 @pytest.mark.parametrize("plural", ["branches", "tags", "aliases"])
-def test_ref_listing_parameters_and_pagination_sync(plural: str) -> None:
+def test_ref_listing_all_pages_one_page_and_page_iterator_sync(plural: str) -> None:
     requests: List[httpx.Request] = []
     refs = getattr(_sync_client(requests).collection("catalog"), plural)
+    name = "alias_name" if plural == "aliases" else "name"
 
-    first = refs.list()
-    assert requests[0].url.path == f"{BASE}/{plural}"
+    # list() keeps its signature and returns the complete listing.
+    everything = refs.list()
+    assert isinstance(everything, refs.list_response_type)
+    assert [getattr(item, name) for item in getattr(everything, plural)] == [
+        "item-0",
+        "item-1",
+        "item-2",
+    ]
+    assert everything.next_page_token is None
+    assert [request.url.path for request in requests] == [f"{BASE}/{plural}"] * 3
+    assert [request.url.query for request in requests] == [
+        b"",
+        b"pageToken=page-2",
+        b"pageToken=page%2B%2F%3D3",
+    ]
+
+    requests.clear()
+    first = refs.list_page()
     assert requests[0].url.query == b""
     assert first.next_page_token == "page-2"
     assert len(getattr(first, plural)) == 1
 
-    refs.list(size=None, page_token=None)
+    refs.list_page(size=None, page_token=None)
+    refs.list_page(page_token="")
     assert requests[1].url.query == b""
+    assert requests[2].url.query == b""
 
-    last = refs.list(size=5, page_token="page+/=3")
-    assert dict(requests[2].url.params) == {"size": "5", "pageToken": "page+/=3"}
+    last = refs.list_page(size=5, page_token="page+/=3")
+    assert dict(requests[3].url.params) == {"size": "5", "pageToken": "page+/=3"}
     assert last.next_page_token is None
 
-    refs.list(size=100)
-    assert dict(requests[3].url.params) == {"size": "100"}
-    refs.list(page_token="page-2")
-    assert dict(requests[4].url.params) == {"pageToken": "page-2"}
+    refs.list_page(size=100)
+    assert dict(requests[4].url.params) == {"size": "100"}
+    refs.list_page(page_token="page-2")
+    assert dict(requests[5].url.params) == {"pageToken": "page-2"}
 
-    for invalid in ({"page_token": ""}, {"size": 0}, {"size": 101}):
+    for invalid in (0, 101):
         with pytest.raises(ValidationError):
-            refs.list(**invalid)
-    assert len(requests) == 5
+            refs.list_page(size=invalid)
+    assert len(requests) == 6
 
     with pytest.raises(errors.BadRequestError, match="Invalid pageToken"):
-        refs.list(page_token="malformed")
+        refs.list_page(page_token="malformed")
 
     requests.clear()
     pages = list(refs.list_pages(size=1))
@@ -319,31 +338,33 @@ def test_ref_listing_parameters_and_pagination_sync(plural: str) -> None:
     ]
 
     requests.clear()
-    items = list(refs.iter_all())
-    name = "alias_name" if plural == "aliases" else "name"
-    assert [getattr(item, name) for item in items] == ["item-0", "item-1", "item-2"]
-    assert [request.url.params.get("pageToken") for request in requests] == [
-        None,
-        "page-2",
-        "page+/=3",
-    ]
-    assert all(request.url.params["size"] == "100" for request in requests)
+    assert len(list(refs.list_pages())) == 3
+    assert requests[0].url.query == b""
 
 
 @pytest.mark.parametrize("plural", ["branches", "tags", "aliases"])
-def test_ref_listing_parameters_and_pagination_async(plural: str) -> None:
+def test_ref_listing_all_pages_one_page_and_page_iterator_async(plural: str) -> None:
     requests: List[httpx.Request] = []
 
     async def run() -> None:
         refs = getattr(_async_client(requests).collection("catalog"), plural)
-        first = await refs.list_async()
+        everything = await refs.list_async()
+        assert len(getattr(everything, plural)) == 3
+        assert everything.next_page_token is None
+        assert [request.url.query for request in requests] == [
+            b"",
+            b"pageToken=page-2",
+            b"pageToken=page%2B%2F%3D3",
+        ]
+
+        requests.clear()
+        first = await refs.list_page_async()
         assert requests[0].url.query == b""
         assert first.next_page_token == "page-2"
-        await refs.list_async(size=5, page_token="page-2")
+        await refs.list_page_async(size=5, page_token="page-2")
         assert dict(requests[1].url.params) == {"size": "5", "pageToken": "page-2"}
-        with pytest.raises(ValidationError):
-            await refs.list_async(page_token="")
-        assert len(requests) == 2
+        await refs.list_page_async(page_token="")
+        assert requests[2].url.query == b""
 
         requests.clear()
         pages = [page async for page in refs.list_pages_async(size=2)]
@@ -354,16 +375,40 @@ def test_ref_listing_parameters_and_pagination_async(plural: str) -> None:
             {"size": "2", "pageToken": "page+/=3"},
         ]
 
-        requests.clear()
-        items = [item async for item in refs.iter_all_async(page_size=7)]
-        assert len(items) == 3
-        assert [request.url.params.get("pageToken") for request in requests] == [
-            None,
-            "page-2",
-            "page+/=3",
-        ]
-
     asyncio.run(run())
+
+
+def test_ref_listing_raises_when_a_later_page_fails() -> None:
+    calls: List[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        if request.url.params.get("pageToken") is None:
+            return httpx.Response(
+                200, json={"branches": [_branch("main")], "nextPageToken": "page-2"}
+            )
+        return httpx.Response(500, json={"message": "boom"})
+
+    options: Dict[str, Any] = {"project_api_key": "secret", "retry_config": None}
+    with httpx.Client(transport=httpx.MockTransport(handler)) as transport:
+        client = LambdaDB(**options, client=transport)
+        with pytest.raises(errors.InternalServerError, match="boom"):
+            client.collection("catalog").branches.list(
+                options=RequestOptions(retries=None)
+            )
+    assert len(calls) == 2
+
+    async def run() -> None:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as transport:
+            client = LambdaDB(**options, async_client=transport)
+            with pytest.raises(errors.InternalServerError, match="boom"):
+                await client.collection("catalog").branches.list_async(
+                    options=RequestOptions(retries=None)
+                )
+
+    calls.clear()
+    asyncio.run(run())
+    assert len(calls) == 2
 
 
 def test_collection_listing_omits_unset_parameters_and_maps_400() -> None:
@@ -387,9 +432,8 @@ def test_collection_listing_omits_unset_parameters_and_maps_400() -> None:
         client.collections.list(size=None, page_token=None)
         client.collections.list(size=20, page_token="next")
         assert list(client.collections.iter_all()) == []
-        with pytest.raises(ValidationError):
-            client.collections.list(page_token="")
-        assert len(requests) == 4
+        client.collections.list(page_token="")
+        assert len(requests) == 5
         with pytest.raises(errors.BadRequestError, match="Invalid pageToken"):
             client.collections.list(page_token="malformed", retries=None)
 
@@ -397,20 +441,21 @@ def test_collection_listing_omits_unset_parameters_and_maps_400() -> None:
     assert requests[1].url.query == b""
     assert dict(requests[2].url.params) == {"size": "20", "pageToken": "next"}
     assert dict(requests[3].url.params) == {"size": "100"}
+    assert requests[4].url.query == b""
 
     async def run() -> None:
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as transport:
             client = LambdaDB(**options, async_client=transport)
             await client.collections.list_async()
-            with pytest.raises(ValidationError):
-                await client.collections.list_async(page_token="")
+            await client.collections.list_async(page_token="")
             with pytest.raises(errors.BadRequestError, match="Invalid pageToken"):
                 await client.collections.list_async(page_token="malformed", retries=None)
 
     requests.clear()
     asyncio.run(run())
     assert requests[0].url.query == b""
-    assert len(requests) == 2
+    assert requests[1].url.query == b""
+    assert len(requests) == 3
 
 
 def test_collection_index_configs_update_matches_the_branch_update_body() -> None:

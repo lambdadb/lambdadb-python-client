@@ -236,14 +236,14 @@ def _options(options: Optional[RequestOptions]) -> Dict[str, Any]:
 
 
 def _page_params(size: Optional[int], page_token: Optional[str]) -> Dict[str, Any]:
-    """Validate ref listing parameters; values the caller did not set are not sent.
+    """Validate ref listing parameters; unset or empty values are not sent.
 
     Ref listings page exactly like the collection listing, so its request model
-    supplies the bounds: size 1-100 and a non-empty page token.
+    supplies the size bounds (1-100).
     """
-    return models.ListCollectionsRequest(size=size, page_token=page_token).model_dump(
-        by_alias=True
-    )
+    return models.ListCollectionsRequest(
+        size=size, page_token=page_token or None
+    ).model_dump(by_alias=True)
 
 
 class _RefReads(Generic[RefResponseT, RefListResponseT, RefDetailsT]):
@@ -295,7 +295,36 @@ class _RefReads(Generic[RefResponseT, RefListResponseT, RefDetailsT]):
             **_options(options),
         )
 
-    def list(
+    def list(self, *, options: Optional[RequestOptions] = None) -> RefListResponseT:
+        """List every ref of this kind in name order.
+
+        Follows ``next_page_token`` with the server's default page size until
+        the last page and returns the complete listing. A failure on any page
+        raises; no partial list is returned. Use ``list_page`` for one page.
+        """
+        response = self.list_page(options=options)
+        entries = list(getattr(response, self.plural))
+        while getattr(response, "next_page_token"):
+            response = self.list_page(
+                page_token=getattr(response, "next_page_token"), options=options
+            )
+            entries.extend(getattr(response, self.plural))
+        return self.list_response_type.model_validate({self.plural: entries})
+
+    async def list_async(
+        self, *, options: Optional[RequestOptions] = None
+    ) -> RefListResponseT:
+        """List every ref of this kind in name order asynchronously."""
+        response = await self.list_page_async(options=options)
+        entries = list(getattr(response, self.plural))
+        while getattr(response, "next_page_token"):
+            response = await self.list_page_async(
+                page_token=getattr(response, "next_page_token"), options=options
+            )
+            entries.extend(getattr(response, self.plural))
+        return self.list_response_type.model_validate({self.plural: entries})
+
+    def list_page(
         self,
         *,
         size: Optional[int] = None,
@@ -305,11 +334,11 @@ class _RefReads(Generic[RefResponseT, RefListResponseT, RefDetailsT]):
         """List one page of refs in name order.
 
         A response with more refs to return carries ``next_page_token``; pass it
-        as ``page_token`` to get the next page, or use ``list_pages`` or
-        ``iter_all``. Each entry has the same shape as a single read.
+        as ``page_token`` to get the next page, or use ``list_pages``. It is
+        ``None`` on the last page. Each entry has the same shape as a single read.
 
         :param size: Max number of refs to return at once (1-100, default 10).
-        :param page_token: Opaque token returned by the previous page. Omit it for the first page; an empty value is rejected before any request is sent.
+        :param page_token: Opaque token returned by the previous page. Omit it for the first page; an empty value is not sent.
         """
         return self._transport.request(
             "GET",
@@ -321,7 +350,7 @@ class _RefReads(Generic[RefResponseT, RefListResponseT, RefDetailsT]):
             **_options(options),
         )
 
-    async def list_async(
+    async def list_page_async(
         self,
         *,
         size: Optional[int] = None,
@@ -340,45 +369,30 @@ class _RefReads(Generic[RefResponseT, RefListResponseT, RefDetailsT]):
         )
 
     def list_pages(
-        self, *, size: int = 100, options: Optional[RequestOptions] = None
+        self, *, size: Optional[int] = None, options: Optional[RequestOptions] = None
     ) -> Iterator[List[RefDetailsT]]:
-        """Iterate pages of refs (each page has up to `size` refs). Handles pagination via next_page_token."""
+        """Iterate pages of refs, each with up to `size` refs (server default 10)."""
         page_token: Optional[str] = None
         while True:
-            resp = self.list(size=size, page_token=page_token, options=options)
+            resp = self.list_page(size=size, page_token=page_token, options=options)
             yield getattr(resp, self.plural)
             page_token = getattr(resp, "next_page_token")
             if not page_token:
                 break
 
     async def list_pages_async(
-        self, *, size: int = 100, options: Optional[RequestOptions] = None
+        self, *, size: Optional[int] = None, options: Optional[RequestOptions] = None
     ) -> AsyncIterator[List[RefDetailsT]]:
-        """Iterate pages of refs (async). Each page has up to `size` refs."""
+        """Iterate pages of refs asynchronously."""
         page_token: Optional[str] = None
         while True:
-            resp = await self.list_async(
+            resp = await self.list_page_async(
                 size=size, page_token=page_token, options=options
             )
             yield getattr(resp, self.plural)
             page_token = getattr(resp, "next_page_token")
             if not page_token:
                 break
-
-    def iter_all(
-        self, *, page_size: int = 100, options: Optional[RequestOptions] = None
-    ) -> Iterator[RefDetailsT]:
-        """Iterate over all refs of this kind. Handles pagination internally."""
-        for page in self.list_pages(size=page_size, options=options):
-            yield from page
-
-    async def iter_all_async(
-        self, *, page_size: int = 100, options: Optional[RequestOptions] = None
-    ) -> AsyncIterator[RefDetailsT]:
-        """Iterate over all refs of this kind (async). Handles pagination internally."""
-        async for page in self.list_pages_async(size=page_size, options=options):
-            for item in page:
-                yield item
 
 
 class _Refs(_RefReads[RefResponseT, RefListResponseT, RefDetailsT]):

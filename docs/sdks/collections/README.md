@@ -18,10 +18,9 @@
 List collections in an existing project, one page at a time in name order. A
 response with more collections to return carries `next_page_token`; pass it as
 `page_token` to get the next page, or use [list_pages](#list_pages) or
-[iter_all](#iter_all). `size` and `page_token` are sent only when set. An empty
-`page_token` raises a Pydantic `ValidationError` before any request is sent,
-because the server rejects it; an out-of-range size or a malformed token
-returns `BadRequestError`.
+[iter_all](#iter_all). `size` and `page_token` are sent only when set, and an
+empty `page_token` is not sent, because the server rejects it. An out-of-range
+size or a malformed token returns `BadRequestError`.
 
 ### Example Usage
 

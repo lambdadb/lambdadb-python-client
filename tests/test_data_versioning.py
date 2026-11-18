@@ -1630,23 +1630,27 @@ def test_sync_async_public_signatures_stay_aligned() -> None:
         (collection.branches.get, collection.branches.get_async),
         (collection.branches.update, collection.branches.update_async),
         (collection.branches.list, collection.branches.list_async),
+        (collection.branches.list_page, collection.branches.list_page_async),
         (collection.branches.list_pages, collection.branches.list_pages_async),
-        (collection.branches.iter_all, collection.branches.iter_all_async),
         (collection.branches.delete, collection.branches.delete_async),
         (collection.tags.create, collection.tags.create_async),
         (collection.tags.get, collection.tags.get_async),
         (collection.tags.list, collection.tags.list_async),
+        (collection.tags.list_page, collection.tags.list_page_async),
         (collection.tags.list_pages, collection.tags.list_pages_async),
-        (collection.tags.iter_all, collection.tags.iter_all_async),
         (collection.tags.delete, collection.tags.delete_async),
         (collection.aliases.create, collection.aliases.create_async),
         (collection.aliases.get, collection.aliases.get_async),
         (collection.aliases.list, collection.aliases.list_async),
+        (collection.aliases.list_page, collection.aliases.list_page_async),
         (collection.aliases.list_pages, collection.aliases.list_pages_async),
-        (collection.aliases.iter_all, collection.aliases.iter_all_async),
         (collection.aliases.retarget, collection.aliases.retarget_async),
         (collection.aliases.delete, collection.aliases.delete_async),
     ]
+    for refs in (collection.branches, collection.tags, collection.aliases):
+        # The complete listing keeps its pre-paging signature.
+        assert list(inspect.signature(refs.list).parameters) == ["options"]
+        assert not hasattr(refs, "iter_all")
     for sync_method, async_method in pairs:
         assert list(inspect.signature(sync_method).parameters) == list(
             inspect.signature(async_method).parameters

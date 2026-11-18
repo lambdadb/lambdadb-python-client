@@ -34,11 +34,10 @@ with LambdaDB(project_api_key="...") as client:
     tag = collection.tags.get("validated-2026-09")
     alias = collection.aliases.get("production-read")
 
-    # Listings are paged: one page, page by page, or every entry.
-    first_page = collection.branches.list(size=20)
-    for page in collection.tags.list_pages(size=50):
-        ...
-    for alias_details in collection.aliases.iter_all():
+    # list() returns every entry; list_page() and list_pages() read page by page.
+    branches = collection.branches.list().branches
+    first_page = collection.tags.list_page(size=20)
+    for page in collection.aliases.list_pages(size=50):
         ...
 
     # Branches expose current-head and fixed source-lineage metadata.
@@ -49,7 +48,7 @@ with LambdaDB(project_api_key="...") as client:
 ```
 
 Lifecycle methods have matching async forms: `create_async`, `get_async`,
-`update_async`, `list_async`, `list_pages_async`, `iter_all_async`,
+`update_async`, `list_async`, `list_page_async`, `list_pages_async`,
 `delete_async`, and `retarget_async`.
 
 Branch and Tag creation accept a Branch or Tag source: `RefSource.branch(...)`
@@ -101,24 +100,32 @@ single read, Branch update, and list entries.
 and `index_configs=None`. A name that is not a ref of the requested kind raises
 `ResourceNotFoundError`.
 
-## Paged listings
+## Listings
 
-`branches.list()`, `tags.list()`, and `aliases.list()` return one page in name
-order, like `client.collections.list()`:
+`branches.list()`, `tags.list()`, and `aliases.list()` keep their signature and
+return the complete listing in name order. The server pages these listings, so
+`list()` follows `next_page_token` with the server's default page size until the
+last page; the returned `next_page_token` is always `None`. A failure on any
+page raises, and no partial list is returned.
+
+`list_page(size=..., page_token=...)` returns one page: the entries plus
+`next_page_token`, which is `None` on the last page. `list_pages(size=...)`
+iterates the pages on top of it and yields each page's entries:
 
 ```python
-page = collection.branches.list(size=50)
+page = collection.branches.list_page(size=50)
 while page.next_page_token:
-    page = collection.branches.list(size=50, page_token=page.next_page_token)
+    page = collection.branches.list_page(size=50, page_token=page.next_page_token)
+
+for tags in collection.tags.list_pages(size=50):
+    ...
 ```
 
-`size` is 1-100 and the server defaults to 10 when it is omitted, so a bare
-`list()` returns at most 10 entries; check `next_page_token`, which is `None`
-on the last page. `list_pages(size=100)` yields each page's entries and
-`iter_all(page_size=100)` yields every entry. `size` and `page_token` are sent
-only when set. An empty `page_token` or an out-of-range `size` raises a
-Pydantic `ValidationError` before any request is sent; a malformed token
-returns `BadRequestError`.
+`size` is 1-100 and the server defaults to 10 when it is omitted. `size` and
+`page_token` are sent only when set, and an empty `page_token` is never sent:
+it is treated as the first page. An out-of-range `size` raises a Pydantic
+`ValidationError` before any request is sent; a malformed token returns
+`BadRequestError`.
 
 ## Branch schema
 

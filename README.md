@@ -435,7 +435,7 @@ response parsing. Review the linked upgrade requirements for legacy schemas.
 
 #### [Data Versioning](docs/sdks/versioning/README.md)
 
-* Collection-scoped Branch, Tag, and Alias lifecycle operations, single reads, and paged listings.
+* Collection-scoped Branch, Tag, and Alias lifecycle operations, single reads, and complete or page-by-page listings.
 * Branch-scoped index schema updates.
 * Ref-scoped Query, Fetch, List, and pagination helpers.
 * Branch-scoped document writes and signed bulk uploads.

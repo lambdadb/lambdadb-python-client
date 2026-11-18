@@ -156,11 +156,13 @@ def test_data_versioning_live_smoke() -> None:
         fetched_branch = collection.branches.get(branch_name).branch
         assert fetched_branch.name == branch_name
         assert "title" in fetched_branch.index_configs
-        first_page = collection.branches.list(size=1)
+        first_page = collection.branches.list_page(size=1)
         assert len(first_page.branches) == 1
         assert first_page.next_page_token
         assert {"main", branch_name} <= {
-            item.name for item in collection.branches.iter_all(page_size=1)
+            item.name
+            for page in collection.branches.list_pages(size=1)
+            for item in page
         }
 
         updated_branch = collection.branches.update(
