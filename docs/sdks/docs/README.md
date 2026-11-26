@@ -40,7 +40,8 @@ with LambdaDB(
 
 - Pass `ref=Ref.branch(name)`, `Ref.tag(name)`, or `Ref.alias(name)` to List,
   Fetch, and Query reads. `list_pages`, `iter_all`, and their async variants
-  preserve the ref on every page.
+  preserve the ref on every page. List, Fetch, and Query accept
+  `consistent_read=True` on a Branch or an Alias that targets a Branch.
 - Pass `branch="name"` to Upsert, Update, Delete, Bulk Upsert, and the one-step
   bulk helper. Writes do not accept Tag or Alias refs.
 - `bulk_upsert_docs(..., transfer_client=...)` can use a client separate from
@@ -76,7 +77,9 @@ When using the recommended API (`coll.docs.list()`), the collection is already b
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | `collection_name`                                                   | *str*                                                               | :heavy_check_mark:                                                  | Collection name (legacy API only; not used with `coll.docs.list()`). |
 | `size`                                                              | *Optional[int]*                                                     | :heavy_minus_sign:                                                  | Max number of documents to return at once.                          |
-| `page_token` | *Optional[str]* | :heavy_minus_sign: | Opaque search position, not a Snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports. |
+| `page_token` | *Optional[str]* | :heavy_minus_sign: | Opaque position from `next_page_token`, not a Snapshot pin. Repeat the other arguments, including `size`; a changed request condition raises `BadRequestError`. |
+| `sort` | *Optional[List[Dict[str, str]]]* | :heavy_minus_sign: | 1-4 objects such as `{"category": "asc"}` on keyword, long, double, or datetime fields (`"asc"` or `"desc"`). Default order is ascending document ID, which also breaks ties. Uses the extended list endpoint. |
+| `consistent_read` | *Optional[bool]* | :heavy_minus_sign: | Include pending ordinary writes of a Branch or an Alias that targets a Branch (default `False`, not sent unless true). A Tag ref raises `ValueError`. Uses the extended list endpoint. |
 | `options`                                                           | [Optional[RequestOptions]](../../../README.md)                       | :heavy_minus_sign:                                                  | Advanced options (retries, server_url, timeout_ms, http_headers).   |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
@@ -97,7 +100,7 @@ When using the recommended API (`coll.docs.list()`), the collection is already b
 
 ## list_pages
 
-Iterate pages of up to `size` documents each. The SDK requests at most 1000 documents at a time and aggregates responses into logical pages; the default page size remains 100. The API may return fewer documents per request due to payload limits.
+Iterate pages of up to `size` documents each. Every request repeats the same arguments and asks for `min(size, 1000)` documents, because a page token is bound to the request conditions, including the size; the SDK regroups responses into logical pages. The default page size remains 100. The API may return fewer documents per request due to payload limits. `list_pages` accepts the same `filter_`, `partition_filter`, `fields`, `include_vectors`, `sort`, `consistent_read`, and `ref` arguments as `list`.
 
 ### Example Usage
 

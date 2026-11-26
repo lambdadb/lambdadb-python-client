@@ -219,6 +219,8 @@ class CollectionDocs:
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        sort: Optional[List[Dict[str, str]]] = None,
+        consistent_read: Optional[bool] = False,
         ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -230,11 +232,24 @@ class CollectionDocs:
 
         A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
         ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
-        Every ref lists only the currently published snapshot; pending writes
-        appear after a background build publishes one.
+        Each page reads the current published Branch snapshot; a Tag, or an
+        Alias that targets a Tag, also includes the Tag's pending ordinary
+        writes. ``sort`` (1-4 ``{"field": "asc" | "desc"}`` objects) and
+        ``consistent_read=True`` (pending ordinary writes of a Branch or an
+        Alias that targets a Branch) use the extended list endpoint, as
+        filters, partition filters, and field selectors do; the default order
+        is ascending document ID. To continue, repeat the same arguments,
+        including ``size``, with ``next_page_token`` as ``page_token``; a
+        changed request condition raises ``BadRequestError``.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        if filter_ is not None or partition_filter is not None or fields is not None:
+        if (
+            filter_ is not None
+            or partition_filter is not None
+            or fields is not None
+            or sort is not None
+            or consistent_read
+        ):
             response = self._docs.list_docs_extended(
                 collection_name=self._collection_name,
                 size=size,
@@ -243,6 +258,8 @@ class CollectionDocs:
                 partition_filter=partition_filter,
                 fields=fields,
                 include_vectors=include_vectors,
+                sort=sort,
+                consistent_read=consistent_read,
                 ref=ref,
                 retries=r,
                 server_url=s,
@@ -280,10 +297,17 @@ class CollectionDocs:
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        sort: Optional[List[Dict[str, str]]] = None,
+        consistent_read: Optional[bool] = False,
         ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
     ) -> Iterator[List[Dict[str, Any]]]:
-        """Iterate pages while retaining the selected ``ref`` on every request."""
+        """Iterate pages while retaining the selected ``ref`` on every request.
+
+        Every request repeats the same arguments and requests ``min(size, 1000)``
+        documents, because a page token is bound to the request conditions,
+        including the size; responses are regrouped into pages of ``size``.
+        """
         r, s, t, h = _merge_options(options, UNSET, None, None, None)
         current_page_token = page_token
         buffer: List[Dict[str, Any]] = []
@@ -297,12 +321,15 @@ class CollectionDocs:
                     return
                 continue
             resp = self.list(
-                size=min(need, _LIST_DOCS_MAX_SIZE),
+                # The page token binds the request size, so every request repeats it.
+                size=min(size, _LIST_DOCS_MAX_SIZE),
                 page_token=current_page_token,
                 filter_=filter_,
                 partition_filter=partition_filter,
                 fields=fields,
                 include_vectors=include_vectors,
+                sort=sort,
+                consistent_read=consistent_read,
                 ref=ref,
                 retries=r,
                 server_url=s,
@@ -344,6 +371,8 @@ class CollectionDocs:
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        sort: Optional[List[Dict[str, str]]] = None,
+        consistent_read: Optional[bool] = False,
         ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
@@ -356,11 +385,24 @@ class CollectionDocs:
         Presigned result payloads are fetched automatically.
         A missing ref raises ``ResourceNotFoundError``. A dangling Alias raises
         ``BadRequestError`` until it is retargeted to an existing Branch or Tag.
-        Every ref lists only the currently published snapshot; pending writes
-        appear after a background build publishes one.
+        Each page reads the current published Branch snapshot; a Tag, or an
+        Alias that targets a Tag, also includes the Tag's pending ordinary
+        writes. ``sort`` (1-4 ``{"field": "asc" | "desc"}`` objects) and
+        ``consistent_read=True`` (pending ordinary writes of a Branch or an
+        Alias that targets a Branch) use the extended list endpoint, as
+        filters, partition filters, and field selectors do; the default order
+        is ascending document ID. To continue, repeat the same arguments,
+        including ``size``, with ``next_page_token`` as ``page_token``; a
+        changed request condition raises ``BadRequestError``.
         """
         r, s, t, h = _merge_options(options, retries, server_url, timeout_ms, http_headers)
-        if filter_ is not None or partition_filter is not None or fields is not None:
+        if (
+            filter_ is not None
+            or partition_filter is not None
+            or fields is not None
+            or sort is not None
+            or consistent_read
+        ):
             response = await self._docs.list_docs_extended_async(
                 collection_name=self._collection_name,
                 size=size,
@@ -369,6 +411,8 @@ class CollectionDocs:
                 partition_filter=partition_filter,
                 fields=fields,
                 include_vectors=include_vectors,
+                sort=sort,
+                consistent_read=consistent_read,
                 ref=ref,
                 retries=r,
                 server_url=s,
@@ -406,10 +450,16 @@ class CollectionDocs:
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        sort: Optional[List[Dict[str, str]]] = None,
+        consistent_read: Optional[bool] = False,
         ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         options: Optional[RequestOptions] = None,
     ) -> AsyncIterator[List[Dict[str, Any]]]:
-        """Asynchronously iterate document pages while preserving the selected ref."""
+        """Asynchronously iterate document pages while preserving the selected ref.
+
+        Every request repeats the same arguments and requests ``min(size, 1000)``
+        documents; see ``list_pages``.
+        """
         current_page_token = page_token
         buffer: List[Dict[str, Any]] = []
         while True:
@@ -422,12 +472,15 @@ class CollectionDocs:
                     return
                 continue
             response = await self.list_async(
-                size=min(need, _LIST_DOCS_MAX_SIZE),
+                # The page token binds the request size, so every request repeats it.
+                size=min(size, _LIST_DOCS_MAX_SIZE),
                 page_token=current_page_token,
                 filter_=filter_,
                 partition_filter=partition_filter,
                 fields=fields,
                 include_vectors=include_vectors,
+                sort=sort,
+                consistent_read=consistent_read,
                 ref=ref,
                 options=options,
             )

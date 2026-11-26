@@ -134,6 +134,7 @@ class _VersioningTransport(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
         ref_delete_conflict: bool = False,
+        catalog_conflict: bool = False,
     ) -> ResponseT:
         client = self.sdk_configuration.client
         if client is None:
@@ -166,7 +167,8 @@ class _VersioningTransport(BaseSDK):
         if response.status_code != expected_status:
             self._raise_error(
                 response,
-                catalog_conflict=method.upper() in {"PATCH", "DELETE"},
+                catalog_conflict=catalog_conflict
+                or method.upper() in {"PATCH", "DELETE"},
                 ref_delete_conflict=ref_delete_conflict,
             )
         return unmarshal_json_response(response_type, response)
@@ -186,6 +188,7 @@ class _VersioningTransport(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
         ref_delete_conflict: bool = False,
+        catalog_conflict: bool = False,
     ) -> ResponseT:
         client = self.sdk_configuration.async_client
         if client is None:
@@ -218,7 +221,8 @@ class _VersioningTransport(BaseSDK):
         if response.status_code != expected_status:
             self._raise_error(
                 response,
-                catalog_conflict=method.upper() in {"PATCH", "DELETE"},
+                catalog_conflict=catalog_conflict
+                or method.upper() in {"PATCH", "DELETE"},
                 ref_delete_conflict=ref_delete_conflict,
             )
         return unmarshal_json_response(response_type, response)
@@ -412,11 +416,13 @@ class _Refs(_RefReads[RefResponseT, RefListResponseT, RefDetailsT]):
     ) -> RefResponseT:
         """Create a ref from a Branch or Tag source; omit ``source`` to use main.
 
-        Without ``as_of``, creation pins the source snapshot and the fixed
-        inherited and pending write ranges of the source, without copying them
-        or waiting for the source build. ``as_of`` is valid only for a Branch
-        source and selects the latest retained committed snapshot at or before
-        the cutoff, with no pending or inherited writes.
+        Without ``as_of``, creation pins the source snapshot, if any, and the
+        fixed inherited and pending write ranges of the source, without copying
+        them or waiting for the source build. A Tag can be created before the
+        source's first snapshot when it captures pending writes. ``as_of`` is
+        valid only for a Branch source and selects the latest retained
+        committed snapshot at or before the cutoff, with no pending or
+        inherited writes.
         """
         source_model = None if source is None else self._validate_source(source)
         body: Dict[str, Any] = {f"{self.kind}Name": models.Ref.branch(name).name}
@@ -549,6 +555,66 @@ class Branches(
             200,
             body=self._update_body(index_configs),
             **_options(options),
+        )
+
+    @staticmethod
+    def _rollback_request(
+        tag: str, options: Optional[RequestOptions]
+    ) -> Dict[str, Any]:
+        # A repeated rollback can undo intervening writes, so it is never retried.
+        return {
+            "body": models.RollbackBranchRequestBody(tag=tag).model_dump(by_alias=True),
+            **_options(options),
+            "retries": None,
+            "catalog_conflict": True,
+        }
+
+    def rollback(
+        self,
+        name: str,
+        *,
+        tag: str,
+        options: Optional[RequestOptions] = None,
+    ) -> models.RollbackBranchResponse:
+        """Restore a Branch's data and index schema from a Tag in the same collection.
+
+        The Branch keeps its identity. When the Tag has a published snapshot,
+        the Branch records a new committed snapshot, returned as
+        ``head_snapshot``. When the Tag has none yet, ``head_snapshot`` is
+        ``None``: the Branch head becomes empty and the Branch inherits the
+        Tag's fixed writes, like a Branch created from that Tag. Ordinary reads
+        and document listing then return no documents until a build publishes
+        them, while ``consistent_read=True`` includes them.
+
+        Sending the request again performs another rollback and can undo
+        intervening writes, so the SDK never retries it automatically and
+        ``options.retries`` is ignored. If two rollbacks replace the same
+        active write stream, one raises ``CatalogConflictError`` (409).
+        """
+        return self._transport.request(
+            "POST",
+            f"{self._ref_path(name)}/rollback",
+            "rollbackBranch",
+            models.RollbackBranchResponse,
+            200,
+            **self._rollback_request(tag, options),
+        )
+
+    async def rollback_async(
+        self,
+        name: str,
+        *,
+        tag: str,
+        options: Optional[RequestOptions] = None,
+    ) -> models.RollbackBranchResponse:
+        """Restore a Branch from a Tag asynchronously; never retried automatically."""
+        return await self._transport.request_async(
+            "POST",
+            f"{self._ref_path(name)}/rollback",
+            "rollbackBranch",
+            models.RollbackBranchResponse,
+            200,
+            **self._rollback_request(tag, options),
         )
 
 

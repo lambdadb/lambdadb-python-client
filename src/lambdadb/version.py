@@ -6,7 +6,7 @@ TITLE: str = "lambdadb"
 SDK_VERSION: str = "0.16.0"
 OPENAPI_DOC_VERSION: str = "1.3.0"
 GEN_VERSION: str = "2.798.0"
-API_CONTRACT_REVISION: str = "7be299af9cac4195b75feb6e38b5cd7f8989f5a0"
+API_CONTRACT_REVISION: str = "9a1f563b9b53bc29e5278105f8fc8c25a17e0cb8"
 
 
 def get_version() -> str:

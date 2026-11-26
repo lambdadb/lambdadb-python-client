@@ -8,7 +8,7 @@ from .versioning import Ref, RefKind, RefName
 from lambdadb.types import BaseModel, UNSET_SENTINEL
 from lambdadb.utils import FieldMetadata, PathParamMetadata, QueryParamMetadata, RequestMetadata
 import pydantic
-from pydantic import ConfigDict, model_serializer
+from pydantic import ConfigDict, field_validator, model_serializer, model_validator
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated, NotRequired, TypedDict
 
@@ -19,7 +19,7 @@ class ListDocsRequestTypedDict(TypedDict):
     size: NotRequired[int]
     r"""Max number of documents to return at once (1-1000, server default 100)."""
     page_token: NotRequired[str]
-    r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
+    r"""Opaque position returned as next_page_token. Repeat the other parameters to continue from it in the current data; a malformed token or changed request conditions return 400."""
     include_vectors: NotRequired[bool]
     r"""Set to true to include vector values in the response. Defaults to false."""
     ref_kind: NotRequired[RefKind]
@@ -45,7 +45,7 @@ class ListDocsRequest(BaseModel):
         pydantic.Field(alias="pageToken"),
         FieldMetadata(query=QueryParamMetadata(style="form", explode=True)),
     ] = None
-    r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
+    r"""Opaque position returned as next_page_token. Repeat the other parameters to continue from it in the current data; a malformed token or changed request conditions return 400."""
 
     include_vectors: Annotated[
         Optional[bool],
@@ -87,7 +87,7 @@ class ListDocsExtendedRequestBodyTypedDict(TypedDict):
     size: NotRequired[int]
     r"""Max number of documents to return at once (1-1000, server default 100)."""
     page_token: NotRequired[str]
-    r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
+    r"""Opaque position in the requested order. Repeat the original request with next_page_token as page_token; each page reads the latest data visible to the ref. A malformed token, incompatible sort value, or changed request conditions return 400."""
     filter_: NotRequired[Dict[str, Any]]
     r"""Filter applied before pagination."""
     partition_filter: NotRequired[PartitionFilterTypedDict]
@@ -95,6 +95,10 @@ class ListDocsExtendedRequestBodyTypedDict(TypedDict):
     r"""An object to specify a list of field names to include and/or exclude in the result."""
     include_vectors: NotRequired[bool]
     r"""Set to true to include vector values in the response. Defaults to false."""
+    sort: NotRequired[Optional[List[Dict[str, str]]]]
+    r"""1-4 single-field objects mapping a keyword, long, double, or datetime field to "asc" or "desc"."""
+    consistent_read: NotRequired[bool]
+    r"""Include pending ordinary writes of a Branch or an Alias that targets a Branch."""
     ref: NotRequired[dict]
 
 
@@ -105,7 +109,7 @@ class ListDocsExtendedRequestBody(BaseModel):
     r"""Max number of documents to return at once (1-1000, server default 100)."""
 
     page_token: Annotated[Optional[str], pydantic.Field(alias="pageToken")] = None
-    r"""Opaque search position, not a snapshot pin. Use an immutable Tag and unchanged filters/projection for stable exports."""
+    r"""Opaque position in the requested order. Repeat the original request with next_page_token as page_token; each page reads the latest data visible to the ref. A malformed token, incompatible sort value, or changed request conditions return 400."""
 
     filter_: Annotated[Optional[Dict[str, Any]], pydantic.Field(alias="filter")] = None
     r"""Filter applied before pagination."""
@@ -122,12 +126,61 @@ class ListDocsExtendedRequestBody(BaseModel):
     ] = False
     r"""Set to true to include vector values in the response. Defaults to false."""
 
+    sort: Annotated[
+        Optional[List[Dict[str, str]]],
+        pydantic.Field(min_length=1, max_length=4),
+    ] = None
+    r"""Order by up to four keyword, long, double, or datetime fields, each given as ``{"field": "asc" | "desc"}``.
+
+    Ascending document ID breaks ties and is the order when sort is omitted or null.
+    For keyword arrays, asc uses the smallest indexed value and desc the largest.
+    Missing keywords sort last for asc and first for desc; missing numeric and
+    datetime values sort as zero (the Unix epoch for datetime).
+    """
+
+    consistent_read: Annotated[
+        Optional[bool], pydantic.Field(alias="consistentRead")
+    ] = None
+    r"""Include pending ordinary writes from the Branch and its inherited history as of this page request; the server default is false. Allowed on a Branch or an Alias that targets a Branch; a Tag or an Alias that targets a Tag rejects true. Bulk imports become visible after publication."""
+
     ref: Optional[Ref] = None
+
+    @field_validator("sort")
+    @classmethod
+    def validate_sort(
+        cls, sort: Optional[List[Dict[str, str]]]
+    ) -> Optional[List[Dict[str, str]]]:
+        for item in sort or []:
+            if len(item) != 1:
+                raise ValueError("each sort entry must name exactly one field")
+            name, direction = next(iter(item.items()))
+            if not name.strip() or name.endswith("."):
+                raise ValueError("a sort field name must not be blank or end with '.'")
+            if direction not in ("asc", "desc"):
+                raise ValueError("a sort direction must be 'asc' or 'desc'")
+        return sort
+
+    @model_validator(mode="after")
+    def validate_consistent_read_ref(self) -> "ListDocsExtendedRequestBody":
+        # An alias is allowed; the server rejects one that targets a tag.
+        if self.consistent_read and self.ref is not None and self.ref.kind is RefKind.TAG:
+            raise ValueError("consistent_read=True requires a branch ref or an alias that targets a branch, not a tag")
+        return self
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler):
         optional_fields = set(
-            ["size", "pageToken", "filter", "partitionFilter", "fields", "includeVectors", "ref"]
+            [
+                "size",
+                "pageToken",
+                "filter",
+                "partitionFilter",
+                "fields",
+                "includeVectors",
+                "sort",
+                "consistentRead",
+                "ref",
+            ]
         )
         serialized = handler(self)
         m = {}

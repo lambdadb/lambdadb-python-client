@@ -2,7 +2,7 @@
 
 The Python SDK implements the collection-scoped Data Versioning contract from
 `reference/api/openapi.json` (API version 1.3.0) at docs revision
-[`7be299af9cac4195b75feb6e38b5cd7f8989f5a0`](https://github.com/lambdadb/docs/commit/7be299af9cac4195b75feb6e38b5cd7f8989f5a0).
+[`9a1f563b9b53bc29e5278105f8fc8c25a17e0cb8`](https://github.com/lambdadb/docs/commit/9a1f563b9b53bc29e5278105f8fc8c25a17e0cb8).
 
 ## Branch, Tag, and Alias lifecycle
 
@@ -44,18 +44,21 @@ with LambdaDB(project_api_key="...") as client:
     current_head = branch.branch.head_snapshot
     fork_point = branch.branch.parent_snapshot
     direct_parent = branch.branch.parent_branch  # branch_id and name, or None
-    pinned_at = tag.tag.snapshot_committed_at_dt
+    published_at = tag.tag.snapshot_committed_at_dt  # None before the first publication
 ```
 
 Lifecycle methods have matching async forms: `create_async`, `get_async`,
-`update_async`, `list_async`, `list_page_async`, `list_pages_async`,
-`delete_async`, and `retarget_async`.
+`update_async`, `rollback_async`, `list_async`, `list_page_async`,
+`list_pages_async`, `delete_async`, and `retarget_async`.
 
 Branch and Tag creation accept a Branch or Tag source: `RefSource.branch(...)`
 (or `BranchSource.branch(...)`) and `RefSource.tag(...)`. Omit `source` to use
 `main`. An Alias source is rejected before a request is sent. Without `as_of`,
-creation pins the source snapshot together with the source's fixed inherited
-and pending write ranges, without copying them or waiting for the source build.
+creation pins the source snapshot, if any, together with the source's fixed
+inherited and pending write ranges, without copying them or waiting for the
+source build. A Tag can therefore be created before the source's first snapshot
+when it captures pending writes; a source with neither a snapshot nor pending
+writes returns `BadRequestError`.
 A Branch created from a Tag inherits the Tag's pinned schema and every write
 captured when the Tag was created; later writes to the original Branch are
 excluded. Only a Branch source accepts the optional `as_of` epoch-millisecond
@@ -74,9 +77,10 @@ targets a Tag with HTTP 400. The read overlays eligible inherited and own
 pending writes on the Branch's committed snapshot; an ordinary Branch read
 uses only the snapshot. It excludes pending bulk imports until a background
 build materializes them and can return HTTP 429 when the eligible pending
-payload exceeds the overlay limit. Query and Fetch on a Tag, or on an Alias
-that targets a Tag, already include the Tag's eligible fixed inherited writes
-without `consistent_read`.
+payload exceeds the overlay limit. Query, Fetch, and document listing on a
+Tag, or on an Alias that targets a Tag, already include the Tag's eligible
+fixed inherited writes without `consistent_read`. Document listing applies the
+same `consistent_read` rule; see [Ref-scoped reads](#ref-scoped-reads).
 
 `parent_branch` is the direct source Branch's fixed identity and name, not the
 Branch that committed the selected snapshot. It is present even when both
@@ -93,8 +97,13 @@ single read, Branch update, and list entries.
 | Model | Added fields |
 | --- | --- |
 | `BranchDetails` | `index_configs` (the Branch's own schema), `num_docs` (0 for an empty Branch), `data_updated_at` (`None` for an empty Branch) and `data_updated_at_dt` |
-| `TagDetails` | `index_configs` (the schema pinned by the Tag), `num_docs`, `data_updated_at` and `data_updated_at_dt` of the pinned snapshot |
+| `TagDetails` | `index_configs` (the schema fixed by the Tag), and `num_docs`, `data_updated_at` and `data_updated_at_dt` of its current published snapshot |
 | `AliasDetails` | `index_configs` of the target's version; `None` for a dangling Alias |
+
+A Tag created before its source's first snapshot has `snapshot_id`,
+`snapshot_committed_at`, `data_updated_at` and their `_dt` properties set to
+`None` and `num_docs` 0 until a build publishes its captured writes. Its
+snapshot can change as those fixed writes are published.
 
 `aliases.get(name)` on a dangling Alias still succeeds, with `dangling=True`
 and `index_configs=None`. A name that is not a ref of the requested kind raises
@@ -153,6 +162,39 @@ updates of the same Branch are merged. Naming a Tag or an Alias returns
 apply the same additive change to `main`. `index_configs` on
 `client.collections.update()` is deprecated; it updates `main` only.
 
+## Branch rollback
+
+```python
+result = collection.branches.rollback("main", tag="validated-2026-09")
+if result.head_snapshot is None:
+    ...  # the Tag had no published snapshot yet
+```
+
+`branches.rollback(name, tag=...)` restores a Branch's data and index schema
+from a Tag in the same collection. The Branch keeps its identity. When the Tag
+has a published snapshot, the Branch records a new committed snapshot, returned
+as `head_snapshot`; ordinary reads show the restored snapshot, and
+`consistent_read=True` also includes eligible inherited and new writes. When
+the Tag has none yet, `head_snapshot` is `None`, as is the Branch's
+`head_snapshot` afterwards: the Branch head becomes empty and the Branch
+inherits the Tag's fixed writes, like a Branch created from that Tag. Ordinary
+reads and document listing then return no documents until a build publishes
+those writes, while `consistent_read=True` includes them. Bulk writes appear
+after a build.
+
+The request body is `{"tag": ...}`, validated by the strict
+`models.RollbackBranchRequestBody`; an invalid Branch or Tag name raises a
+Pydantic `ValidationError` before any request is sent. Each request resolves
+the Branch by name, and writes admitted before the rollback may still complete
+on the previous write stream. Sending the request again performs another
+rollback and can undo intervening writes, so the SDK never retries it
+automatically: `options.retries` and the client `retry_config` are ignored for
+this call, including on 429, 5XX, and connection errors. If two rollbacks
+replace the same active write stream, one raises `CatalogConflictError` (409).
+The rollback time is not recorded, so `as_of` on this Branch returns
+`BadRequestError` for cutoffs between its last snapshot before the rollback and
+the first snapshot published after it.
+
 Deleting a Branch or Tag referenced by an Alias is blocked with
 `RefDeleteConflictError` (409). Retarget or delete every referencing Alias
 before retrying. An Alias that is already dangling remains visible in
@@ -186,11 +228,34 @@ async for document in collection.docs.iter_all_async(
 Query and Fetch send `ref` in the JSON body. The simple List endpoint sends the
 paired `refKind` and `refName` query parameters; filtered/extended List sends
 `ref` in the JSON body. Pagination helpers preserve the same ref on every page.
-Document listing through any ref, including a Tag or an Alias that targets a
-Tag, returns only the currently published snapshot: pending writes appear after
-a background build publishes one, and listing applies no overlay.
-Page tokens are opaque search positions, not Snapshot pins. For a stable export,
-use one immutable Tag and unchanged filter/projection options across all pages.
+
+Each listing page reads the current published Branch snapshot. A Tag, or an
+Alias that targets a Tag, also includes the Tag's pending ordinary writes;
+unpublished bulk imports are excluded. On a Branch, or an Alias that targets a
+Branch, `consistent_read=True` also includes pending ordinary writes; it raises
+`ValueError` locally with a Tag ref, and the server rejects an Alias that
+targets a Tag with HTTP 400. `sort` orders by up to four keyword, long, double,
+or datetime fields, each as `{"field": "asc"}` or `{"field": "desc"}`;
+ascending document ID breaks ties and is the default order. Either option uses
+the extended list endpoint:
+
+```python
+for page in collection.docs.list_pages(
+    size=100,
+    sort=[{"category": "asc"}],
+    consistent_read=True,
+    ref=Ref.branch("experiment"),
+):
+    ...
+```
+
+A page token is a position in the requested order, not a snapshot pin: each
+page reads the latest data visible to the ref, so documents added after the
+cursor can appear on later pages, deleted documents disappear, and a change to
+a document's sort value can return it again or skip it. Repeat the same
+arguments, including `size`, with `next_page_token` as `page_token`; a
+malformed token or a changed request condition raises `BadRequestError`.
+`list_pages` and `iter_all` do this for you.
 
 ## Branch-scoped writes
 
@@ -238,6 +303,10 @@ Conditional metadata updates can raise `CatalogConflictError` (409). A 502 or
 before retrying. For 429 responses, inspect `error.headers.get("Retry-After")`;
 the header is optional and `consistent_read=True` can also return 429 when the
 pending-write overlay is too large.
+
+`branches.rollback()` is never retried automatically, because a repeat can
+undo intervening writes; after a 5XX or a connection error, read the Branch
+before deciding whether to send it again.
 
 Branch or Tag deletion raises `RefDeleteConflictError` (409) while an Alias
 references that target. This conflict should not be blindly retried; delete or

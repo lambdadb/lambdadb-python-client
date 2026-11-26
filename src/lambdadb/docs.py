@@ -23,15 +23,17 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        r"""List documents in a collection.
+        r"""List documents in ascending document ID order.
 
-        Every ref, including a Tag and an Alias that targets a Tag, lists only the
-        currently published snapshot. Pending writes become visible to listing
-        after a background build publishes a snapshot; listing applies no overlay.
+        Each page reads the current published Branch snapshot. A Tag, or an Alias
+        that targets a Tag, also includes the Tag's pending ordinary writes;
+        unpublished bulk imports are excluded. Documents added after the cursor
+        position can appear on later pages, and deleted documents disappear once
+        the deletion is visible to the read.
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once (1-1000, default 100).
-        :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
+        :param page_token: Opaque position returned as ``next_page_token``. Repeat the other parameters, including ``size``, to continue from it in the current data; a malformed token or changed request conditions raise ``BadRequestError``.
         :param include_vectors: Set to true to include vector values in the response.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -151,15 +153,17 @@ class Docs(BaseSDK):
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        r"""List documents in a collection.
+        r"""List documents in ascending document ID order.
 
-        Every ref, including a Tag and an Alias that targets a Tag, lists only the
-        currently published snapshot. Pending writes become visible to listing
-        after a background build publishes a snapshot; listing applies no overlay.
+        Each page reads the current published Branch snapshot. A Tag, or an Alias
+        that targets a Tag, also includes the Tag's pending ordinary writes;
+        unpublished bulk imports are excluded. Documents added after the cursor
+        position can appear on later pages, and deleted documents disappear once
+        the deletion is visible to the read.
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once (1-1000, default 100).
-        :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
+        :param page_token: Opaque position returned as ``next_page_token``. Repeat the other parameters, including ``size``, to continue from it in the current data; a malformed token or changed request conditions raise ``BadRequestError``.
         :param include_vectors: Set to true to include vector values in the response.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -280,30 +284,41 @@ class Docs(BaseSDK):
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        sort: Optional[List[Dict[str, str]]] = None,
+        consistent_read: Optional[bool] = False,
         ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        r"""List documents in a collection with optional filters, field selection, and vector inclusion.
+        r"""List documents with optional filters, partition filtering, sorting, field selection, and vector inclusion.
 
-        Every ref, including a Tag and an Alias that targets a Tag, lists only the
-        currently published snapshot. Pending writes become visible to listing
-        after a background build publishes a snapshot; listing applies no overlay.
+        Each page reads the current published Branch snapshot. On a Branch or an
+        Alias that targets a Branch, ``consistent_read=True`` also includes pending
+        ordinary writes. A Tag, or an Alias that targets a Tag, always includes
+        its pending ordinary writes. Bulk imports become visible after
+        publication. Later pages include currently visible documents after the
+        cursor; a change to a document's sort value can return it again or skip it.
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once (1-1000, default 100).
-        :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
+        :param page_token: Opaque position in the requested order. Repeat the original request, including ``size``, with ``next_page_token`` as ``page_token``; each page reads the latest data visible to the ref. A malformed token, an incompatible sort value, or changed request conditions raise ``BadRequestError``.
         :param filter_: Filter applied before pagination.
         :param partition_filter:
         :param fields: Field selector.
         :param include_vectors: Set to true to include vector values in the response.
+        :param sort: 1-4 single-field objects such as ``[{"category": "asc"}]``, ordering by keyword, long, double, or datetime fields with ``"asc"`` or ``"desc"``. Ascending document ID breaks ties and is the order when omitted.
+        :param consistent_read: Include pending ordinary writes of a directly selected Branch or an Alias that targets a Branch. A Tag ref raises ``ValueError`` locally; an Alias that targets a Tag returns 400. Not sent unless true.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
         :param http_headers: Additional headers to set or replace on requests.
         """
+        ref_model = None if ref is None else models.Ref.model_validate(ref)
+        if consistent_read and ref_model is not None and ref_model.kind is models.RefKind.TAG:
+            raise ValueError("consistent_read=True requires a branch ref or an alias that targets a branch, not a tag")
+
         base_url = None
         url_variables = None
         if timeout_ms is None:
@@ -327,7 +342,9 @@ class Docs(BaseSDK):
                     fields, Optional[models.FieldsSelectorUnion]
                 ),
                 include_vectors=include_vectors,
-                ref=None if ref is None else models.Ref.model_validate(ref),
+                sort=sort,
+                consistent_read=consistent_read or None,
+                ref=ref_model,
             ),
         )
 
@@ -423,30 +440,41 @@ class Docs(BaseSDK):
             Union[models.FieldsSelectorUnion, models.FieldsSelectorUnionTypedDict]
         ] = None,
         include_vectors: Optional[bool] = False,
+        sort: Optional[List[Dict[str, str]]] = None,
+        consistent_read: Optional[bool] = False,
         ref: Optional[Union[models.Ref, Mapping[str, Any]]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
         timeout_ms: Optional[int] = None,
         http_headers: Optional[Mapping[str, str]] = None,
     ) -> models.ListDocsResponse:
-        r"""List documents in a collection with optional filters, field selection, and vector inclusion.
+        r"""List documents with optional filters, partition filtering, sorting, field selection, and vector inclusion.
 
-        Every ref, including a Tag and an Alias that targets a Tag, lists only the
-        currently published snapshot. Pending writes become visible to listing
-        after a background build publishes a snapshot; listing applies no overlay.
+        Each page reads the current published Branch snapshot. On a Branch or an
+        Alias that targets a Branch, ``consistent_read=True`` also includes pending
+        ordinary writes. A Tag, or an Alias that targets a Tag, always includes
+        its pending ordinary writes. Bulk imports become visible after
+        publication. Later pages include currently visible documents after the
+        cursor; a change to a document's sort value can return it again or skip it.
 
         :param collection_name: Collection name.
         :param size: Max number of documents to return at once (1-1000, default 100).
-        :param page_token: Opaque search position, not a snapshot pin. Use an immutable Tag with unchanged filters/projection for stable exports.
+        :param page_token: Opaque position in the requested order. Repeat the original request, including ``size``, with ``next_page_token`` as ``page_token``; each page reads the latest data visible to the ref. A malformed token, an incompatible sort value, or changed request conditions raise ``BadRequestError``.
         :param filter_: Filter applied before pagination.
         :param partition_filter:
         :param fields: Field selector.
         :param include_vectors: Set to true to include vector values in the response.
+        :param sort: 1-4 single-field objects such as ``[{"category": "asc"}]``, ordering by keyword, long, double, or datetime fields with ``"asc"`` or ``"desc"``. Ascending document ID breaks ties and is the order when omitted.
+        :param consistent_read: Include pending ordinary writes of a directly selected Branch or an Alias that targets a Branch. A Tag ref raises ``ValueError`` locally; an Alias that targets a Tag returns 400. Not sent unless true.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
         :param timeout_ms: Override the default request timeout configuration for this method in milliseconds
         :param http_headers: Additional headers to set or replace on requests.
         """
+        ref_model = None if ref is None else models.Ref.model_validate(ref)
+        if consistent_read and ref_model is not None and ref_model.kind is models.RefKind.TAG:
+            raise ValueError("consistent_read=True requires a branch ref or an alias that targets a branch, not a tag")
+
         base_url = None
         url_variables = None
         if timeout_ms is None:
@@ -470,7 +498,9 @@ class Docs(BaseSDK):
                     fields, Optional[models.FieldsSelectorUnion]
                 ),
                 include_vectors=include_vectors,
-                ref=None if ref is None else models.Ref.model_validate(ref),
+                sort=sort,
+                consistent_read=consistent_read or None,
+                ref=ref_model,
             ),
         )
 
