@@ -187,6 +187,11 @@ results = coll.query(
     ref=Ref.alias("production-read"),
 )
 coll.docs.upsert(docs=[{"id": "2", "text": "draft"}], branch="experiment")
+pending = coll.docs.list(
+    sort=[{"category": "asc"}], consistent_read=True, ref=Ref.branch("experiment")
+)
+# Restore a Branch from a Tag; never retried automatically.
+coll.branches.rollback("experiment", tag="validated-2026-09")
 ```
 
 See the [Data Versioning SDK guide](docs/sdks/versioning/README.md) for sync and
@@ -407,7 +412,7 @@ response parsing. Review the linked upgrade requirements for legacy schemas.
 **Recommended:** Use the collection-scoped API: `client.collection("name").docs.list()`, `.docs.fetch()`, `.docs.upsert()`, etc., and `client.collection("name").query()` for search. This matches the REST API structure and avoids repeating the collection name.
 
 * **Response access:** List, query, and fetch responses expose `.results` (full result items, with score/metadata when applicable) and `.documents` (document bodies only). When the API returns `is_docs_inline: false` with a presigned `docs_url`, the SDK automatically fetches from that URL so `response.results` and `response.documents` are always populated when using `coll.query()` and `coll.docs.fetch()`.
-* **Pagination:** Use `coll.docs.list_pages(size=10, ref=...)` to iterate pages of up to `size` documents, or `coll.docs.iter_all(page_size=100, ref=...)` to iterate over all documents. Async variants preserve the same ref on every request. Internal document requests support up to 1000 items; the default page size remains 100. See [read limits and stored text](docs/read-limits-and-stored-text.md) for Query/Fetch/List limits, unindexed native inputs, and result downloads.
+* **Pagination:** Use `coll.docs.list_pages(size=10, ref=...)` to iterate pages of up to `size` documents, or `coll.docs.iter_all(page_size=100, ref=...)` to iterate over all documents. Async variants preserve the same ref on every request. Listing is in ascending document ID order unless `sort=[{"field": "asc" | "desc"}, ...]` is given, and `consistent_read=True` includes a Branch's pending writes. A page token is bound to the request, so continue with the same arguments, including `size`. Internal document requests support up to 1000 items; the default page size remains 100. See [read limits and stored text](docs/read-limits-and-stored-text.md) for Query/Fetch/List limits, unindexed native inputs, and result downloads.
 * **Advanced options:** Pass `options=RequestOptions(timeout_ms=..., http_headers=...)` to any docs or query call; import with `from lambdadb import RequestOptions`. For delete by filter, prefer `query_filter=...` over `filter_=...`. Response types such as `ListDocsResponse`, `QueryCollectionResponse`, and `FetchDocsResponse` are also exported from `lambdadb` for type hints.
 
 <details open>
@@ -437,7 +442,7 @@ response parsing. Review the linked upgrade requirements for legacy schemas.
 
 #### [Data Versioning](docs/sdks/versioning/README.md)
 
-* Collection-scoped Branch, Tag, and Alias lifecycle operations, single reads, and complete or page-by-page listings.
+* Collection-scoped Branch, Tag, and Alias lifecycle operations, single reads, Branch rollback to a Tag, and complete or page-by-page listings.
 * Branch-scoped index schema updates.
 * Ref-scoped Query, Fetch, List, and pagination helpers.
 * Branch-scoped document writes and signed bulk uploads.

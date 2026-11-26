@@ -85,8 +85,8 @@ RefContext = Ref
 class RefSource(BaseModel):
     """Source for a new Branch or Tag; ``as_of`` is valid only for branch sources.
 
-    Without ``as_of``, creation pins the source snapshot together with the fixed
-    inherited and pending write ranges of the source. A Tag source carries the
+    Without ``as_of``, creation pins the source snapshot, if any, together with
+    the fixed inherited and pending write ranges of the source. A Tag source carries the
     Tag's pinned schema and every write captured when the Tag was created.
     """
 
@@ -253,33 +253,46 @@ class BranchDetails(BaseModel):
 
 
 class TagDetails(BaseModel):
-    """Tag details for one immutable pinned snapshot."""
+    """Tag details with its fixed schema and current published snapshot.
+
+    A Tag can be created before its source's first snapshot when it captures
+    pending writes. Until a build publishes them, ``snapshot_id``,
+    ``snapshot_committed_at`` and ``data_updated_at`` are ``None`` and
+    ``num_docs`` is 0. The snapshot can change as the Tag's fixed writes are
+    published.
+    """
 
     name: str
-    snapshot_id: Annotated[str, pydantic.Field(alias="snapshotId")]
+    snapshot_id: Annotated[Optional[str], pydantic.Field(alias="snapshotId")]
+    """Current published snapshot ID; ``None`` before the first publication."""
     snapshot_committed_at: Annotated[
-        int, pydantic.Field(alias="snapshotCommittedAt")
+        Optional[int], pydantic.Field(alias="snapshotCommittedAt")
     ]
+    """Current snapshot commit time in Unix epoch milliseconds; ``None`` before the first publication."""
     num_docs: Annotated[int, pydantic.Field(alias="numDocs")]
-    """Document count in the pinned snapshot."""
-    data_updated_at: Annotated[int, pydantic.Field(alias="dataUpdatedAt")]
-    """Last data update of the pinned snapshot in Unix epoch milliseconds."""
+    """Document count in the current published snapshot; 0 before the first publication."""
+    data_updated_at: Annotated[Optional[int], pydantic.Field(alias="dataUpdatedAt")]
+    """Last data update in the current snapshot in Unix epoch milliseconds; ``None`` before the first publication."""
     index_configs: Annotated[
         Dict[str, IndexConfigsUnion], pydantic.Field(alias="indexConfigs")
     ]
-    """Index schema pinned by the Tag."""
+    """Index schema fixed by the Tag."""
     created_at: Annotated[int, pydantic.Field(alias="createdAt")]
 
     @property
-    def snapshot_committed_at_dt(self) -> datetime:
-        """Pinned snapshot commit time as a timezone-aware UTC datetime."""
+    def snapshot_committed_at_dt(self) -> Optional[datetime]:
+        """Snapshot commit time as a timezone-aware UTC datetime, if any."""
+        if self.snapshot_committed_at is None:
+            return None
         return datetime.fromtimestamp(
             self.snapshot_committed_at / 1000, tz=timezone.utc
         )
 
     @property
-    def data_updated_at_dt(self) -> datetime:
-        """Last data update as a timezone-aware UTC datetime."""
+    def data_updated_at_dt(self) -> Optional[datetime]:
+        """Last data update as a timezone-aware UTC datetime, if any."""
+        if self.data_updated_at is None:
+            return None
         return datetime.fromtimestamp(self.data_updated_at / 1000, tz=timezone.utc)
 
     @property
@@ -324,6 +337,24 @@ class UpdateBranchRequestBody(BaseModel):
         Dict[str, IndexConfigsUnion],
         pydantic.Field(alias="indexConfigs", min_length=1),
     ]
+
+
+class RollbackBranchRequestBody(BaseModel):
+    """Body of a Branch rollback: the Tag to restore from, in the same collection."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    tag: RefName
+
+
+class RollbackBranchResponse(BaseModel):
+    """Committed rollback result."""
+
+    branch_id: Annotated[str, pydantic.Field(alias="branchId")]
+    head_snapshot: Annotated[
+        Optional[SnapshotDetails], pydantic.Field(alias="headSnapshot")
+    ]
+    """Head committed on the Branch by this rollback; ``None`` when the Tag had no published snapshot, which leaves the Branch head empty."""
 
 
 class BranchResponse(BaseModel):

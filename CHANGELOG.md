@@ -1,5 +1,51 @@
 # Changelog
 
+## Unreleased
+
+- Aligned with the public OpenAPI contract 1.3.0, `reference/api/openapi.json`
+  in [lambdadb/docs](https://github.com/lambdadb/docs) at commit
+  [`9a1f563b9b53bc29e5278105f8fc8c25a17e0cb8`](https://github.com/lambdadb/docs/commit/9a1f563b9b53bc29e5278105f8fc8c25a17e0cb8)
+  (SHA-256 `269590b8addc8e25785c222938b84e737a9f9dee0a5e8b45c0dde4779bde1b6d`),
+  synced from backend commit
+  [`16c6e46854b13cebd20c501e541bb030b33ca805`](https://github.com/lambdadb/lambdadb/commit/16c6e46854b13cebd20c501e541bb030b33ca805).
+  `API_CONTRACT_REVISION` now reports this docs commit; `OPENAPI_DOC_VERSION`
+  stays `1.3.0` because the spec's `info.version` did not change. A source pin
+  does not establish deployment.
+- Add `collection.branches.rollback(name, tag=...)` and `rollback_async` to
+  restore a Branch's data and index schema from a Tag in the same collection.
+  The body is validated by the new strict `models.RollbackBranchRequestBody`,
+  and the result is `models.RollbackBranchResponse` with `branch_id` and
+  `head_snapshot`. `head_snapshot` is always present and is `None` when the Tag
+  had no published snapshot: the Branch head is then empty and the Branch
+  inherits the Tag's captured writes. A repeated rollback can undo intervening
+  writes, so the SDK never retries it automatically, including on 429, 5XX and
+  connection errors; `options.retries` and the client `retry_config` are
+  ignored for this call. A 409 raises `CatalogConflictError`.
+- **Behaviour change:** a Tag can be created before its source's first
+  snapshot. `TagDetails.snapshot_id`, `snapshot_committed_at` and
+  `data_updated_at` are now `Optional` and `None` until the Tag's writes are
+  published, when `num_docs` is 0; `snapshot_committed_at_dt` and
+  `data_updated_at_dt` return `None` then. The fields must still be present in
+  every Tag response. Check for `None` before using them.
+- Document listing accepts `sort` (1 to 4 `{"field": "asc" | "desc"}` objects
+  on keyword, long, double or datetime fields; ascending document ID breaks ties
+  and is the default order) and `consistent_read` (include a Branch's pending
+  ordinary writes) on `collection.docs.list()`, `list_pages()`, their async
+  forms, and `Docs.list_docs_extended()`. Either one uses the extended list
+  endpoint, as filters and field selectors do. An unset `sort` and an unset or
+  false `consistent_read` are not sent, so existing request bodies are
+  unchanged. A malformed `sort` raises a Pydantic `ValidationError`, and
+  `consistent_read=True` with a Tag ref raises `ValueError`, before any request
+  is sent; the server rejects an Alias that targets a Tag with HTTP 400.
+- Listing a Tag, or an Alias that targets a Tag, now includes the Tag's pending
+  ordinary writes, and each page reads the current data. A page token is a
+  position in the requested order and is bound to the request conditions,
+  including `size`; a changed condition returns HTTP 400.
+  **Behaviour change:** `docs.list_pages()` and `list_pages_async()` therefore
+  request the same `min(size, 1000)` documents on every request instead of only
+  the number still missing from the current page. Pages keep the requested
+  `size`.
+
 ## 0.16.0
 
 - Aligned with the public OpenAPI contract 1.3.0, `reference/api/openapi.json`

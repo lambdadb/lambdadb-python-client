@@ -78,7 +78,7 @@ def _text_index(analyzer: models.Analyzer) -> Dict[
 
 
 def test_contract_revision_is_pinned() -> None:
-    assert API_CONTRACT_REVISION == "7be299af9cac4195b75feb6e38b5cd7f8989f5a0"
+    assert API_CONTRACT_REVISION == "9a1f563b9b53bc29e5278105f8fc8c25a17e0cb8"
     assert OPENAPI_DOC_VERSION == "1.3.0"
 
 

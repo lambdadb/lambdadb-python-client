@@ -34,13 +34,14 @@ def _branch(name: str, *, empty: bool = False) -> Dict[str, Any]:
     }
 
 
-def _tag(name: str) -> Dict[str, Any]:
+def _tag(name: str, *, published: bool = True) -> Dict[str, Any]:
+    """A Tag created before the first snapshot has null snapshot fields and no documents."""
     return {
         "name": name,
-        "snapshotId": "snapshot-1",
-        "snapshotCommittedAt": 1788335940000,
-        "numDocs": 1000,
-        "dataUpdatedAt": 1788335940000,
+        "snapshotId": "snapshot-1" if published else None,
+        "snapshotCommittedAt": 1788335940000 if published else None,
+        "numDocs": 1000 if published else 0,
+        "dataUpdatedAt": 1788335940000 if published else None,
         "indexConfigs": INDEX_CONFIGS,
         "createdAt": 1788336000000,
     }
@@ -207,13 +208,52 @@ def test_ref_details_require_the_nullable_fields_to_be_present() -> None:
         with pytest.raises(ValidationError, match=nullable):
             model.model_validate({k: v for k, v in body.items() if k != nullable})
 
-    for field in ("numDocs", "dataUpdatedAt", "indexConfigs"):
+    unpublished = _tag("release-1", published=False)
+    for field in ("snapshotId", "snapshotCommittedAt", "numDocs", "dataUpdatedAt", "indexConfigs"):
         with pytest.raises(ValidationError, match=field):
             models.TagDetails.model_validate(
                 {k: v for k, v in _tag("release-1").items() if k != field}
             )
-    with pytest.raises(ValidationError, match="dataUpdatedAt"):
-        models.TagDetails.model_validate({**_tag("release-1"), "dataUpdatedAt": None})
+        with pytest.raises(ValidationError, match=field):
+            models.TagDetails.model_validate(
+                {k: v for k, v in unpublished.items() if k != field}
+            )
+
+
+def test_tag_created_before_the_first_snapshot_has_null_snapshot_fields() -> None:
+    requests: List[httpx.Request] = []
+    unpublished = _tag("pending-1", published=False)
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if request.method == "POST":
+            return httpx.Response(201, json={"tag": unpublished})
+        if request.url.path.endswith("/tags"):
+            return httpx.Response(200, json={"tags": [unpublished]})
+        return httpx.Response(200, json={"tag": unpublished})
+
+    with httpx.Client(transport=httpx.MockTransport(handle)) as http:
+        collection = LambdaDB(
+            project_api_key="secret",
+            base_url="https://api.example",
+            project_name="project",
+            client=http,
+        ).collection("catalog")
+        tags = [
+            collection.tags.create("pending-1").tag,
+            collection.tags.get("pending-1").tag,
+            collection.tags.list().tags[0],
+        ]
+
+    assert [request.method for request in requests] == ["POST", "GET", "GET"]
+    for tag in tags:
+        assert tag.snapshot_id is None
+        assert tag.snapshot_committed_at is None
+        assert tag.snapshot_committed_at_dt is None
+        assert tag.data_updated_at is None
+        assert tag.data_updated_at_dt is None
+        assert tag.num_docs == 0
+        assert tag.index_configs["category"].type == models.Type.KEYWORD
 
 
 def test_branch_update_sends_only_index_configs_sync_and_async() -> None:

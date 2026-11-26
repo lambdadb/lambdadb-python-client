@@ -110,7 +110,8 @@ def test_list_pages_use_thousand_document_requests_and_preserve_refs(async_mode,
                 pages = list(sdk.collection("items").docs.list_pages(**args))
     assert [len(page) for page in pages] == [1001, 2]
     assert [doc["id"] for page in pages for doc in page] == [str(i) for i in range(1003)]
-    assert requests == [(1000, 0), (1, 1000), (1000, 1001)]
+    # A page token binds the request size, so every request repeats min(size, 1000).
+    assert requests == [(1000, 0), (1000, 1000)]
 
 
 @pytest.mark.parametrize("async_mode", [False, True])
