@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.17.0
 
 - Aligned with the public OpenAPI contract 1.3.0, `reference/api/openapi.json`
   in [lambdadb/docs](https://github.com/lambdadb/docs) at commit
