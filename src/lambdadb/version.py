@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 TITLE: str = "lambdadb"
-SDK_VERSION: str = "0.17.0"
+SDK_VERSION: str = "0.17.1"
 OPENAPI_DOC_VERSION: str = "1.3.0"
 GEN_VERSION: str = "2.798.0"
 API_CONTRACT_REVISION: str = "9a1f563b9b53bc29e5278105f8fc8c25a17e0cb8"
