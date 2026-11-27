@@ -431,14 +431,14 @@ supports common top-level conditions and fails clearly for unsupported forms.
 | Qdrant filter | v1 behavior |
 | --- | --- |
 | `Filter.must` | AND |
-| `Filter.should` | OR via LambdaDB bool clauses |
-| `Filter.must_not` | NOT via LambdaDB bool clauses |
+| `Filter.should` | Require an OR group even alongside other clauses |
+| `Filter.must_not` | Exclude matching conditions, with an explicit match-all when there are no positive conditions |
 | `FieldCondition.match=MatchValue` | equality |
 | `FieldCondition.match=MatchAny` | IN |
-| `FieldCondition.match=MatchExcept` | NOT IN |
+| `FieldCondition.match=MatchExcept` | Raise because Qdrant evaluates exclusion per payload value |
 | `FieldCondition.range` | gt/gte/lt/lte |
 | `HasIdCondition` | map to ID filter |
-| `MatchText` | map whitespace-separated text terms to LambdaDB text query strings |
+| `MatchText` | Require all whitespace-separated alphanumeric terms on an indexed scalar text field |
 | geo filters | raise |
 | nested object filters | raise in v1 |
 

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
+from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
 
 
 class CompatModel(BaseModel):
@@ -83,7 +84,7 @@ class FieldCondition(CompatModel):
 
 
 class HasIdCondition(CompatModel):
-    has_id: List[Union[int, str]]
+    has_id: List[Union[StrictInt, StrictStr, UUID]]
 
 
 Condition = Union[FieldCondition, HasIdCondition, Dict[str, Any]]

@@ -7,6 +7,8 @@ from types import SimpleNamespace
 from time import monotonic, sleep
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, Union, cast
 
+from pydantic import BaseModel
+
 from lambdadb import LambdaDB
 from lambdadb import errors as lambdadb_errors
 from lambdadb.types import OptionalNullable, UNSET
@@ -21,6 +23,7 @@ from .conversions import (
     doc_to_record,
     merge_index_configs,
     payload_schema_to_index_configs,
+    point_ids_to_doc_ids,
     points_to_docs,
     query_vector_and_field,
     result_to_scored_point,
@@ -281,17 +284,21 @@ class QdrantCompatClient:
         direct_filter = kwargs.pop("filter", None)
         points = kwargs.pop("points", None)
         ids_option = kwargs.pop("ids", None)
+        if kwargs.pop("shard_key_selector", None) is not None or kwargs.pop("shard_key", None) is not None:
+            raise UnsupportedQdrantFeatureError("Qdrant shard key routing is not supported in v1")
         self._warn_ignored(kwargs)
-        selector = points_selector if points_selector is not None else points if points is not None else ids_option
-        ids = self._ids_from_selector(selector)
-        converted_filter = filter_to_lambdadb(self._filter_from_selector(selector) or direct_filter)
+        selectors = [selector for selector in (points_selector, points, ids_option) if selector is not None]
+        if len(selectors) + (direct_filter is not None) > 1:
+            raise QdrantCompatValidationError("delete accepts one point ID or filter selector")
+        ids, selected_filter = self._delete_selector(selectors[0]) if selectors else (None, direct_filter)
+        converted_filter = filter_to_lambdadb(selected_filter)
         if ids is None and not converted_filter:
             raise UnsupportedQdrantFeatureError("delete requires point IDs or a supported Qdrant filter")
         if wait is False:
             warnings.warn("wait=False is accepted but LambdaDB write visibility follows LambdaDB semantics", RuntimeWarning, stacklevel=2)
         delete_kwargs: Dict[str, Any] = {}
         if ids is not None:
-            delete_kwargs["ids"] = [str(item) for item in ids]
+            delete_kwargs["ids"] = ids
         if converted_filter:
             delete_kwargs["filter_"] = converted_filter
         self._client.collection(collection_name).docs.delete(**delete_kwargs)
@@ -417,31 +424,22 @@ class QdrantCompatClient:
         return models.CountResult(count=response.collection.num_docs)
 
     @staticmethod
-    def _ids_from_selector(points_selector: Optional[Any]) -> Optional[List[Union[int, str]]]:
-        if points_selector is None:
-            return None
-        if isinstance(points_selector, list):
-            return points_selector
-        if isinstance(points_selector, dict):
-            if "points" in points_selector:
-                return list(points_selector["points"])
-            if "ids" in points_selector:
-                return list(points_selector["ids"])
-        if hasattr(points_selector, "points"):
-            return list(cast(Any, points_selector).points)
-        return None
+    def _delete_selector(selector: Any) -> Tuple[Optional[List[str]], Any]:
+        if isinstance(selector, list):
+            return point_ids_to_doc_ids(selector, "delete"), None
+        if isinstance(selector, BaseModel):
+            selector = {key: value for key, value in selector if value is not None}
+        if not isinstance(selector, dict):
+            raise QdrantCompatValidationError("delete requires point IDs or a Qdrant filter selector")
 
-    @staticmethod
-    def _filter_from_selector(points_selector: Optional[Any]) -> Optional[Any]:
-        if isinstance(points_selector, dict) and "filter" in points_selector:
-            return points_selector["filter"]
-        if isinstance(points_selector, dict) and any(key in points_selector for key in ("must", "should", "must_not")):
-            return points_selector
-        if hasattr(points_selector, "filter"):
-            return cast(Any, points_selector).filter
-        if any(hasattr(points_selector, attr) for attr in ("must", "should", "must_not")):
-            return points_selector
-        return None
+        wrapper_keys = selector.keys() & {"filter", "ids", "points"}
+        if not wrapper_keys:
+            return None, selector
+        if len(selector) != 1:
+            raise QdrantCompatValidationError("delete accepts one point ID or filter selector")
+        if "filter" in wrapper_keys:
+            return None, selector["filter"]
+        return point_ids_to_doc_ids(selector[wrapper_keys.pop()], "delete"), None
 
     @staticmethod
     def _doc_from_list_item(item: Any) -> Mapping[str, Any]:
