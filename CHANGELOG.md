@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Preserve Qdrant filter grouping and negation in query, scroll, and delete.
+  Reject ambiguous or unsupported conditions, including `MatchExcept`, before
+  sending a request. See the [supported Qdrant filters](docs/compatibility/qdrant.md#filter-support).
+
 ## 0.17.0
 
 - Aligned with the public OpenAPI contract 1.3.0, `reference/api/openapi.json`

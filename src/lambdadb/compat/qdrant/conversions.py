@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple, Union
+from uuid import UUID
 
 from lambdadb import models as lambdadb_models
 
@@ -29,6 +30,20 @@ _PAYLOAD_SCHEMA_TYPE_ALIASES = {
 
 PayloadSelector = Union[bool, List[str]]
 VectorSelector = Union[bool, List[str]]
+
+
+def point_ids_to_doc_ids(ids: Any, label: str) -> List[str]:
+    """Validate Qdrant IDs and return their LambdaDB document IDs."""
+    if not isinstance(ids, (list, tuple)) or not ids:
+        raise QdrantCompatValidationError(f"{label} requires a non-empty list of point IDs")
+    for value in ids:
+        if isinstance(value, UUID) or (isinstance(value, str) and value):
+            continue
+        if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value < 2**64:
+            raise QdrantCompatValidationError(
+                f"{label} point IDs must be non-empty strings, UUIDs, or unsigned 64-bit integers"
+            )
+    return [str(value) for value in ids]
 
 
 def vector_field_name(name: Optional[str] = None) -> str:

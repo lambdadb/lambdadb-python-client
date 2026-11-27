@@ -189,17 +189,27 @@ returned vector object while shaping the response.
 
 | Qdrant filter | Status |
 | --- | --- |
-| `Filter.must` | Supported |
-| `Filter.should` | Supported through LambdaDB bool clauses |
-| `Filter.must_not` | Supported |
+| `Filter.must` | All conditions must match |
+| `Filter.should` | At least one condition must match, including when other clauses are present |
+| `Filter.must_not` | None of the conditions may match |
 | `FieldCondition.match=MatchValue` | Supported |
-| `FieldCondition.match=MatchAny` | Supported |
-| `FieldCondition.match=MatchExcept` | Supported |
-| `FieldCondition.range` | Supported |
-| `HasIdCondition` | Supported |
-| `MatchText` | Supported for whitespace-separated text terms through LambdaDB text query strings |
-| Geo filters | Unsupported |
-| Nested object filters | Unsupported |
+| `FieldCondition.match=MatchAny` | At least one value in a non-empty list of strings or integers must match |
+| `FieldCondition.match=MatchExcept` | Unsupported because excluding whole documents would change how arrays and missing fields match |
+| `FieldCondition.range` | One or two bounds on an indexed numeric or datetime field |
+| `HasIdCondition` | At least one point ID in a non-empty list must match |
+| `MatchText` | All whitespace-separated alphanumeric terms must match an indexed scalar text field |
+| `min_should`, geo filters, and nested conditions | Unsupported |
+
+Use indexed field types that match the payload values. String equality and
+membership require keyword fields. Fractional numeric bounds require double
+fields. For datetime fields, pass RFC 3339 strings with up to millisecond
+precision to `models.Range`. Text matches use the LambdaDB field analyzer, so
+use a compatible analyzer when migrating a text index from Qdrant.
+
+Query and scroll accept an empty filter for unfiltered reads. An explicit
+empty `should` list, an unsupported condition, or a field condition combining
+`match` and `range` raises an error before any request is sent. Delete requires
+exactly one ID selector or a supported filter with at least one condition.
 
 ## Unsupported In v1
 

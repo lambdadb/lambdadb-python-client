@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import MethodType, SimpleNamespace
+from uuid import UUID
 
 import pytest
 
@@ -517,6 +518,181 @@ def test_match_text_maps_to_lambdadb_text_filter_terms() -> None:
     }
 
 
+def _run_filter_operation(client, operation, qdrant_filter):
+    if operation == "query_points":
+        return client.query_points("docs", [0.1, 0.2], query_filter=qdrant_filter)
+    if operation == "scroll":
+        return client.scroll("docs", scroll_filter=qdrant_filter)
+    return client.delete("docs", points_selector={"filter": qdrant_filter})
+
+
+@pytest.mark.parametrize("operation", ["query_points", "scroll", "delete"])
+def test_single_exclusion_is_preserved(operation) -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+
+    fake = FakeLambdaDB()
+    _run_filter_operation(
+        QdrantCompatClient(fake),
+        operation,
+        {"must_not": [{"key": "status", "match": {"value": "deleted"}}]},
+    )
+
+    collection = fake.collection("docs")
+    if operation == "query_points":
+        request_filter = collection.queries[0]["query"]["knn"]["filter"]
+    elif operation == "scroll":
+        request_filter = collection.docs.lists[0]["filter_"]
+    else:
+        request_filter = collection.docs.deletes[0]["filter_"]
+    assert request_filter == {
+        "bool": [
+            {"queryString": {"query": "*:*"}, "occur": "filter"},
+            {"queryString": {"query": "status:deleted"}, "occur": "must_not"},
+        ],
+    }
+
+
+def test_qdrant_filter_keeps_each_condition_grouped() -> None:
+    from lambdadb.compat.qdrant import models
+    from lambdadb.compat.qdrant.filters import filter_to_lambdadb
+
+    qdrant_filter = models.Filter(
+        must=[
+            models.FieldCondition(key="tag", match=models.MatchAny(any=["python", "sdk"])),
+            models.HasIdCondition(has_id=[1, 2**64 - 1]),
+        ],
+        should=[
+            models.FieldCondition(key="count", range=models.Range(gt=-1, lte=10)),
+            models.FieldCondition(key="status", match=models.MatchValue(value="public")),
+        ],
+        must_not=[
+            models.FieldCondition(key="body", match=models.MatchText(text="test fixture")),
+        ],
+    )
+
+    assert filter_to_lambdadb(qdrant_filter) == {
+        "bool": [
+            {"bool": [
+                {"queryString": {"query": "tag:python"}, "occur": "should"},
+                {"queryString": {"query": "tag:sdk"}, "occur": "should"},
+            ], "occur": "filter"},
+            {"bool": [
+                {"queryString": {"query": "id:1"}, "occur": "should"},
+                {"queryString": {"query": "id:18446744073709551615"}, "occur": "should"},
+            ], "occur": "filter"},
+            {"bool": [
+                {"queryString": {"query": "count:{-1 TO 10]"}, "occur": "should"},
+                {"queryString": {"query": "status:public"}, "occur": "should"},
+            ], "occur": "filter"},
+            {"bool": [
+                {"queryString": {"query": "body:test"}, "occur": "filter"},
+                {"queryString": {"query": "body:fixture"}, "occur": "filter"},
+            ], "occur": "must_not"},
+        ],
+    }
+
+
+@pytest.mark.parametrize(
+    ("value", "wire_query"),
+    [
+        ("*", 'tag:"*"'),
+        ("OR", 'tag:"OR"'),
+        ('a"b\\c', r'tag:"a\"b\\c"'),
+        (-(2**63), 'tag:"-9223372036854775808"'),
+        (False, "tag:false"),
+    ],
+)
+def test_qdrant_match_values_are_literal(value, wire_query) -> None:
+    from lambdadb.compat.qdrant.filters import filter_to_lambdadb
+
+    qdrant_filter = {"must": [{"key": "tag", "match": {"value": value}}]}
+
+    assert filter_to_lambdadb(qdrant_filter) == {"queryString": {"query": wire_query}}
+
+
+def test_qdrant_filter_accepts_unicode_field_and_datetime_bounds() -> None:
+    from lambdadb.compat.qdrant.filters import filter_to_lambdadb
+
+    qdrant_filter = {
+        "must": [{"key": "메타데이터.timestamp", "range": {"gte": "2026-11-01T00:00:00.001Z"}}],
+    }
+
+    assert filter_to_lambdadb(qdrant_filter) == {
+        "queryString": {"query": '메타데이터.timestamp:["2026-11-01T00:00:00.001Z" TO *]'},
+    }
+
+
+@pytest.mark.parametrize("operation", ["query_points", "scroll", "delete"])
+@pytest.mark.parametrize(
+    "qdrant_filter",
+    [
+        {"must": [{"key": "region", "match": {"value": "west"}, "geo_radius": {"radius": 5}}]},
+        {"must": [{"key": "tag", "match": {"value": "python", "text": "sdk"}}]},
+        {"must": [{"key": "tag", "match": {"value": "python", "prefix": "py"}}]},
+        {"must": [{"key": "count", "match": {"value": 2}, "range": {"gt": 3}}]},
+        {"must": [{"key": "count", "range": {"gt": 2, "gte": 3}}]},
+        {"must": [{"key": "timestamp", "range": {"gt": "2026-11-01T00:00:00.0001Z"}}]},
+        {"must": [{"key": "tag", "match": {"except": ["test"]}}]},
+        {"must_not": [{"key": "tag", "match": {"except": ["test"]}}]},
+        {"must": [{"key": "tag", "match": {"any": []}}]},
+        {"must": [{"key": "body", "match": {"text": "database-vectors"}}]},
+        {"must": [{"has_id": []}]},
+        {"must": [{"has_id": [True]}]},
+        {"must": [{"key": "tag:*", "match": {"value": "python"}}]},
+        {"must": [{"must": [{"has_id": [1]}]}]},
+        {"should": []},
+        {"must": [{"has_id": [1]}], "min_should": {"conditions": [], "min_count": 1}},
+    ],
+)
+def test_invalid_qdrant_filters_fail_before_dispatch(operation, qdrant_filter) -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+    from lambdadb.compat.qdrant.errors import QdrantCompatError
+
+    fake = FakeLambdaDB()
+    with pytest.raises(QdrantCompatError):
+        _run_filter_operation(QdrantCompatClient(fake), operation, qdrant_filter)
+    assert not fake._collections_by_name
+
+
+def test_model_conditions_preserve_unsupported_fields_for_validation() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    class GeoFieldCondition(models.FieldCondition):
+        geo_radius: dict
+
+    qdrant_filter = models.Filter(
+        must=[
+            GeoFieldCondition(
+                key="region",
+                match=models.MatchValue(value="west"),
+                geo_radius={"radius": 5},
+            ),
+        ],
+    )
+    fake = FakeLambdaDB()
+    with pytest.raises(UnsupportedQdrantFeatureError, match="geo_radius"):
+        QdrantCompatClient(fake).delete("docs", filter=qdrant_filter)
+    assert not fake._collections_by_name
+
+
+def test_empty_qdrant_filter_remains_unfiltered_for_reads() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+    from lambdadb.compat.qdrant.errors import UnsupportedQdrantFeatureError
+
+    fake = FakeLambdaDB()
+    client = QdrantCompatClient(fake)
+    client.query_points("docs", [0.1, 0.2], query_filter=models.Filter(must=[], must_not=[]))
+    client.scroll("docs", scroll_filter={})
+    with pytest.raises(UnsupportedQdrantFeatureError, match="delete requires"):
+        client.delete("docs", filter={})
+
+    collection = fake.collection("docs")
+    assert "filter" not in collection.queries[0]["query"]["knn"]
+    assert collection.docs.lists[0]["filter_"] is None
+    assert not collection.docs.deletes
+
+
 def test_payload_and_vector_selectors_map_to_fields_and_response() -> None:
     from lambdadb.compat.qdrant import QdrantCompatClient
 
@@ -659,6 +835,48 @@ def test_delete_by_filter() -> None:
         {"filter_": {"queryString": {"query": "tenant:acme"}}},
         {"filter_": {"queryString": {"query": "status:archived"}}},
     ]
+
+
+def test_qdrant_delete_accepts_typed_uuid_id_selector() -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient, models
+
+    class PointIdsList(models.CompatModel):
+        points: list[UUID]
+        shard_key: str | None = None
+
+    point_id = UUID("119cf4ee-e06a-4872-9e38-e4b5b46e1ebe")
+    fake = FakeLambdaDB()
+    QdrantCompatClient(fake).delete("docs", points_selector=PointIdsList(points=[point_id]))
+
+    assert fake.collection("docs").docs.deletes == [{"ids": [str(point_id)]}]
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"points_selector": {"filter": {}, "ids": [1]}},
+        {"points_selector": {"filter": {"must": [{"has_id": [1]}]}, "shard_key": "tenant-a"}},
+        {"points_selector": {"filter": {}}, "filter": {"must": [{"has_id": [1]}]}},
+        {"points_selector": [1], "filter": {"must": [{"has_id": [2]}]}},
+        {"ids": [1], "shard_key_selector": "tenant-a"},
+        {"filter": {"must": [{"has_id": [1]}]}, "shard_key": "tenant-a"},
+        {"ids": []},
+        {"ids": [""]},
+        {"ids": [None]},
+        {"ids": [True]},
+        {"ids": [1.0]},
+        {"ids": [-1]},
+        {"ids": [2**64]},
+    ],
+)
+def test_delete_rejects_conflicting_or_unsupported_scope(options) -> None:
+    from lambdadb.compat.qdrant import QdrantCompatClient
+    from lambdadb.compat.qdrant.errors import QdrantCompatError
+
+    fake = FakeLambdaDB()
+    with pytest.raises(QdrantCompatError):
+        QdrantCompatClient(fake).delete("docs", **options)
+    assert not fake._collections_by_name
 
 
 def test_filtered_scroll_maps_extended_list_documents() -> None:
