@@ -1,10 +1,17 @@
 # Changelog
 
-## Unreleased
+## 0.17.1
 
-- Preserve Qdrant filter grouping and negation in query, scroll, and delete.
-  Reject ambiguous or unsupported conditions, including `MatchExcept`, before
-  sending a request. See the [supported Qdrant filters](docs/compatibility/qdrant.md#filter-support).
+- Fix Qdrant filters in query, scroll, and delete. A standalone `must_not`
+  excludes matching documents, and `should` requires a match even alongside
+  `must`. Each `MatchAny` or `HasIdCondition` matches any of its values, and
+  `MatchText` requires all of its terms on an indexed scalar text field.
+- Ambiguous or unsupported filters, including `MatchExcept`, empty `should`
+  lists, and mixed match and range conditions, raise an error before sending a
+  request. Delete accepts one ID selector or one supported filter.
+  See the [supported Qdrant filters](docs/compatibility/qdrant.md#filter-support).
+- This release continues to use public OpenAPI 1.3.0 at
+  [`9a1f563b9b53bc29e5278105f8fc8c25a17e0cb8`](https://github.com/lambdadb/docs/blob/9a1f563b9b53bc29e5278105f8fc8c25a17e0cb8/reference/api/openapi.json).
 
 ## 0.17.0
 
